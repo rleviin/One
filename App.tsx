@@ -1,32 +1,44 @@
 import React, { useState } from "react";
-import { SafeAreaView, View, Text, Pressable, StyleSheet } from "react-native";
-import HomeScreen from "./app/index";
+import { SafeAreaView, StyleSheet, Text, View } from "react-native";
+import WelcomePremium from "./src/screens/WelcomePremium";
 
 export default function App() {
-  const [started, setStarted] = useState(false);
+  const [stage, setStage] = useState<"welcome" | "auth">("welcome");
 
-  if (started) return <HomeScreen />;
+  if (stage === "welcome") {
+    return <WelcomePremium onStart={() => setStage("auth")} />;
+  }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.wrap}>
-        <Text style={styles.title}>Dara</Text>
-        <Text style={styles.subtitle}>
-          Прогнозируй риски и управляй своим будущим
-        </Text>
-        <Pressable style={styles.btn} onPress={() => setStarted(true)}>
-          <Text style={styles.btnText}>Начать</Text>
-        </Pressable>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.title}>Auth screen</Text>
+        <Text style={styles.subtitle}>Здесь позже будет регистрация / вход</Text>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#F4F7FB" },
-  wrap: { flex: 1, justifyContent: "center", padding: 24, gap: 14 },
-  title: { fontSize: 40, fontWeight: "800", color: "#0F172A" },
-  subtitle: { fontSize: 17, color: "#334155", lineHeight: 24 },
-  btn: { backgroundColor: "#1D4ED8", borderRadius: 12, paddingVertical: 14, alignItems: "center" },
-  btnText: { color: "#fff", fontSize: 16, fontWeight: "700" }
+  container: {
+    flex: 1,
+    backgroundColor: "#0B1020",
+  },
+  content: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  title: {
+    color: "#fff",
+    fontSize: 28,
+    fontWeight: "700",
+    marginBottom: 10,
+  },
+  subtitle: {
+    color: "rgba(255,255,255,0.72)",
+    fontSize: 16,
+    textAlign: "center",
+  },
 });
