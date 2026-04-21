@@ -1,0 +1,123 @@
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  StyleSheet,
+} from "react-native";
+
+export default function AuthScreen() {
+  const [mode, setMode] = useState<"login" | "signup">("login");
+
+  return (
+    <View style={styles.container}>
+      {/* Card */}
+      <View style={styles.card}>
+        {/* Switch */}
+        <View style={styles.switch}>
+          <Pressable onPress={() => setMode("login")}>
+            <Text style={mode === "login" ? styles.active : styles.inactive}>
+              Log in
+            </Text>
+          </Pressable>
+          <Pressable onPress={() => setMode("signup")}>
+            <Text style={mode === "signup" ? styles.active : styles.inactive}>
+              Sign up
+            </Text>
+          </Pressable>
+        </View>
+
+        {/* Title */}
+        <Text style={styles.title}>
+          {mode === "login" ? "Welcome back" : "Create your account"}
+        </Text>
+
+        {/* Inputs */}
+        {mode === "signup" && (
+          <TextInput placeholder="Full name" style={styles.input} />
+        )}
+
+        <TextInput placeholder="Email" style={styles.input} />
+
+        <TextInput
+          placeholder="Password"
+          secureTextEntry
+          style={styles.input}
+        />
+
+        {/* CTA */}
+        <Pressable style={styles.button}>
+          <Text style={styles.buttonText}>
+            {mode === "login" ? "Log in" : "Create account"}
+          </Text>
+        </Pressable>
+
+        {/* Footer */}
+        {mode === "login" && (
+          <Text style={styles.footer}>Forgot password?</Text>
+        )}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F4F4F5",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+  },
+  card: {
+    width: "100%",
+    backgroundColor: "#fff",
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 20,
+    elevation: 5,
+  },
+  switch: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  active: {
+    fontWeight: "700",
+    fontSize: 16,
+  },
+  inactive: {
+    color: "#aaa",
+    fontSize: 16,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "700",
+    marginBottom: 16,
+  },
+  input: {
+    backgroundColor: "#F1F5F9",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+  },
+  button: {
+    backgroundColor: "#111827",
+    padding: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "700",
+  },
+  footer: {
+    marginTop: 12,
+    textAlign: "center",
+    color: "#666",
+  },
+});
