@@ -10,8 +10,8 @@ import {
 } from "react-native";
 
 type RiskLevel = "low" | "medium" | "high";
-type Screen = "onboarding" | "auth" | "home";
-
+type Screen = "onboarding" | "auth" | "app";
+type Tab = "home" | "forecast" | "insights" | "profile";
 type HomeData = {
   hero: string;
   sub: string;
@@ -172,152 +172,331 @@ function AuthScreen({ onDone }: { onDone: () => void }) {
   );
 }
 
-function HomeScreen() {
+function HomeTab() {
   const [risk, setRisk] = useState<RiskLevel>("medium");
 
-  const data = useMemo<HomeData>(() => {
+  const data = useMemo<HomeData & { consequence: string[] }>(() => {
     if (risk === "low") {
       return {
         hero: "Your system is stable",
-        sub: "Current patterns support balance. Maintain your rhythm.",
+        sub: "You are within safe limits. Keep the rhythm.",
         why: [
           "Sleep consistency is stable",
-          "Workload is within limits",
+          "Workload is under control",
           "Recovery is sufficient",
         ],
         context: "No major external pressure signals detected right now.",
         actions: [
-          "Keep your routine consistent",
-          "Maintain current activity level",
+          "Keep your current routine",
+          "Protect recovery time",
           "Avoid unnecessary overload",
+        ],
+        consequence: [
+          "Low risk of fatigue",
+          "Stable focus window",
+          "Good recovery capacity",
         ],
       };
     }
 
     if (risk === "high") {
       return {
-        hero: "You are pushing beyond sustainable limits",
-        sub: "If nothing changes, fatigue is highly likely.",
+        hero: "You are moving toward overload",
+        sub: "If nothing changes, fatigue is not a possibility — it is the likely outcome.",
         why: [
-          "Sleep quality dropped significantly",
+          "Sleep quality dropped",
           "Workload increased beyond recovery",
           "Stress signals are accumulating",
         ],
-        context: "External pressure is increasing, including inflation and workload instability.",
+        context:
+          "External pressure is rising: workload instability, inflation, and financial stress can amplify the risk.",
         actions: [
           "Stop non-essential tasks today",
-          "Prioritize recovery over output",
           "Reduce cognitive load immediately",
+          "Prioritize recovery over output",
+        ],
+        consequence: [
+          "Performance drop",
+          "Mood instability",
+          "Higher burnout probability",
         ],
       };
     }
 
     return {
-      hero: "Your current pace may lead to fatigue",
-      sub: "A small adjustment now will keep your balance stable.",
+      hero: "You are approaching fatigue",
+      sub: "A small correction now prevents a bigger problem later.",
       why: [
         "Sleep slightly decreased",
         "Workload is trending upward",
         "Recovery is not fully compensating",
       ],
-      context: "Financial pressure trends are rising in your environment.",
+      context:
+        "Financial and workload pressure are rising. This can reduce mental bandwidth if ignored.",
       actions: [
-        "Reduce workload slightly",
+        "Reduce load today",
         "Increase hydration and rest",
-        "Add a short recovery activity",
+        "Add one recovery activity",
+      ],
+      consequence: [
+        "Fatigue accumulation",
+        "Lower focus in 5–7 days",
+        "Reduced decision quality",
       ],
     };
   }, [risk]);
 
   return (
-    <SafeAreaView style={styles.homeContainer}>
+    <ScrollView contentContainerStyle={styles.tabContent}>
+      <Text style={styles.homeTitle}>Dara Forecast</Text>
+
+      <View style={styles.segmentWrap}>
+        {(["low", "medium", "high"] as RiskLevel[]).map((level) => (
+          <Pressable
+            key={level}
+            style={[styles.segmentBtn, risk === level && styles.segmentBtnActive]}
+            onPress={() => setRisk(level)}
+          >
+            <Text style={[styles.segmentText, risk === level && styles.segmentTextActive]}>
+              {level}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      <View style={styles.heroForecastCard}>
+        <Text style={styles.heroForecastTitle}>{data.hero}</Text>
+        <Text style={styles.heroForecastSubtitle}>{data.sub}</Text>
+      </View>
+
+      <Text style={styles.sectionTitle}>Why Dara thinks so</Text>
+      <View style={styles.infoCard}>
+        {data.why.map((item, i) => (
+          <Text key={i} style={styles.infoText}>
+            • {item}
+          </Text>
+        ))}
+      </View>
+
+      <Text style={styles.sectionTitle}>If ignored</Text>
+      <View style={styles.infoCard}>
+        {data.consequence.map((item, i) => (
+          <Text key={i} style={styles.infoText}>
+            → {item}
+          </Text>
+        ))}
+      </View>
+
+      <Text style={styles.sectionTitle}>External context</Text>
+      <View style={styles.infoCard}>
+        <Text style={styles.infoText}>{data.context}</Text>
+      </View>
+
+      <Text style={styles.sectionTitle}>Do today</Text>
+      <View style={styles.infoCard}>
+        {data.actions.map((item, i) => (
+          <Text key={i} style={styles.infoText}>
+            • {item}
+          </Text>
+        ))}
+      </View>
+
+      <View style={styles.quickActionsRow}>
+        <Pressable style={styles.quickBtn}>
+          <Text style={styles.quickText}>Recovery</Text>
+        </Pressable>
+        <Pressable style={styles.quickBtn}>
+          <Text style={styles.quickText}>Finance</Text>
+        </Pressable>
+        <Pressable style={styles.quickBtn}>
+          <Text style={styles.quickText}>Reset</Text>
+        </Pressable>
+      </View>
+    </ScrollView>
+  );
+}
+
+function ForecastTab() {
+  return (
+    <ScrollView contentContainerStyle={styles.tabContent}>
+      <Text style={styles.homeTitle}>Forecast</Text>
+
+      <View style={styles.heroForecastCard}>
+        <Text style={styles.heroForecastTitle}>
+          Future pressure map
+        </Text>
+        <Text style={styles.heroForecastSubtitle}>
+          Dara estimates how today’s patterns may evolve over time.
+        </Text>
+      </View>
+
+      <Text style={styles.sectionTitle}>Timeline</Text>
+
+      <View style={styles.infoCard}>
+        <Text style={styles.insightTitle}>7 days</Text>
+        <Text style={styles.infoText}>
+          Energy risk may increase if recovery remains unchanged.
+        </Text>
+      </View>
+
+      <View style={styles.infoCard}>
+        <Text style={styles.insightTitle}>14 days</Text>
+        <Text style={styles.infoText}>
+          Focus quality may decline if workload keeps rising.
+        </Text>
+      </View>
+
+      <View style={styles.infoCard}>
+        <Text style={styles.insightTitle}>30 days</Text>
+        <Text style={styles.infoText}>
+          Financial pressure may become noticeable if spending trend continues.
+        </Text>
+      </View>
+
+      <View style={styles.infoCard}>
+        <Text style={styles.insightTitle}>60 days</Text>
+        <Text style={styles.infoText}>
+          Market changes, inflation or rate shifts may affect long-term stability.
+        </Text>
+      </View>
+
+      <Text style={styles.sectionTitle}>Correction path</Text>
+
+      <View style={styles.infoCard}>
+        <Text style={styles.infoText}>
+          • Improve recovery this week
+        </Text>
+        <Text style={styles.infoText}>
+          • Reduce unnecessary spending
+        </Text>
+        <Text style={styles.infoText}>
+          • Build financial buffer
+        </Text>
+        <Text style={styles.infoText}>
+          • Avoid major commitments until risk is clearer
+        </Text>
+      </View>
+    </ScrollView>
+  );
+}
+
+function InsightsTab() {
+  return (
+    <ScrollView contentContainerStyle={styles.tabContent}>
+      <Text style={styles.homeTitle}>Insights</Text>
+
+      <View style={styles.heroForecastCard}>
+        <Text style={styles.heroForecastTitle}>Patterns detected across multiple areas</Text>
+        <Text style={styles.heroForecastSubtitle}>
+          Dara combines internal signals and external context.
+        </Text>
+      </View>
+
+      <Text style={styles.sectionTitle}>Health</Text>
+      <View style={styles.infoCard}>
+        <Text style={styles.infoText}>• Sleep recovery is uneven</Text>
+        <Text style={styles.infoText}>• Energy stability depends on rest quality</Text>
+        <Text style={styles.infoText}>• Nutrition adjustments may improve resilience</Text>
+      </View>
+
+      <Text style={styles.sectionTitle}>Finance</Text>
+      <View style={styles.infoCard}>
+        <Text style={styles.infoText}>• Spending pressure is rising</Text>
+        <Text style={styles.infoText}>• Local inflation trends may affect stability</Text>
+        <Text style={styles.infoText}>• Building a buffer is recommended</Text>
+      </View>
+
+      <Text style={styles.sectionTitle}>Growth</Text>
+      <View style={styles.infoCard}>
+        <Text style={styles.infoText}>• Consistency matters more than intensity</Text>
+        <Text style={styles.infoText}>• Learning and routine upgrades compound over time</Text>
+      </View>
+    </ScrollView>
+  );
+}
+
+function ProfileTab() {
+  return (
+    <ScrollView contentContainerStyle={styles.tabContent}>
+      <Text style={styles.homeTitle}>Profile</Text>
+
+      <View style={styles.heroForecastCard}>
+        <Text style={styles.heroForecastTitle}>Roman</Text>
+        <Text style={styles.heroForecastSubtitle}>
+          Dara uses your routines, trends and environment to generate guidance.
+        </Text>
+      </View>
+
+      <Text style={styles.sectionTitle}>Connected areas</Text>
+      <View style={styles.infoCard}>
+        <Text style={styles.infoText}>• Sleep and activity</Text>
+        <Text style={styles.infoText}>• Nutrition and recovery</Text>
+        <Text style={styles.infoText}>• Financial stability</Text>
+        <Text style={styles.infoText}>• External market context</Text>
+      </View>
+
+      <Text style={styles.sectionTitle}>Preferences</Text>
+      <View style={styles.infoCard}>
+        <Text style={styles.infoText}>• Tone: balanced and direct</Text>
+        <Text style={styles.infoText}>• Alerts: medium and high priority</Text>
+        <Text style={styles.infoText}>• Focus: discipline, prediction, action</Text>
+      </View>
+    </ScrollView>
+  );
+}
+
+function MainApp() {
+  const [tab, setTab] = useState<Tab>("home");
+
+  return (
+    <SafeAreaView style={styles.mainAppContainer}>
       <View style={styles.homeGlowOne} />
       <View style={styles.homeGlowTwo} />
 
-      <ScrollView contentContainerStyle={styles.homeContent}>
-        <View style={styles.homeHeader}>
-          <View>
-            <Text style={styles.homeEyebrow}>Dara forecast</Text>
-            <Text style={styles.homeWelcome}>Good evening</Text>
-          </View>
-        </View>
+      <View style={styles.mainContent}>
+        {tab === "home" && <HomeTab />}
+        {tab === "forecast" && <ForecastTab />}
+        {tab === "insights" && <InsightsTab />}
+        {tab === "profile" && <ProfileTab />}
+      </View>
 
-        <View style={styles.segmentWrap}>
-          <Pressable
-            style={[styles.segmentBtn, risk === "low" && styles.segmentBtnActive]}
-            onPress={() => setRisk("low")}
-          >
-            <Text
-              style={[
-                styles.segmentText,
-                risk === "low" && styles.segmentTextActive,
-              ]}
-            >
-              Stable
-            </Text>
-          </Pressable>
-
-          <Pressable
-            style={[styles.segmentBtn, risk === "medium" && styles.segmentBtnActive]}
-            onPress={() => setRisk("medium")}
-          >
-            <Text
-              style={[
-                styles.segmentText,
-                risk === "medium" && styles.segmentTextActive,
-              ]}
-            >
-              Attention
-            </Text>
-          </Pressable>
-
-          <Pressable
-            style={[styles.segmentBtn, risk === "high" && styles.segmentBtnActive]}
-            onPress={() => setRisk("high")}
-          >
-            <Text
-              style={[
-                styles.segmentText,
-                risk === "high" && styles.segmentTextActive,
-              ]}
-            >
-              Critical
-            </Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.heroForecastCard}>
-          <Text style={styles.heroForecastTitle}>{data.hero}</Text>
-          <Text style={styles.heroForecastSubtitle}>{data.sub}</Text>
-        </View>
-
-        <Text style={styles.sectionTitle}>Why</Text>
-        <View style={styles.insightCard}>
-          {data.why.map((item, i) => (
-            <Text key={i} style={styles.insightText}>
-              • {item}
-            </Text>
-          ))}
-        </View>
-
-        <Text style={styles.sectionTitle}>Context</Text>
-        <View style={styles.insightCard}>
-          <Text style={styles.insightText}>{data.context}</Text>
-        </View>
-
-        <Text style={styles.sectionTitle}>Today</Text>
-        <View style={styles.focusCard}>
-          {data.actions.map((item, i) => (
-            <Text key={i} style={styles.focusItem}>
-              • {item}
-            </Text>
-          ))}
-        </View>
-
-        <Pressable style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>Adjust my plan</Text>
+      <View style={styles.tabBar}>
+        <Pressable
+          style={[styles.tabBarItem, tab === "home" && styles.tabBarItemActive]}
+          onPress={() => setTab("home")}
+        >
+          <Text style={[styles.tabBarText, tab === "home" && styles.tabBarTextActive]}>
+            Home
+          </Text>
         </Pressable>
-      </ScrollView>
+
+        <Pressable
+         style={[styles.tabBarItem, tab === "forecast" && styles.tabBarItemActive]}
+         onPress={() => setTab("forecast")}
+       >
+         <Text style={[styles.tabBarText, tab === "forecast" && styles.tabBarTextActive]}>
+           Forecast
+         </Text>
+       </Pressable>
+
+        <Pressable
+          style={[styles.tabBarItem, tab === "insights" && styles.tabBarItemActive]}
+          onPress={() => setTab("insights")}
+        >
+          <Text style={[styles.tabBarText, tab === "insights" && styles.tabBarTextActive]}>
+            Insights
+          </Text>
+        </Pressable>
+
+        <Pressable
+          style={[styles.tabBarItem, tab === "profile" && styles.tabBarItemActive]}
+          onPress={() => setTab("profile")}
+        >
+          <Text style={[styles.tabBarText, tab === "profile" && styles.tabBarTextActive]}>
+            Profile
+          </Text>
+        </Pressable>
+      </View>
     </SafeAreaView>
   );
 }
@@ -330,10 +509,10 @@ export default function App() {
   }
 
   if (screen === "auth") {
-    return <AuthScreen onDone={() => setScreen("home")} />;
+    return <AuthScreen onDone={() => setScreen("app")} />;
   }
 
-  return <HomeScreen />;
+  return <MainApp />;
 }
 
 const styles = StyleSheet.create({
@@ -600,9 +779,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  homeContainer: {
+  mainAppContainer: {
     flex: 1,
     backgroundColor: "#060B18",
+  },
+  mainContent: {
+    flex: 1,
   },
   homeGlowOne: {
     position: "absolute",
@@ -622,25 +804,15 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: "rgba(83,213,255,0.08)",
   },
-  homeContent: {
+  tabContent: {
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: 110,
   },
-  homeHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 18,
-  },
-  homeEyebrow: {
-    color: "rgba(255,255,255,0.54)",
-    fontSize: 13,
-    marginBottom: 4,
-  },
-  homeWelcome: {
+  homeTitle: {
     color: "#FFFFFF",
     fontSize: 28,
     fontWeight: "700",
+    marginBottom: 18,
   },
   segmentWrap: {
     flexDirection: "row",
@@ -690,43 +862,60 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 12,
   },
-  insightCard: {
+  infoCard: {
     backgroundColor: "rgba(255,255,255,0.06)",
     borderRadius: 20,
     padding: 18,
     marginBottom: 12,
   },
-  insightTitle: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-  insightText: {
+  infoText: {
     color: "rgba(255,255,255,0.76)",
     fontSize: 14,
     lineHeight: 21,
   },
-  focusCard: {
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 18,
+  quickActionsRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 6,
   },
-  focusItem: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    lineHeight: 24,
-  },
-  primaryButton: {
-    backgroundColor: "#1E40FF",
-    borderRadius: 18,
-    paddingVertical: 16,
+  quickBtn: {
+    flex: 1,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    padding: 14,
+    borderRadius: 14,
     alignItems: "center",
   },
-  primaryButtonText: {
+  quickText: {
     color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "700",
+    fontWeight: "600",
+  },
+  tabBar: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    bottom: 16,
+    flexDirection: "row",
+    backgroundColor: "rgba(14,20,39,0.96)",
+    borderRadius: 22,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.06)",
+  },
+  tabBarItem: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 16,
+    alignItems: "center",
+  },
+  tabBarItemActive: {
+    backgroundColor: "rgba(255,255,255,0.12)",
+  },
+  tabBarText: {
+    color: "rgba(255,255,255,0.62)",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  tabBarTextActive: {
+    color: "#FFFFFF",
   },
 });
