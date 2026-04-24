@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -7,11 +7,18 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
+  Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 type RiskLevel = "low" | "medium" | "high";
 type Screen = "onboarding" | "auth" | "app";
 type Tab = "home" | "forecast" | "insights" | "profile";
+type UserSignals = {
+  sleepHours: number;
+  workload: number;
+  recovery: number;
+  spendingPressure: number;
+};
 type HomeData = {
   hero: string;
   sub: string;
@@ -19,6 +26,18 @@ type HomeData = {
   context: string;
   actions: string[];
 };
+
+function calculateRisk(signals: UserSignals): RiskLevel {
+  const score =
+    (8 - signals.sleepHours) * 1.2 +
+    signals.workload * 1.1 -
+    signals.recovery * 0.9 +
+    signals.spendingPressure * 0.8;
+
+  if (score >= 10) return "high";
+  if (score >= 5) return "medium";
+  return "low";
+}
 
 function OnboardingScreen({ onDone }: { onDone: () => void }) {
   return (
@@ -173,8 +192,31 @@ function AuthScreen({ onDone }: { onDone: () => void }) {
 }
 
 function HomeTab() {
-  const [risk, setRisk] = useState<RiskLevel>("medium");
+  const [signals, setSignals] = useState<UserSignals>({
+  sleepHours: 6.2,
+  workload: 7,
+  recovery: 4,
+  spendingPressure: 6,
+});
 
+const risk = calculateRisk(signals);
+const riskColor =
+  risk === "high"
+    ? "#FF6B6B"
+    : risk === "medium"
+    ? "#FFD166"
+    : "#4ADE80";
+const fade = useRef(new Animated.Value(1)).current;
+
+useEffect(() => {
+  fade.setValue(0.6);
+
+  Animated.timing(fade, {
+    toValue: 1,
+    duration: 250,
+    useNativeDriver: true,
+  }).start();
+}, [risk, fade]);
   const data = useMemo<HomeData & { consequence: string[] }>(() => {
     if (risk === "low") {
       return {
@@ -248,24 +290,35 @@ function HomeTab() {
 
   return (
     <ScrollView contentContainerStyle={styles.tabContent}>
+<Animated.View style={{ opacity: fade }}>
       <Text style={styles.homeTitle}>Dara Forecast</Text>
 
-      <View style={styles.segmentWrap}>
-        {(["low", "medium", "high"] as RiskLevel[]).map((level) => (
-          <Pressable
-            key={level}
-            style={[styles.segmentBtn, risk === level && styles.segmentBtnActive]}
-            onPress={() => setRisk(level)}
-          >
-            <Text style={[styles.segmentText, risk === level && styles.segmentTextActive]}>
-              {level}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+      <View style={styles.signalGrid}>
+  <View style={styles.signalCard}>
+    <Text style={styles.signalLabel}>Sleep</Text>
+    <Text style={styles.signalValue}>{signals.sleepHours}h</Text>
+  </View>
+
+  <View style={styles.signalCard}>
+    <Text style={styles.signalLabel}>Workload</Text>
+    <Text style={styles.signalValue}>{signals.workload}/10</Text>
+  </View>
+
+  <View style={styles.signalCard}>
+    <Text style={styles.signalLabel}>Recovery</Text>
+    <Text style={styles.signalValue}>{signals.recovery}/10</Text>
+  </View>
+
+  <View style={styles.signalCard}>
+    <Text style={styles.signalLabel}>Finance</Text>
+    <Text style={styles.signalValue}>{signals.spendingPressure}/10</Text>
+  </View>
+</View>
 
       <View style={styles.heroForecastCard}>
-        <Text style={styles.heroForecastTitle}>{data.hero}</Text>
+        <Text style={[styles.heroForecastTitle, { color: riskColor }]}>
+          {data.hero}
+        </Text>
         <Text style={styles.heroForecastSubtitle}>{data.sub}</Text>
       </View>
 
@@ -301,17 +354,47 @@ function HomeTab() {
         ))}
       </View>
 
-      <View style={styles.quickActionsRow}>
-        <Pressable style={styles.quickBtn}>
-          <Text style={styles.quickText}>Recovery</Text>
-        </Pressable>
-        <Pressable style={styles.quickBtn}>
-          <Text style={styles.quickText}>Finance</Text>
-        </Pressable>
-        <Pressable style={styles.quickBtn}>
-          <Text style={styles.quickText}>Reset</Text>
-        </Pressable>
-      </View>
+<View style={styles.quickActionsRow}>
+  <Pressable
+  style={styles.quickBtn}
+  onPress={() =>
+    setSignals((prev) => ({
+      ...prev,
+      recovery: Math.min(prev.recovery + 2, 10),
+      workload: Math.max(prev.workload - 1, 0),
+    }))
+  }
+>
+  <Text style={styles.quickText}>Recovery</Text>
+</Pressable>  
+<Pressable
+  style={styles.quickBtn}
+  onPress={() =>
+    setSignals((prev) => ({
+      ...prev,
+      spendingPressure: Math.max(prev.spendingPressure - 1, 0),
+    }))
+  }
+>
+  <Text style={styles.quickText}>Finance</Text>
+</Pressable>
+
+<Pressable
+  style={styles.quickBtn}
+  onPress={() =>
+    setSignals({
+      sleepHours: 7,
+      workload: 5,
+      recovery: 6,
+      spendingPressure: 5,
+    })
+  }
+>
+  <Text style={styles.quickText}>Reset</Text>
+</Pressable>
+</View>
+
+      </Animated.View>
     </ScrollView>
   );
 }
@@ -936,7 +1019,34 @@ tabBarItem: {
     fontSize: 13,
     fontWeight: "600",
   },
-  tabBarTextActive: {
+  
+  color: "#FFFFFF",tabBarTextActive: {
     color: "#FFFFFF",
   },
+
+  signalGrid: {
+  flexDirection: "row",
+  flexWrap: "wrap",
+  gap: 10,
+  marginBottom: 18,
+},
+
+signalCard: {
+  width: "48%",
+  backgroundColor: "rgba(255,255,255,0.07)",
+  borderRadius: 18,
+  padding: 14,
+},
+
+signalLabel: {
+  color: "rgba(255,255,255,0.58)",
+  fontSize: 12,
+  marginBottom: 6,
+},
+
+signalValue: {
+  color: "#FFFFFF",
+  fontSize: 22,
+  fontWeight: "700",
+},
 });
