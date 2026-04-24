@@ -8,7 +8,7 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
-
+import { Ionicons } from "@expo/vector-icons";
 type RiskLevel = "low" | "medium" | "high";
 type Screen = "onboarding" | "auth" | "app";
 type Tab = "home" | "forecast" | "insights" | "profile";
@@ -459,44 +459,64 @@ function MainApp() {
         {tab === "insights" && <InsightsTab />}
         {tab === "profile" && <ProfileTab />}
       </View>
+<View style={styles.tabBar}>
+  <Pressable
+    style={[styles.tabBarItem, tab === "home" && styles.tabBarItemActive]}
+    onPress={() => setTab("home")}
+  >
+    <Ionicons
+      name={tab === "home" ? "home" : "home-outline"}
+      size={20}
+      color={tab === "home" ? "#FFFFFF" : "rgba(255,255,255,0.62)"}
+    />
+    <Text style={[styles.tabBarText, tab === "home" && styles.tabBarTextActive]}>
+      Home
+    </Text>
+  </Pressable>
 
-      <View style={styles.tabBar}>
-        <Pressable
-          style={[styles.tabBarItem, tab === "home" && styles.tabBarItemActive]}
-          onPress={() => setTab("home")}
-        >
-          <Text style={[styles.tabBarText, tab === "home" && styles.tabBarTextActive]}>
-            Home
-          </Text>
-        </Pressable>
+  <Pressable
+    style={[styles.tabBarItem, tab === "forecast" && styles.tabBarItemActive]}
+    onPress={() => setTab("forecast")}
+  >
+    <Ionicons
+      name={tab === "forecast" ? "analytics" : "analytics-outline"}
+      size={20}
+      color={tab === "forecast" ? "#FFFFFF" : "rgba(255,255,255,0.62)"}
+    />
+    <Text style={[styles.tabBarText, tab === "forecast" && styles.tabBarTextActive]}>
+      Forecast
+    </Text>
+  </Pressable>
 
-        <Pressable
-         style={[styles.tabBarItem, tab === "forecast" && styles.tabBarItemActive]}
-         onPress={() => setTab("forecast")}
-       >
-         <Text style={[styles.tabBarText, tab === "forecast" && styles.tabBarTextActive]}>
-           Forecast
-         </Text>
-       </Pressable>
+  <Pressable
+    style={[styles.tabBarItem, tab === "insights" && styles.tabBarItemActive]}
+    onPress={() => setTab("insights")}
+  >
+    <Ionicons
+      name={tab === "insights" ? "bulb" : "bulb-outline"}
+      size={20}
+      color={tab === "insights" ? "#FFFFFF" : "rgba(255,255,255,0.62)"}
+    />
+    <Text style={[styles.tabBarText, tab === "insights" && styles.tabBarTextActive]}>
+      Insights
+    </Text>
+  </Pressable>
 
-        <Pressable
-          style={[styles.tabBarItem, tab === "insights" && styles.tabBarItemActive]}
-          onPress={() => setTab("insights")}
-        >
-          <Text style={[styles.tabBarText, tab === "insights" && styles.tabBarTextActive]}>
-            Insights
-          </Text>
-        </Pressable>
+  <Pressable
+    style={[styles.tabBarItem, tab === "profile" && styles.tabBarItemActive]}
+    onPress={() => setTab("profile")}
+  >
+    <Ionicons
+      name={tab === "profile" ? "person" : "person-outline"}
+      size={20}
+      color={tab === "profile" ? "#FFFFFF" : "rgba(255,255,255,0.62)"}
+    />
+    <Text style={[styles.tabBarText, tab === "profile" && styles.tabBarTextActive]}>
+      Profile
+    </Text>
+  </Pressable>
+</View>
 
-        <Pressable
-          style={[styles.tabBarItem, tab === "profile" && styles.tabBarItemActive]}
-          onPress={() => setTab("profile")}
-        >
-          <Text style={[styles.tabBarText, tab === "profile" && styles.tabBarTextActive]}>
-            Profile
-          </Text>
-        </Pressable>
-      </View>
     </SafeAreaView>
   );
 }
@@ -901,12 +921,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.06)",
   },
-  tabBarItem: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 16,
-    alignItems: "center",
-  },
+tabBarItem: {
+  flex: 1,
+  paddingVertical: 8,
+  borderRadius: 16,
+  alignItems: "center",
+  gap: 3,
+},
   tabBarItemActive: {
     backgroundColor: "rgba(255,255,255,0.12)",
   },
