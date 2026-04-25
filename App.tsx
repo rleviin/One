@@ -26,7 +26,12 @@ type HomeData = {
   context: string;
   actions: string[];
 };
-
+type MetricCardProps = {
+  label: string;
+  value: string;
+  hint: string;
+  tone: "blue" | "green" | "amber" | "red" | "purple";
+};
 function calculateRisk(signals: UserSignals): RiskLevel {
   const score =
     (8 - signals.sleepHours) * 1.2 +
@@ -37,6 +42,30 @@ function calculateRisk(signals: UserSignals): RiskLevel {
   if (score >= 10) return "high";
   if (score >= 5) return "medium";
   return "low";
+}
+
+function MetricCard({ label, value, hint, tone }: MetricCardProps) {
+  return (
+    <View style={[styles.metricCard, styles[`metricCard_${tone}`]]}>
+      <View style={styles.metricGlow} />
+
+      <Text style={styles.metricLabel}>{label}</Text>
+      <Text style={styles.metricValue}>{value}</Text>
+      <Text style={styles.metricHint}>{hint}</Text>
+
+      <View style={styles.metricDots}>
+        {Array.from({ length: 13 }).map((_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.metricDot,
+              index === 8 && styles.metricDotActive,
+            ]}
+          />
+        ))}
+      </View>
+    </View>
+  );
 }
 
 function OnboardingScreen({ onDone }: { onDone: () => void }) {
@@ -294,25 +323,34 @@ useEffect(() => {
       <Text style={styles.homeTitle}>Dara Forecast</Text>
 
       <View style={styles.signalGrid}>
-  <View style={styles.signalCard}>
-    <Text style={styles.signalLabel}>Sleep</Text>
-    <Text style={styles.signalValue}>{signals.sleepHours}h</Text>
-  </View>
+<View style={styles.metricGrid}>
+  <MetricCard
+    label="Sleep"
+    value={`${signals.sleepHours}h`}
+    hint={signals.sleepHours < 6.5 ? "Below optimal" : "Stable rhythm"}
+    tone={signals.sleepHours < 6.5 ? "amber" : "green"}
+  />
 
-  <View style={styles.signalCard}>
-    <Text style={styles.signalLabel}>Workload</Text>
-    <Text style={styles.signalValue}>{signals.workload}/10</Text>
-  </View>
+  <MetricCard
+    label="Workload"
+    value={`${signals.workload}/10`}
+    hint={signals.workload > 7 ? "Pressure rising" : "Under control"}
+    tone={signals.workload > 7 ? "red" : signals.workload > 5 ? "amber" : "green"}
+  />
 
-  <View style={styles.signalCard}>
-    <Text style={styles.signalLabel}>Recovery</Text>
-    <Text style={styles.signalValue}>{signals.recovery}/10</Text>
-  </View>
+  <MetricCard
+    label="Recovery"
+    value={`${signals.recovery}/10`}
+    hint={signals.recovery < 5 ? "Needs attention" : "Enough buffer"}
+    tone={signals.recovery < 5 ? "red" : signals.recovery < 7 ? "amber" : "green"}
+  />
 
-  <View style={styles.signalCard}>
-    <Text style={styles.signalLabel}>Finance</Text>
-    <Text style={styles.signalValue}>{signals.spendingPressure}/10</Text>
-  </View>
+  <MetricCard
+    label="Finance"
+    value={`${signals.spendingPressure}/10`}
+    hint={signals.spendingPressure > 6 ? "Pressure visible" : "Stable"}
+    tone={signals.spendingPressure > 6 ? "red" : signals.spendingPressure > 4 ? "amber" : "blue"}
+  />
 </View>
 
       <View style={styles.heroForecastCard}>
@@ -356,44 +394,45 @@ useEffect(() => {
 
 <View style={styles.quickActionsRow}>
   <Pressable
-  style={styles.quickBtn}
-  onPress={() =>
-    setSignals((prev) => ({
-      ...prev,
-      recovery: Math.min(prev.recovery + 2, 10),
-      workload: Math.max(prev.workload - 1, 0),
-    }))
-  }
->
-  <Text style={styles.quickText}>Recovery</Text>
-</Pressable>  
-<Pressable
-  style={styles.quickBtn}
-  onPress={() =>
-    setSignals((prev) => ({
-      ...prev,
-      spendingPressure: Math.max(prev.spendingPressure - 1, 0),
-    }))
-  }
->
-  <Text style={styles.quickText}>Finance</Text>
-</Pressable>
+    style={styles.quickBtn}
+    onPress={() =>
+      setSignals((prev) => ({
+        ...prev,
+        recovery: Math.min(prev.recovery + 2, 10),
+        workload: Math.max(prev.workload - 1, 0),
+      }))
+    }
+  >
+    <Text style={styles.quickText}>Recovery</Text>
+  </Pressable>
 
-<Pressable
-  style={styles.quickBtn}
-  onPress={() =>
-    setSignals({
-      sleepHours: 7,
-      workload: 5,
-      recovery: 6,
-      spendingPressure: 5,
-    })
-  }
->
-  <Text style={styles.quickText}>Reset</Text>
-</Pressable>
+  <Pressable
+    style={styles.quickBtn}
+    onPress={() =>
+      setSignals((prev) => ({
+        ...prev,
+        spendingPressure: Math.max(prev.spendingPressure - 1, 0),
+      }))
+    }
+  >
+    <Text style={styles.quickText}>Finance</Text>
+  </Pressable>
+
+  <Pressable
+    style={styles.quickBtn}
+    onPress={() =>
+      setSignals({
+        sleepHours: 7,
+        workload: 5,
+        recovery: 6,
+        spendingPressure: 5,
+      })
+    }
+  >
+    <Text style={styles.quickText}>Reset</Text>
+  </Pressable>
 </View>
-
+</View>
       </Animated.View>
     </ScrollView>
   );
@@ -976,22 +1015,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
   },
-  quickActionsRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginTop: 6,
-  },
-  quickBtn: {
-    flex: 1,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    padding: 14,
-    borderRadius: 14,
-    alignItems: "center",
-  },
-  quickText: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-  },
+quickActionsRow: {
+  width: "100%",
+  flexDirection: "row",
+  gap: 10,
+  marginTop: 18,
+  marginBottom: 96,
+},
+
+quickBtn: {
+  flex: 1,
+  minHeight: 56,
+  backgroundColor: "rgba(255,255,255,0.10)",
+  borderRadius: 18,
+  alignItems: "center",
+  justifyContent: "center",
+  paddingHorizontal: 8,
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.06)",
+},
+
+quickText: {
+  color: "#FFFFFF",
+  fontSize: 14,
+  fontWeight: "700",
+  textAlign: "center",
+},
   tabBar: {
     position: "absolute",
     left: 16,
@@ -1048,5 +1097,94 @@ signalValue: {
   color: "#FFFFFF",
   fontSize: 22,
   fontWeight: "700",
+},
+
+metricGrid: {
+  flexDirection: "row",
+  flexWrap: "wrap",
+  gap: 12,
+  marginBottom: 18,
+},
+
+metricCard: {
+  width: "48%",
+  minHeight: 150,
+  borderRadius: 30,
+  padding: 18,
+  overflow: "hidden",
+  backgroundColor: "rgba(255,255,255,0.075)",
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.08)",
+},
+
+metricCard_blue: {
+  backgroundColor: "rgba(38, 70, 160, 0.32)",
+},
+
+metricCard_green: {
+  backgroundColor: "rgba(36, 120, 86, 0.26)",
+},
+
+metricCard_amber: {
+  backgroundColor: "rgba(210, 125, 42, 0.30)",
+},
+
+metricCard_red: {
+  backgroundColor: "rgba(210, 64, 64, 0.30)",
+},
+
+metricCard_purple: {
+  backgroundColor: "rgba(142, 75, 214, 0.30)",
+},
+
+metricGlow: {
+  position: "absolute",
+  left: -20,
+  right: -20,
+  bottom: -42,
+  height: 92,
+  borderRadius: 999,
+  backgroundColor: "rgba(255,255,255,0.16)",
+},
+
+metricLabel: {
+  color: "rgba(255,255,255,0.72)",
+  fontSize: 15,
+  fontWeight: "600",
+  marginBottom: 10,
+},
+
+metricValue: {
+  color: "#FFFFFF",
+  fontSize: 34,
+  lineHeight: 40,
+  fontWeight: "800",
+  marginBottom: 8,
+},
+
+metricHint: {
+  color: "rgba(255,255,255,0.68)",
+  fontSize: 12,
+  lineHeight: 16,
+  minHeight: 32,
+},
+
+metricDots: {
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 5,
+  marginTop: "auto",
+},
+
+metricDot: {
+  width: 4,
+  height: 4,
+  borderRadius: 999,
+  backgroundColor: "rgba(255,255,255,0.36)",
+},
+
+metricDotActive: {
+  width: 16,
+  backgroundColor: "#FFFFFF",
 },
 });
