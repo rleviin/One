@@ -1,4 +1,6 @@
 import AuthScreen from "./src/screens/AuthScreen";
+import OnboardingScreen from "./src/screens/OnboardingScreen";
+import ExplanationScreen from "./src/screens/ExplanationScreen";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   SafeAreaView,
@@ -67,134 +69,9 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 const IS_COMPACT_HOME = SCREEN_HEIGHT < 760;
 const HOME_CARD_WIDTH = SCREEN_WIDTH - 88;
 
-function OnboardingScreen({ onDone }) {
-  return (
-    <ImageBackground
-      source={require("./assets/onboarding-bg_0.png")}
-      style={styles.screenBackgroundImage}
-      imageStyle={styles.screenBackgroundImageInner}
-      resizeMode="cover"
-    >
-      
-      <View style={styles.darkImageOverlay} />
 
-      <SafeAreaView style={styles.welcomeContainer}>
-      <View style={styles.welcomeContent}>
 
-<Text style={styles.welcomeBrand}>DARA AI</Text>
 
-<Text style={styles.welcomeTitle}>
-  Hi, I'm Dara.{"\n"}I don't just track —{"\n"}I predict and guide.
-</Text>
-
-<Text style={styles.welcomeSubtitle}>
-  I connect signals from your sleep, activity, recovery, finances and
-  environment to show what may happen next — and what to do today.
-</Text>
-
-        <View style={styles.welcomePreviewCard}>
-          <View style={styles.welcomePreviewTop}>
-            <Text style={styles.welcomePreviewLabel}>Active signal</Text>
-            <View style={styles.welcomePreviewBadge}>
-              <Text style={styles.welcomePreviewBadgeText}>Forecast</Text>
-            </View>
-          </View>
-
-          <Text style={styles.welcomePreviewTitle}>
-            Your balance is starting to shift
-          </Text>
-
-          <Text style={styles.welcomePreviewText}>
-            Dara explains why, what may happen, and what to do today.
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.welcomeFooter}>
-        <Pressable style={styles.welcomeButton} onPress={onDone}>
-          <Text style={styles.welcomeButtonText}>Continue</Text>
-        </Pressable>
-
-        <Text style={styles.welcomeFootnote}>
-          Built to turn scattered signals into clear guidance.
-        </Text>
-      </View>
-    </SafeAreaView>
-  </ImageBackground>
-  );
-}
-
-function ExplanationScreen({ onDone }: { onDone: () => void }) {
-  return (
-    <ImageBackground
-      source={require("./assets/onboarding-bg.png")}
-      style={styles.screenBackgroundImage}
-      imageStyle={styles.screenBackgroundImageInner}
-    >
-      <View style={styles.darkImageOverlay} />
-
-      <SafeAreaView style={styles.explainContainer}>
-
-      <View style={styles.explainContent}>
-        <Text style={styles.explainBrand}>HOW DARA WORKS</Text>
-
-        <Text style={styles.explainTitle}>
-          Dara connects the dots before they become problems.
-        </Text>
-
-        <View style={styles.explainCards}>
-          <View style={styles.explainCard}>
-            <View style={styles.explainIcon}>
-              <Ionicons name="analytics-outline" size={20} color="#FFFFFF" />
-            </View>
-            <View style={styles.explainTextBlock}>
-              <Text style={styles.explainCardTitle}>Reads your signals</Text>
-              <Text style={styles.explainCardText}>
-                Sleep, activity, recovery, finances and environment become one clear picture.
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.explainCard}>
-            <View style={styles.explainIconPurple}>
-              <Ionicons name="git-branch-outline" size={20} color="#FFFFFF" />
-            </View>
-            <View style={styles.explainTextBlock}>
-              <Text style={styles.explainCardTitle}>Finds hidden patterns</Text>
-              <Text style={styles.explainCardText}>
-                Dara looks for combinations that are easy to miss, like poor sleep plus rising workload.
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.explainCard}>
-            <View style={styles.explainIconAmber}>
-              <Ionicons name="compass-outline" size={20} color="#FFFFFF" />
-            </View>
-            <View style={styles.explainTextBlock}>
-              <Text style={styles.explainCardTitle}>Guides your next move</Text>
-              <Text style={styles.explainCardText}>
-                It explains why it thinks so and suggests small actions for today.
-              </Text>
-            </View>
-          </View>
-        </View>
-
-      </View>
-
-      <View style={styles.explainFooter}>
-        <Pressable style={styles.welcomeButton} onPress={onDone}>
-          <Text style={styles.welcomeButtonText}>Continue</Text>
-        </Pressable>
-
-        <Text style={styles.welcomeFootnote}>
-          You stay in control. Dara only guides.
-        </Text>
-      </View>
-    </SafeAreaView>
-  </ImageBackground>
-  );
-}
 
 
 
