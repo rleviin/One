@@ -1,4 +1,7 @@
 import HomeTab from "./src/screens/HomeTab";
+import ForecastTab from "./src/screens/ForecastTab";
+import InsightsTab from "./src/screens/InsightsTab";
+import ProfileTab from "./src/screens/ProfileTab";
 import AuthScreen from "./src/screens/AuthScreen";
 import OnboardingScreen from "./src/screens/OnboardingScreen";
 import ExplanationScreen from "./src/screens/ExplanationScreen";
@@ -77,134 +80,11 @@ const HOME_CARD_WIDTH = SCREEN_WIDTH - 88;
 
 
 
-function ForecastTab() {
-  return (
-      <ScrollView contentContainerStyle={styles.tabContent}>
-      <Text style={styles.homeTitle}>Forecast</Text>
 
-      <View style={styles.heroForecastCard}>
-        <Text style={styles.heroForecastTitle}>
-          Future pressure map
-        </Text>
-        <Text style={styles.heroForecastSubtitle}>
-          Dara estimates how today’s patterns may evolve over time.
-        </Text>
-      </View>
 
-      <Text style={styles.sectionTitle}>Timeline</Text>
 
-      <View style={styles.infoCard}>
-        <Text style={styles.insightTitle}>7 days</Text>
-        <Text style={styles.infoText}>
-          Energy risk may increase if recovery remains unchanged.
-        </Text>
-      </View>
 
-      <View style={styles.infoCard}>
-        <Text style={styles.insightTitle}>14 days</Text>
-        <Text style={styles.infoText}>
-          Focus quality may decline if workload keeps rising.
-        </Text>
-      </View>
 
-      <View style={styles.infoCard}>
-        <Text style={styles.insightTitle}>30 days</Text>
-        <Text style={styles.infoText}>
-          Financial pressure may become noticeable if spending trend continues.
-        </Text>
-      </View>
-
-      <View style={styles.infoCard}>
-        <Text style={styles.insightTitle}>60 days</Text>
-        <Text style={styles.infoText}>
-          Market changes, inflation or rate shifts may affect long-term stability.
-        </Text>
-      </View>
-
-      <Text style={styles.sectionTitle}>Correction path</Text>
-
-      <View style={styles.infoCard}>
-        <Text style={styles.infoText}>
-          • Improve recovery this week
-        </Text>
-        <Text style={styles.infoText}>
-          • Reduce unnecessary spending
-        </Text>
-        <Text style={styles.infoText}>
-          • Build financial buffer
-        </Text>
-        <Text style={styles.infoText}>
-          • Avoid major commitments until risk is clearer
-        </Text>
-      </View>
-    </ScrollView>
-  );
-}
-
-function InsightsTab() {
-  return (
-    <ScrollView contentContainerStyle={styles.tabContent}>
-      <Text style={styles.homeTitle}>Insights</Text>
-
-      <View style={styles.heroForecastCard}>
-        <Text style={styles.heroForecastTitle}>Patterns detected across multiple areas</Text>
-        <Text style={styles.heroForecastSubtitle}>
-          Dara combines internal signals and external context.
-        </Text>
-      </View>
-
-      <Text style={styles.sectionTitle}>Health</Text>
-      <View style={styles.infoCard}>
-        <Text style={styles.infoText}>• Sleep recovery is uneven</Text>
-        <Text style={styles.infoText}>• Energy stability depends on rest quality</Text>
-        <Text style={styles.infoText}>• Nutrition adjustments may improve resilience</Text>
-      </View>
-
-      <Text style={styles.sectionTitle}>Finance</Text>
-      <View style={styles.infoCard}>
-        <Text style={styles.infoText}>• Spending pressure is rising</Text>
-        <Text style={styles.infoText}>• Local inflation trends may affect stability</Text>
-        <Text style={styles.infoText}>• Building a buffer is recommended</Text>
-      </View>
-
-      <Text style={styles.sectionTitle}>Growth</Text>
-      <View style={styles.infoCard}>
-        <Text style={styles.infoText}>• Consistency matters more than intensity</Text>
-        <Text style={styles.infoText}>• Learning and routine upgrades compound over time</Text>
-      </View>
-    </ScrollView>
-  );
-}
-
-function ProfileTab() {
-  return (
-    <ScrollView contentContainerStyle={styles.tabContent}>
-      <Text style={styles.homeTitle}>Profile</Text>
-
-      <View style={styles.heroForecastCard}>
-        <Text style={styles.heroForecastTitle}>Roman</Text>
-        <Text style={styles.heroForecastSubtitle}>
-          Dara uses your routines, trends and environment to generate guidance.
-        </Text>
-      </View>
-
-      <Text style={styles.sectionTitle}>Connected areas</Text>
-      <View style={styles.infoCard}>
-        <Text style={styles.infoText}>• Sleep and activity</Text>
-        <Text style={styles.infoText}>• Nutrition and recovery</Text>
-        <Text style={styles.infoText}>• Financial stability</Text>
-        <Text style={styles.infoText}>• External market context</Text>
-      </View>
-
-      <Text style={styles.sectionTitle}>Preferences</Text>
-      <View style={styles.infoCard}>
-        <Text style={styles.infoText}>• Tone: balanced and direct</Text>
-        <Text style={styles.infoText}>• Alerts: medium and high priority</Text>
-        <Text style={styles.infoText}>• Focus: discipline, prediction, action</Text>
-      </View>
-    </ScrollView>
-  );
-}
 
 function MainApp() {
   const [tab, setTab] = useState<Tab>("home");
