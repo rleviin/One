@@ -1,3 +1,4 @@
+import AuthScreen from "./src/screens/AuthScreen";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   SafeAreaView,
@@ -66,7 +67,7 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 const IS_COMPACT_HOME = SCREEN_HEIGHT < 760;
 const HOME_CARD_WIDTH = SCREEN_WIDTH - 88;
 
-function OnboardingScreen({ onDone }: { onDone: () => void }) {
+function OnboardingScreen({ onDone }) {
   return (
     <ImageBackground
       source={require("./assets/onboarding-bg_0.png")}
@@ -195,166 +196,7 @@ function ExplanationScreen({ onDone }: { onDone: () => void }) {
   );
 }
 
-function AuthScreen({ onDone }: { onDone: () => void }) {
-  const [mode, setMode] = useState<"login" | "signup">("login");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
 
-  return (
-    <ImageBackground
-      source={require("./assets/onboarding-bg_1.png")}
-      style={styles.screenBackgroundImage}
-      imageStyle={styles.screenBackgroundImageInner}
-      resizeMode="cover"
-    >
-      <View style={styles.authImageOverlay} />
-
-      <SafeAreaView style={styles.authContainer}>
-        <View style={styles.authTopBrand}>
-          <Text style={styles.authTopBrandText}>DARA AI</Text>
-        </View>
-
-        <View style={styles.authCard}>
-          <Text style={styles.authTitle}>
-            {mode === "login" ? "Welcome back" : "Create account"}
-          </Text>
-
-          <Text style={styles.authSubtitle}>
-            {mode === "login"
-              ? "Log in to continue your journey with Dara."
-              : "Sign up to start your journey with Dara."}
-          </Text>
-
-          <View style={styles.authSwitch}>
-            <Pressable
-              style={[
-                styles.authSwitchTab,
-                mode === "login" && styles.authSwitchTabActive,
-              ]}
-              onPress={() => setMode("login")}
-            >
-              <Text
-                style={[
-                  styles.authSwitchText,
-                  mode === "login" && styles.authSwitchTextActive,
-                ]}
-              >
-                Log in
-              </Text>
-            </Pressable>
-
-            <Pressable
-              style={[
-                styles.authSwitchTab,
-                mode === "signup" && styles.authSwitchTabActive,
-              ]}
-              onPress={() => setMode("signup")}
-            >
-              <Text
-                style={[
-                  styles.authSwitchText,
-                  mode === "signup" && styles.authSwitchTextActive,
-                ]}
-              >
-                Sign up
-              </Text>
-            </Pressable>
-          </View>
-
-          {mode === "signup" && (
-            <View style={styles.authFieldBlock}>
-              <Text style={styles.authFieldLabel}>NAME</Text>
-              <View style={styles.authInputWrap}>
-                <Ionicons
-                  name="person-outline"
-                  size={20}
-                  color="rgba(255,255,255,0.6)"
-                />
-                <TextInput
-                  value={name}
-                  onChangeText={setName}
-                  placeholder="Your name"
-                  placeholderTextColor="rgba(255,255,255,0.45)"
-                  style={styles.authInput}
-                />
-              </View>
-            </View>
-          )}
-
-          <View style={styles.authFieldBlock}>
-            <Text style={styles.authFieldLabel}>EMAIL</Text>
-            <View style={styles.authInputWrap}>
-              <Ionicons
-                name="mail-outline"
-                size={20}
-                color="rgba(255,255,255,0.6)"
-              />
-              <TextInput
-                value={email}
-                onChangeText={setEmail}
-                placeholder="you@example.com"
-                placeholderTextColor="rgba(255,255,255,0.45)"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                style={styles.authInput}
-              />
-            </View>
-          </View>
-
-          <View style={styles.authFieldBlock}>
-            <Text style={styles.authFieldLabel}>PASSWORD</Text>
-            <View style={styles.authInputWrap}>
-              <Ionicons
-                name="lock-closed-outline"
-                size={20}
-                color="rgba(255,255,255,0.6)"
-              />
-              <TextInput
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Enter your password"
-                placeholderTextColor="rgba(255,255,255,0.45)"
-                secureTextEntry
-                style={styles.authInput}
-              />
-              <Ionicons
-                name="eye-outline"
-                size={20}
-                color="rgba(255,255,255,0.5)"
-              />
-            </View>
-          </View>
-
-          {mode === "login" && (
-            <Pressable>
-              <Text style={styles.authForgot}>Forgot password?</Text>
-            </Pressable>
-          )}
-
-          <Pressable style={styles.authPrimaryButton} onPress={onDone}>
-            <Text style={styles.authPrimaryButtonText}>
-              {mode === "login" ? "Continue" : "Create account"}
-            </Text>
-          </Pressable>
-
-          <View style={styles.authFooterRow}>
-            <View style={styles.authFooterIcon}>
-              <Ionicons
-                name="lock-closed-outline"
-                size={14}
-                color="rgba(255,255,255,0.72)"
-              />
-            </View>
-            <Text style={styles.authFooterText}>
-              Your data is private and secure.
-            </Text>
-          </View>
-        </View>
-      </SafeAreaView>
-    </ImageBackground>
-  );
-}
 
 function HomeTab() {
   const [signals, setSignals] = useState<UserSignals>({
