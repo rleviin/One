@@ -14,40 +14,29 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-type RiskLevel = "low" | "medium" | "high";
-type Screen = "onboarding" | "explanation" | "auth" | "app";
-type Tab = "home" | "forecast" | "insights" | "profile";
+import type {
+  HomeData,
+  MetricCardProps,
+  RiskLevel,
+  Screen,
+  Tab,
+  UserSignals,
+} from "./src/types";
+
+import {
+  calculateRisk,
+  getFinanceRecommendation,
+  getRecoveryRecommendation,
+  getSleepRecommendation,
+  getWorkloadRecommendation,
+} from "./src/logic";
+
 type UserSignals = {
   sleepHours: number;
   workload: number;
   recovery: number;
   spendingPressure: number;
 };
-type HomeData = {
-  hero: string;
-  sub: string;
-  why: string[];
-  context: string;
-  actions: string[];
-  consequence: string[];
-};
-type MetricCardProps = {
-  label: string;
-  value: string;
-  hint: string;
-  tone: "blue" | "green" | "amber" | "red" | "purple";
-};
-function calculateRisk(signals: UserSignals): RiskLevel {
-  const score =
-    (8 - signals.sleepHours) * 1.2 +
-    signals.workload * 1.1 -
-    signals.recovery * 0.9 +
-    signals.spendingPressure * 0.8;
-
-  if (score >= 10) return "high";
-  if (score >= 5) return "medium";
-  return "low";
-}
 
 function MetricCard({ label, value, hint, tone }: MetricCardProps) {
   return (
@@ -76,30 +65,6 @@ const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const IS_COMPACT_HOME = SCREEN_HEIGHT < 760;
 const HOME_CARD_WIDTH = SCREEN_WIDTH - 88;
-function getSleepRecommendation(hours: number) {
-  if (hours < 6) return "Add 1.5–2h tonight";
-  if (hours < 7) return "Aim for 7.5h tonight";
-  if (hours < 8) return "Good range. Keep it stable";
-  return "Sleep is supporting recovery";
-}
-
-function getWorkloadRecommendation(workload: number) {
-  if (workload >= 8) return "Reduce non-essential tasks";
-  if (workload >= 6) return "Keep load under control";
-  return "Workload is manageable";
-}
-
-function getRecoveryRecommendation(recovery: number) {
-  if (recovery <= 4) return "Prioritize recovery today";
-  if (recovery <= 6) return "Add one recovery activity";
-  return "Recovery is compensating well";
-}
-
-function getFinanceRecommendation(pressure: number) {
-  if (pressure >= 7) return "Avoid major commitments";
-  if (pressure >= 5) return "Reduce unnecessary spending";
-  return "Financial pressure is stable";
-}
 
 function OnboardingScreen({ onDone }: { onDone: () => void }) {
   return (
