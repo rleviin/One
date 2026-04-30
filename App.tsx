@@ -10,11 +10,12 @@ import {
   Animated,
   Modal,
   Dimensions,
+  ImageBackground,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 type RiskLevel = "low" | "medium" | "high";
-type Screen = "onboarding" | "auth" | "app";
+type Screen = "onboarding" | "explanation" | "auth" | "app";
 type Tab = "home" | "forecast" | "insights" | "profile";
 type UserSignals = {
   sleepHours: number;
@@ -102,51 +103,130 @@ function getFinanceRecommendation(pressure: number) {
 
 function OnboardingScreen({ onDone }: { onDone: () => void }) {
   return (
-    <SafeAreaView style={styles.onboardingContainer}>
-      <View style={styles.onboardingGlowOne} />
-      <View style={styles.onboardingGlowTwo} />
+    <ImageBackground
+      source={require("./assets/onboarding-bg_0.png")}
+      style={styles.screenBackgroundImage}
+      imageStyle={styles.screenBackgroundImageInner}
+      resizeMode="cover"
+    >
+      
+      <View style={styles.darkImageOverlay} />
 
-      <View style={styles.onboardingTop}>
-      <Text style={styles.brandEyebrow}>Dara AI</Text>
-        <View style={styles.topCardsRow}>
-          <View style={[styles.miniCard, styles.miniCardPurple]}>
-            <Text style={styles.miniCardTitle}>Insight</Text>
-            <Text style={styles.miniCardValue}>89%</Text>
-            <Text style={styles.miniCardText}>Pattern confidence</Text>
+      <SafeAreaView style={styles.welcomeContainer}>
+      <View style={styles.welcomeContent}>
+
+<Text style={styles.welcomeBrand}>DARA AI</Text>
+
+<Text style={styles.welcomeTitle}>
+  Hi, I'm Dara.{"\n"}I don't just track —{"\n"}I predict and guide.
+</Text>
+
+<Text style={styles.welcomeSubtitle}>
+  I connect signals from your sleep, activity, recovery, finances and
+  environment to show what may happen next — and what to do today.
+</Text>
+
+        <View style={styles.welcomePreviewCard}>
+          <View style={styles.welcomePreviewTop}>
+            <Text style={styles.welcomePreviewLabel}>Active signal</Text>
+            <View style={styles.welcomePreviewBadge}>
+              <Text style={styles.welcomePreviewBadgeText}>Forecast</Text>
+            </View>
           </View>
 
-          <View style={[styles.miniCard, styles.miniCardBlue, { marginTop: 18 }]}>
-            <Text style={styles.miniCardTitle}>Jan 25</Text>
-            <Text style={styles.miniCardText}>Next pressure point</Text>
-          </View>
+          <Text style={styles.welcomePreviewTitle}>
+            Your balance is starting to shift
+          </Text>
 
-          <View style={[styles.miniCard, styles.miniCardIndigo]}>
-            <Text style={styles.miniCardTitle}>Balance</Text>
-            <Text style={styles.miniCardText}>Signals becoming clearer</Text>
-          </View>
-        </View>
-
-        <View style={styles.blobWrap}>
-          <View style={styles.blobAura} />
-          <View style={styles.blobOuter}>
-            <View style={styles.blobInner} />
-            <View style={styles.blobCore} />
-          </View>
+          <Text style={styles.welcomePreviewText}>
+            Dara explains why, what may happen, and what to do today.
+          </Text>
         </View>
       </View>
 
-      <View style={styles.onboardingBottom}>
-        <Text style={styles.eyebrow}>Dara</Text>
-        <Text style={styles.onboardingTitle}>Hi, I’m Dara</Text>
-        <Text style={styles.onboardingSubtitle}>
-          I don’t just track — I predict and guide.
-        </Text>
-
-        <Pressable style={styles.heroButton} onPress={onDone}>
-          <Text style={styles.heroButtonText}>Get Started</Text>
+      <View style={styles.welcomeFooter}>
+        <Pressable style={styles.welcomeButton} onPress={onDone}>
+          <Text style={styles.welcomeButtonText}>Continue</Text>
         </Pressable>
+
+        <Text style={styles.welcomeFootnote}>
+          Built to turn scattered signals into clear guidance.
+        </Text>
       </View>
     </SafeAreaView>
+  </ImageBackground>
+  );
+}
+
+function ExplanationScreen({ onDone }: { onDone: () => void }) {
+  return (
+    <ImageBackground
+      source={require("./assets/onboarding-bg.png")}
+      style={styles.screenBackgroundImage}
+      imageStyle={styles.screenBackgroundImageInner}
+    >
+      <View style={styles.darkImageOverlay} />
+
+      <SafeAreaView style={styles.explainContainer}>
+
+      <View style={styles.explainContent}>
+        <Text style={styles.explainBrand}>HOW DARA WORKS</Text>
+
+        <Text style={styles.explainTitle}>
+          Dara connects the dots before they become problems.
+        </Text>
+
+        <View style={styles.explainCards}>
+          <View style={styles.explainCard}>
+            <View style={styles.explainIcon}>
+              <Ionicons name="analytics-outline" size={20} color="#FFFFFF" />
+            </View>
+            <View style={styles.explainTextBlock}>
+              <Text style={styles.explainCardTitle}>Reads your signals</Text>
+              <Text style={styles.explainCardText}>
+                Sleep, activity, recovery, finances and environment become one clear picture.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.explainCard}>
+            <View style={styles.explainIconPurple}>
+              <Ionicons name="git-branch-outline" size={20} color="#FFFFFF" />
+            </View>
+            <View style={styles.explainTextBlock}>
+              <Text style={styles.explainCardTitle}>Finds hidden patterns</Text>
+              <Text style={styles.explainCardText}>
+                Dara looks for combinations that are easy to miss, like poor sleep plus rising workload.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.explainCard}>
+            <View style={styles.explainIconAmber}>
+              <Ionicons name="compass-outline" size={20} color="#FFFFFF" />
+            </View>
+            <View style={styles.explainTextBlock}>
+              <Text style={styles.explainCardTitle}>Guides your next move</Text>
+              <Text style={styles.explainCardText}>
+                It explains why it thinks so and suggests small actions for today.
+              </Text>
+            </View>
+          </View>
+        </View>
+
+      </View>
+
+      <View style={styles.explainFooter}>
+        <Pressable style={styles.welcomeButton} onPress={onDone}>
+          <Text style={styles.welcomeButtonText}>Continue</Text>
+        </Pressable>
+
+        <Text style={styles.welcomeFootnote}>
+          You stay in control. Dara only guides.
+        </Text>
+      </View>
+    </SafeAreaView>
+  </ImageBackground>
   );
 }
 
@@ -157,23 +237,42 @@ function AuthScreen({ onDone }: { onDone: () => void }) {
   const [name, setName] = useState("");
 
   return (
-    <SafeAreaView style={styles.authContainer}>
-      <View style={styles.authBgGlowOne} />
-      <View style={styles.authBgGlowTwo} />
+    <ImageBackground
+      source={require("./assets/onboarding-bg_1.png")}
+      style={styles.screenBackgroundImage}
+      imageStyle={styles.screenBackgroundImageInner}
+      resizeMode="cover"
+    >
+      <View style={styles.authImageOverlay} />
 
-      <View style={styles.authCard}>
-        <View style={styles.headerRow}>
-          <Text style={styles.brand}>Dara</Text>
+      <SafeAreaView style={styles.authContainer}>
+        <View style={styles.authTopBrand}>
+          <Text style={styles.authTopBrandText}>DARA AI</Text>
+        </View>
 
-          <View style={styles.switch}>
+        <View style={styles.authCard}>
+          <Text style={styles.authTitle}>
+            {mode === "login" ? "Welcome back" : "Create account"}
+          </Text>
+
+          <Text style={styles.authSubtitle}>
+            {mode === "login"
+              ? "Log in to continue your journey with Dara."
+              : "Sign up to start your journey with Dara."}
+          </Text>
+
+          <View style={styles.authSwitch}>
             <Pressable
-              style={[styles.switchTab, mode === "login" && styles.switchTabActive]}
+              style={[
+                styles.authSwitchTab,
+                mode === "login" && styles.authSwitchTabActive,
+              ]}
               onPress={() => setMode("login")}
             >
               <Text
                 style={[
-                  styles.switchText,
-                  mode === "login" && styles.switchTextActive,
+                  styles.authSwitchText,
+                  mode === "login" && styles.authSwitchTextActive,
                 ]}
               >
                 Log in
@@ -181,75 +280,114 @@ function AuthScreen({ onDone }: { onDone: () => void }) {
             </Pressable>
 
             <Pressable
-              style={[styles.switchTab, mode === "signup" && styles.switchTabActive]}
+              style={[
+                styles.authSwitchTab,
+                mode === "signup" && styles.authSwitchTabActive,
+              ]}
               onPress={() => setMode("signup")}
             >
               <Text
                 style={[
-                  styles.switchText,
-                  mode === "signup" && styles.switchTextActive,
+                  styles.authSwitchText,
+                  mode === "signup" && styles.authSwitchTextActive,
                 ]}
               >
                 Sign up
               </Text>
             </Pressable>
           </View>
+
+          {mode === "signup" && (
+            <View style={styles.authFieldBlock}>
+              <Text style={styles.authFieldLabel}>NAME</Text>
+              <View style={styles.authInputWrap}>
+                <Ionicons
+                  name="person-outline"
+                  size={20}
+                  color="rgba(255,255,255,0.6)"
+                />
+                <TextInput
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="Your name"
+                  placeholderTextColor="rgba(255,255,255,0.45)"
+                  style={styles.authInput}
+                />
+              </View>
+            </View>
+          )}
+
+          <View style={styles.authFieldBlock}>
+            <Text style={styles.authFieldLabel}>EMAIL</Text>
+            <View style={styles.authInputWrap}>
+              <Ionicons
+                name="mail-outline"
+                size={20}
+                color="rgba(255,255,255,0.6)"
+              />
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                placeholder="you@example.com"
+                placeholderTextColor="rgba(255,255,255,0.45)"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                style={styles.authInput}
+              />
+            </View>
+          </View>
+
+          <View style={styles.authFieldBlock}>
+            <Text style={styles.authFieldLabel}>PASSWORD</Text>
+            <View style={styles.authInputWrap}>
+              <Ionicons
+                name="lock-closed-outline"
+                size={20}
+                color="rgba(255,255,255,0.6)"
+              />
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Enter your password"
+                placeholderTextColor="rgba(255,255,255,0.45)"
+                secureTextEntry
+                style={styles.authInput}
+              />
+              <Ionicons
+                name="eye-outline"
+                size={20}
+                color="rgba(255,255,255,0.5)"
+              />
+            </View>
+          </View>
+
+          {mode === "login" && (
+            <Pressable>
+              <Text style={styles.authForgot}>Forgot password?</Text>
+            </Pressable>
+          )}
+
+          <Pressable style={styles.authPrimaryButton} onPress={onDone}>
+            <Text style={styles.authPrimaryButtonText}>
+              {mode === "login" ? "Continue" : "Create account"}
+            </Text>
+          </Pressable>
+
+          <View style={styles.authFooterRow}>
+            <View style={styles.authFooterIcon}>
+              <Ionicons
+                name="lock-closed-outline"
+                size={14}
+                color="rgba(255,255,255,0.72)"
+              />
+            </View>
+            <Text style={styles.authFooterText}>
+              Your data is private and secure.
+            </Text>
+          </View>
         </View>
-
-        <Text style={styles.authTitle}>
-          {mode === "login" ? "Welcome back" : "Create your account"}
-        </Text>
-
-        <Text style={styles.authSubtitle}>
-          {mode === "login"
-            ? "Log in to continue with Dara"
-            : "Start your journey with Dara"}
-        </Text>
-
-        {mode === "signup" && (
-          <TextInput
-            placeholder="Full name"
-            placeholderTextColor="#8A8A8F"
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
-          />
-        )}
-
-        <TextInput
-          placeholder="Email"
-          placeholderTextColor="#8A8A8F"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-        />
-
-        <TextInput
-          placeholder="Password"
-          placeholderTextColor="#8A8A8F"
-          secureTextEntry
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-        />
-
-        {mode === "login" && (
-          <Text style={styles.helperText}>Forgot password?</Text>
-        )}
-
-        <Pressable style={styles.button} onPress={onDone}>
-          <Text style={styles.buttonText}>
-            {mode === "login" ? "Log in" : "Create account"}
-          </Text>
-        </Pressable>
-
-        <Text style={styles.footerText}>
-          By continuing, you agree to our Terms and Privacy Policy.
-        </Text>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }
 
@@ -516,57 +654,122 @@ return (
         ))}
       </ScrollView>
 
-      <Text style={styles.homeSectionTitle}>Actions</Text>
+<View style={[styles.sectionRow, styles.actionsSectionRow]}>
+  <Text style={styles.homeSectionTitle}>Actions</Text>
+</View>
+<View style={styles.actionGrid}>
+  <Pressable
+    style={[styles.actionCard, styles.actionCardLarge, styles.actionRecovery]}
+    onPress={() =>
+      updateSignals({
+        ...signals,
+        recovery: Math.min(signals.recovery + 2, 10),
+        workload: Math.max(signals.workload - 1, 0),
+      })
+    }
+  >
+    <LinearGradient
+      colors={[
+        "rgba(190,105,255,0.34)",
+        "rgba(190,105,255,0.10)",
+        "rgba(190,105,255,0.00)",
+      ]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.cardGradient}
+    />
 
-      <View style={styles.actionGrid}>
-        <Pressable
-          style={[styles.actionCard, styles.actionCardLarge, styles.actionRecovery]}
-onPress={() =>
-  updateSignals({
-    ...signals,
-    recovery: Math.min(signals.recovery + 2, 10),
-    workload: Math.max(signals.workload - 1, 0),
-  })
-}
-        >
-          <Text style={styles.actionCardTitle}>Recovery</Text>
-          <Text style={styles.actionCardText}>
-            Boost recovery and lower load.
-          </Text>
-        </Pressable>
+    <View style={styles.actionIcon}>
+      <Ionicons name="leaf-outline" size={20} color="#FFFFFF" />
+    </View>
+
+    <View>
+      <Text style={styles.actionCardTitle}>Recovery</Text>
+      <Text style={styles.actionCardText}>
+        Boost recovery and lower load.
+      </Text>
+    </View>
+
+    <View style={styles.actionArrow}>
+      <Ionicons name="chevron-forward" size={18} color="#FFFFFF" />
+    </View>
+  </Pressable>
 
         <View style={styles.actionCardStack}>
-          <Pressable
-            style={[styles.actionCard, styles.actionCardSmall, styles.actionFinance]}
-onPress={() =>
-  updateSignals({
-    ...signals,
-    spendingPressure: Math.max(signals.spendingPressure - 1, 0),
-  })
-}
-          >
-            <Text style={styles.actionCardTitle}>Finance</Text>
-            <Text style={styles.actionCardText}>
-              Reduce external pressure.
-            </Text>
-          </Pressable>
+<Pressable
+  style={[styles.actionCard, styles.actionCardSmall, styles.actionFinance]}
+  onPress={() =>
+    updateSignals({
+      ...signals,
+      spendingPressure: Math.max(signals.spendingPressure - 1, 0),
+    })
+  }
+>
+  <LinearGradient
+    colors={[
+      "rgba(92,220,255,0.30)",
+      "rgba(92,220,255,0.08)",
+      "rgba(92,220,255,0.00)",
+    ]}
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 1 }}
+    style={styles.cardGradient}
+  />
 
-          <Pressable
-          style={[styles.actionCard, styles.actionCardSmall, styles.actionReset]}
-onPress={() =>
-  updateSignals({
-    sleepHours: 7,
-    workload: 5,
-    recovery: 6,
-    spendingPressure: 5,
-  })
-}
-          >
-            <Text style={styles.actionCardTitle}>Reset</Text>
-            <Text style={styles.actionCardText}>
-              Return to baseline.
-            </Text>
-          </Pressable>
+  <View style={styles.actionIconSmall}>
+    <Ionicons name="cash-outline" size={17} color="#FFFFFF" />
+  </View>
+
+  <View>
+    <Text style={styles.actionCardTitle}>Finance</Text>
+    <Text style={styles.actionCardText}>
+      Reduce external pressure.
+    </Text>
+  </View>
+
+  <View style={styles.actionArrowSmall}>
+    <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
+  </View>
+</Pressable>
+
+<Pressable
+  style={[styles.actionCard, styles.actionCardSmall, styles.actionReset]}
+  onPress={() =>
+    updateSignals({
+      sleepHours: 7,
+      workload: 5,
+      recovery: 6,
+      spendingPressure: 5,
+    })
+  }
+>
+  <LinearGradient
+    colors={[
+      "rgba(255,120,70,0.32)",
+      "rgba(255,120,70,0.08)",
+      "rgba(255,120,70,0.00)",
+    ]}
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 1 }}
+    style={styles.cardGradient}
+  />
+
+  <View style={styles.actionIconSmall}>
+    <Ionicons name="refresh-outline" size={17} color="#FFFFFF" />
+  </View>
+
+  <View>
+    <Text style={styles.actionCardTitle}>Reset</Text>
+    <Text style={styles.actionCardText}>
+      Return to baseline.
+    </Text>
+  </View>
+
+  <View style={styles.actionArrowSmall}>
+    <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
+  </View>
+</Pressable>
+
         </View>
       </View>
     </ScrollView>
@@ -838,7 +1041,11 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>("onboarding");
 
   if (screen === "onboarding") {
-    return <OnboardingScreen onDone={() => setScreen("auth")} />;
+    return <OnboardingScreen onDone={() => setScreen("explanation")} />;
+  }
+
+  if (screen === "explanation") {
+    return <ExplanationScreen onDone={() => setScreen("auth")} />;
   }
 
   if (screen === "auth") {
@@ -849,6 +1056,306 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+
+  screenBackgroundImage: {
+  flex: 1,
+  backgroundColor: "#050A14",
+},
+
+screenBackgroundImageInner: {
+  resizeMode: "cover",
+},
+
+darkImageOverlay: {
+  ...StyleSheet.absoluteFillObject,
+  backgroundColor: "rgba(3, 7, 18, 0.34)",
+},
+  
+welcomeContainer: {
+  flex: 1,
+  backgroundColor: "transparent",
+  overflow: "hidden",
+},
+
+explainContainer: {
+  flex: 1,
+  backgroundColor: "transparent",
+  overflow: "hidden",
+},
+
+explainGlowOne: {
+  position: "absolute",
+  width: 360,
+  height: 360,
+  borderRadius: 180,
+  backgroundColor: "rgba(92, 130, 255, 0.22)",
+  top: 160,
+  right: -130,
+},
+
+explainGlowTwo: {
+  position: "absolute",
+  width: 340,
+  height: 340,
+  borderRadius: 170,
+  backgroundColor: "rgba(190, 105, 255, 0.18)",
+  bottom: 120,
+  left: -150,
+},
+
+explainContent: {
+  flex: 1,
+  paddingHorizontal: 28,
+  paddingTop: IS_COMPACT_HOME ? 28 : 46,
+  justifyContent: "center",
+},
+
+explainBrand: {
+  color: "rgba(255,255,255,0.58)",
+  fontSize: 13,
+  fontWeight: "800",
+  letterSpacing: 3,
+  marginBottom: 18,
+},
+
+explainTitle: {
+  color: "#FFFFFF",
+  fontSize: IS_COMPACT_HOME ? 26 : 31,
+  lineHeight: IS_COMPACT_HOME ? 31 : 37,
+  fontWeight: "900",
+  letterSpacing: -1,
+  marginBottom: 20,
+},
+
+explainCards: {
+  gap: 10,
+},
+
+explainCard: {
+  flexDirection: "row",
+  alignItems: "flex-start",
+  backgroundColor: "rgba(255,255,255,0.055)",
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.13)",
+  borderRadius: 24,
+  padding: 14,
+  overflow: "hidden",
+},
+
+explainIcon: {
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "rgba(255,255,255,0.08)",
+  borderWidth: 1,
+  borderColor: "rgba(92, 220, 255, 0.28)",
+  marginRight: 12,
+},
+
+explainIconPurple: {
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "rgba(255,255,255,0.08)",
+  borderWidth: 1,
+  borderColor: "rgba(190, 105, 255, 0.30)",
+  marginRight: 12,
+},
+
+explainIconAmber: {
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "rgba(255,255,255,0.08)",
+  borderWidth: 1,
+  borderColor: "rgba(255, 180, 80, 0.30)",
+  marginRight: 12,
+},
+
+explainTextBlock: {
+  flex: 1,
+},
+
+explainCardTitle: {
+  color: "#FFFFFF",
+  fontSize: 15,
+  lineHeight: 20,
+  fontWeight: "800",
+  marginBottom: 3,
+},
+
+explainCardText: {
+  color: "rgba(255,255,255,0.62)",
+  fontSize: 12,
+  lineHeight: 17,
+  fontWeight: "500",
+},
+
+explainInsightCard: {
+  marginTop: 16,
+  backgroundColor: "rgba(158,183,255,0.10)",
+  borderWidth: 1,
+  borderColor: "rgba(158,183,255,0.20)",
+  borderRadius: 24,
+  padding: 16,
+},
+
+explainInsightLabel: {
+  color: "#B7C7FF",
+  fontSize: 12,
+  fontWeight: "800",
+  marginBottom: 8,
+  letterSpacing: 1.2,
+  textTransform: "uppercase",
+},
+
+explainInsightTitle: {
+  color: "#FFFFFF",
+  fontSize: 17,
+  lineHeight: 23,
+  fontWeight: "800",
+},
+
+explainFooter: {
+  paddingHorizontal: 28,
+  paddingBottom: 34,
+},
+
+welcomeGlowOne: {
+  position: "absolute",
+  width: 320,
+  height: 320,
+  borderRadius: 160,
+  backgroundColor: "rgba(92, 86, 255, 0.24)",
+  top: 120,
+  left: -90,
+},
+
+welcomeGlowTwo: {
+  position: "absolute",
+  width: 300,
+  height: 300,
+  borderRadius: 150,
+  backgroundColor: "rgba(92, 220, 255, 0.14)",
+  bottom: 80,
+  right: -110,
+},
+
+welcomeContent: {
+  flex: 1,
+  paddingHorizontal: 28,
+  paddingTop: IS_COMPACT_HOME ? 30 : 46,
+  justifyContent: "center",
+},
+
+welcomeBrand: {
+  color: "rgba(255,255,255,0.58)",
+  fontSize: 14,
+  fontWeight: "800",
+  letterSpacing: 3,
+  marginBottom: 24,
+},
+
+welcomeTitle: {
+  color: "#FFFFFF",
+  fontSize: IS_COMPACT_HOME ? 30 : 36,
+  lineHeight: IS_COMPACT_HOME ? 35 : 41,
+  fontWeight: "900",
+  letterSpacing: -1.1,
+  marginBottom: 16,
+},
+
+welcomeSubtitle: {
+  color: "rgba(255,255,255,0.60)",
+  fontSize: IS_COMPACT_HOME ? 14 : 15,
+  lineHeight: IS_COMPACT_HOME ? 22 : 24,
+  fontWeight: "500",
+  marginBottom: 22,
+},
+
+welcomePreviewCard: {
+  backgroundColor: "rgba(255,255,255,0.07)",
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.12)",
+  borderRadius: 28,
+  padding: 18,
+  overflow: "hidden",
+},
+
+welcomePreviewTop: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  marginBottom: 18,
+},
+
+welcomePreviewLabel: {
+  color: "rgba(255,255,255,0.54)",
+  fontSize: 14,
+  fontWeight: "700",
+},
+
+welcomePreviewBadge: {
+  paddingHorizontal: 11,
+  paddingVertical: 7,
+  borderRadius: 999,
+  backgroundColor: "rgba(158,183,255,0.14)",
+  borderWidth: 1,
+  borderColor: "rgba(158,183,255,0.26)",
+},
+
+welcomePreviewBadgeText: {
+  color: "#B7C7FF",
+  fontSize: 12,
+  fontWeight: "800",
+},
+
+welcomePreviewTitle: {
+  color: "#FFFFFF",
+  fontSize: 20,
+  lineHeight: 25,
+  fontWeight: "800",
+  marginBottom: 8,
+},
+
+welcomePreviewText: {
+  color: "rgba(255,255,255,0.64)",
+  fontSize: 14,
+  lineHeight: 20,
+},
+
+welcomeFooter: {
+  paddingHorizontal: 28,
+  paddingBottom: 34,
+},
+
+welcomeButton: {
+  height: 58,
+  borderRadius: 29,
+  backgroundColor: "#FFFFFF",
+  alignItems: "center",
+  justifyContent: "center",
+  marginBottom: 14,
+},
+
+welcomeButtonText: {
+  color: "#07101F",
+  fontSize: 18,
+  fontWeight: "800",
+},
+
+welcomeFootnote: {
+  color: "rgba(255,255,255,0.42)",
+  fontSize: 13,
+  lineHeight: 18,
+  textAlign: "center",
+},
   onboardingContainer: {
     flex: 1,
     backgroundColor: "#050816",
@@ -995,43 +1502,38 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  authContainer: {
-    flex: 1,
-    backgroundColor: "#0B1020",
-    justifyContent: "center",
-    padding: 20,
-  },
-  authBgGlowOne: {
-    position: "absolute",
-    top: 120,
-    left: 30,
-    width: 220,
-    height: 220,
-    borderRadius: 999,
-    backgroundColor: "rgba(123,110,246,0.18)",
-  },
-  authBgGlowTwo: {
-    position: "absolute",
-    bottom: 120,
-    right: 20,
-    width: 200,
-    height: 200,
-    borderRadius: 999,
-    backgroundColor: "rgba(56,189,248,0.14)",
-  },
-  authCard: {
-    backgroundColor: "rgba(255,255,255,0.92)",
-    borderRadius: 28,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.14,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 10,
-    maxWidth: 460,
-    width: "100%",
-    alignSelf: "center",
-  },
+authContainer: {
+  flex: 1,
+  justifyContent: "center",
+  paddingHorizontal: 24,
+},
+
+authTopBrand: {
+  alignItems: "center",
+  marginBottom: 26,
+},
+
+authTopBrandText: {
+  color: "rgba(255,255,255,0.88)",
+  fontSize: 17,
+  fontWeight: "600",
+  letterSpacing: 8,
+},
+
+authCard: {
+  backgroundColor: "rgba(10, 18, 44, 0.58)",
+  borderRadius: 30,
+  paddingHorizontal: 24,
+  paddingTop: 28,
+  paddingBottom: 24,
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.22)",
+  shadowColor: "#000",
+  shadowOpacity: 0.22,
+  shadowRadius: 24,
+  shadowOffset: { width: 0, height: 10 },
+},
+
   headerRow: {
     marginBottom: 18,
   },
@@ -1064,28 +1566,129 @@ const styles = StyleSheet.create({
   switchTextActive: {
     color: "#FFFFFF",
   },
-  authTitle: {
-    fontSize: 30,
-    lineHeight: 34,
-    fontWeight: "700",
-    color: "#111111",
-    marginBottom: 8,
-  },
-  authSubtitle: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: "#5B6472",
-    marginBottom: 20,
-  },
-  input: {
-    backgroundColor: "#F5F4F1",
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
-    color: "#111111",
-    marginBottom: 12,
-  },
+authTitle: {
+  color: "#FFFFFF",
+  fontSize: 34,
+  fontWeight: "800",
+  lineHeight: 40,
+},
+
+authSubtitle: {
+  color: "rgba(255,255,255,0.72)",
+  fontSize: 16,
+  lineHeight: 24,
+  marginTop: 10,
+  marginBottom: 24,
+},
+authSwitch: {
+  flexDirection: "row",
+  backgroundColor: "rgba(255,255,255,0.06)",
+  borderRadius: 18,
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.12)",
+  padding: 4,
+  marginBottom: 24,
+},
+
+authSwitchTab: {
+  flex: 1,
+  borderRadius: 14,
+  paddingVertical: 14,
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+authSwitchTabActive: {
+  backgroundColor: "rgba(107, 126, 255, 0.28)",
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.14)",
+},
+
+authSwitchText: {
+  color: "rgba(255,255,255,0.6)",
+  fontSize: 16,
+  fontWeight: "600",
+},
+
+authSwitchTextActive: {
+  color: "#FFFFFF",
+},
+authFieldBlock: {
+  marginBottom: 20,
+},
+
+authFieldLabel: {
+  color: "rgba(255,255,255,0.64)",
+  fontSize: 13,
+  fontWeight: "700",
+  letterSpacing: 2.2,
+  marginBottom: 10,
+},
+
+authInputWrap: {
+  minHeight: 60,
+  borderRadius: 18,
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.20)",
+  backgroundColor: "rgba(255,255,255,0.05)",
+  flexDirection: "row",
+  alignItems: "center",
+  paddingHorizontal: 16,
+},
+authInput: {
+  flex: 1,
+  color: "#FFFFFF",
+  fontSize: 18,
+  marginLeft: 12,
+},
+
+authForgot: {
+  color: "#B98DFF",
+  fontSize: 15,
+  textAlign: "right",
+  marginTop: -2,
+  marginBottom: 24,
+},
+
+authPrimaryButton: {
+  marginTop: 6,
+  backgroundColor: "#FFFFFF",
+  minHeight: 64,
+  borderRadius: 999,
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+authPrimaryButtonText: {
+  color: "#09132B",
+  fontSize: 20,
+  fontWeight: "800",
+},
+
+authFooterRow: {
+  marginTop: 22,
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+authFooterIcon: {
+  width: 30,
+  height: 30,
+  borderRadius: 15,
+  backgroundColor: "rgba(255,255,255,0.06)",
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.12)",
+  alignItems: "center",
+  justifyContent: "center",
+  marginRight: 10,
+},
+
+authFooterText: {
+  color: "rgba(255,255,255,0.68)",
+  fontSize: 15,
+},
+
   helperText: {
     alignSelf: "flex-end",
     color: "#6B7280",
@@ -1308,6 +1911,10 @@ metricCard: {
   borderColor: "rgba(255,255,255,0.08)",
 },
 
+actionsSectionRow: {
+  marginTop: 10,
+},
+
 metricCard_blue: {
   backgroundColor: "rgba(38, 70, 160, 0.32)",
 },
@@ -1388,7 +1995,7 @@ brandEyebrow: {
 },
 
 homeModernContent: {
-  paddingTop: IS_COMPACT_HOME ? 8 : 14,
+  paddingTop: 10,
   paddingHorizontal: 20,
   paddingBottom: 130,
 },
@@ -1410,7 +2017,7 @@ homeModernSubtitle: {
 },
 
 alertCard: {
-  minHeight: IS_COMPACT_HOME ? 150 : 166,
+  minHeight: 158,
   backgroundColor: "rgba(255,255,255,0.06)",
   borderRadius: 26,
   borderWidth: 1,
@@ -1627,11 +2234,13 @@ actionCard: {
   padding: IS_COMPACT_HOME ? 14 : 16,
   justifyContent: "space-between",
   overflow: "hidden",
+  position: "relative",
 },
 
 actionCardLarge: {
   flex: 1.08,
   minHeight: IS_COMPACT_HOME ? 128 : 148,
+  justifyContent: "space-between",
 },
 
 actionCardStack: {
@@ -1644,18 +2253,18 @@ actionCardSmall: {
 },
 
 actionRecovery: {
-  backgroundColor: "rgba(32, 22, 58, 0.92)",
-  borderColor: "rgba(190, 105, 255, 0.24)",
+  backgroundColor: "rgba(48, 24, 78, 0.78)",
+  borderColor: "rgba(190,105,255,0.38)",
 },
 
 actionFinance: {
-  backgroundColor: "rgba(16, 36, 46, 0.92)",
-  borderColor: "rgba(92, 220, 255, 0.22)",
+  backgroundColor: "rgba(14, 46, 56, 0.78)",
+  borderColor: "rgba(92,220,255,0.34)",
 },
 
 actionReset: {
-  backgroundColor: "rgba(46, 24, 18, 0.92)",
-  borderColor: "rgba(255, 128, 80, 0.22)",
+  backgroundColor: "rgba(68, 30, 18, 0.78)",
+  borderColor: "rgba(255,120,70,0.34)",
 },
 
 actionCardTitle: {
@@ -1669,6 +2278,54 @@ actionCardText: {
   fontSize: IS_COMPACT_HOME ? 12 : 13,
   lineHeight: IS_COMPACT_HOME ? 15 : 17,
   marginTop: 4,
+},
+
+actionIcon: {
+  width: 42,
+  height: 42,
+  borderRadius: 21,
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "rgba(255,255,255,0.10)",
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.10)",
+  marginBottom: 0,
+},
+
+actionIconSmall: {
+  width: 34,
+  height: 34,
+  borderRadius: 17,
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "rgba(255,255,255,0.10)",
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.10)",
+  marginBottom: 6,
+},
+
+actionArrow: {
+  position: "absolute",
+  right: 14,
+  bottom: 14,
+  width: 34,
+  height: 34,
+  borderRadius: 17,
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "rgba(255,255,255,0.10)",
+},
+
+actionArrowSmall: {
+  position: "absolute",
+  right: 12,
+  bottom: 12,
+  width: 28,
+  height: 28,
+  borderRadius: 14,
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "rgba(255,255,255,0.10)",
 },
 
 modalOverlay: {
