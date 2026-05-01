@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { savePersonalSetup } from "../storage";
 
 type PersonalSetupScreenProps = {
   onDone: () => void;
@@ -34,7 +35,21 @@ export default function PersonalSetupScreen({ onDone }: PersonalSetupScreenProps
   const [spendingRange, setSpendingRange] = useState("");
   const [dailyContext, setDailyContext] = useState("");
 
-  return (
+async function handleContinue() {
+  await savePersonalSetup({
+    country,
+    age,
+    sleepGoal,
+    workType,
+    incomeRange,
+    spendingRange,
+    dailyContext,
+  });
+
+  onDone();
+}
+  
+return (
     <ImageBackground
       source={require("../../assets/onboarding-bg_0.png")}
       style={styles.background}
@@ -172,8 +187,8 @@ export default function PersonalSetupScreen({ onDone }: PersonalSetupScreenProps
             </Text>
           </View>
 
-          <Pressable style={styles.primaryButton} onPress={onDone}>
-            <Text style={styles.primaryButtonText}>Continue</Text>
+            <Pressable style={styles.primaryButton} onPress={handleContinue}>
+             <Text style={styles.primaryButtonText}>Continue</Text>
           </Pressable>
 
           <Pressable style={styles.skipButton} onPress={onDone}>

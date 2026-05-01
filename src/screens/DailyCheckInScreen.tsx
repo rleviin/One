@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import { saveDailyCheckIn } from "../storage";
 
 type DailyCheckInScreenProps = {
   onDone: () => void;
@@ -91,7 +92,20 @@ export default function DailyCheckInScreen({ onDone }: DailyCheckInScreenProps) 
       setMealPhotoUri(result.assets[0].uri);
     }
   }
-  return (
+async function handleSave() {
+  await saveDailyCheckIn({
+    energy: values.energy,
+    stress: values.stress,
+    workload: values.workload,
+    spendingPressure: values.spendingPressure,
+    note,
+    mealPhotoUri,
+    createdAt: new Date().toISOString(),
+  });
+
+  onDone();
+}  
+return (
     <ImageBackground
       source={require("../../assets/onboarding-bg_0.png")}
       style={styles.background}
@@ -216,7 +230,7 @@ export default function DailyCheckInScreen({ onDone }: DailyCheckInScreenProps) 
             </Text>
           </View>
 
-          <Pressable style={styles.primaryButton} onPress={onDone}>
+             <Pressable style={styles.primaryButton} onPress={handleSave}>
             <Text style={styles.primaryButtonText}>Save check-in</Text>
           </Pressable>
 

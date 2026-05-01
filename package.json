@@ -12,6 +12,7 @@
     "start:tunnel": "expo start --host tunnel --clear"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~54.0.33",
     "expo-document-picker": "~14.0.8",
     "expo-image-picker": "~17.0.11",
