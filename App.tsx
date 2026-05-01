@@ -5,6 +5,7 @@ import ProfileTab from "./src/screens/ProfileTab";
 import AuthScreen from "./src/screens/AuthScreen";
 import OnboardingScreen from "./src/screens/OnboardingScreen";
 import ExplanationScreen from "./src/screens/ExplanationScreen";
+import PersonalSetupScreen from "./src/screens/PersonalSetupScreen";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   SafeAreaView,
@@ -73,21 +74,13 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 const IS_COMPACT_HOME = SCREEN_HEIGHT < 760;
 const HOME_CARD_WIDTH = SCREEN_WIDTH - 88;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 function MainApp() {
   const [tab, setTab] = useState<Tab>("home");
+  const [showSetup, setShowSetup] = useState(false);
+
+  if (showSetup) {
+  return <PersonalSetupScreen onDone={() => setShowSetup(false)} />;
+}
 
   return (
     <SafeAreaView style={styles.mainAppContainer}>
@@ -95,7 +88,9 @@ function MainApp() {
         {tab === "home" && <HomeTab />}
         {tab === "forecast" && <ForecastTab />}
         {tab === "insights" && <InsightsTab />}
-        {tab === "profile" && <ProfileTab />}
+        {tab === "profile" && (
+  <ProfileTab onOpenSetup={() => setShowSetup(true)} />
+)}
       </View>
 <View style={styles.tabBar}>
   <Pressable
@@ -170,11 +165,15 @@ export default function App() {
     return <ExplanationScreen onDone={() => setScreen("auth")} />;
   }
 
-  if (screen === "auth") {
-    return <AuthScreen onDone={() => setScreen("app")} />;
-  }
+if (screen === "auth") {
+  return <AuthScreen onDone={() => setScreen("setup")} />;
+}
 
-  return <MainApp />;
+if (screen === "setup") {
+  return <PersonalSetupScreen onDone={() => setScreen("app")} />;
+}
+
+return <MainApp />;
 }
 
 const styles = StyleSheet.create({

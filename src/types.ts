@@ -1,6 +1,6 @@
 export type RiskLevel = "low" | "medium" | "high";
 
-export type Screen = "onboarding" | "auth" | "app";
+export type Screen = "onboarding" | "explanation" | "auth" | "setup" | "app";
 
 export type Tab = "home" | "forecast" | "insights" | "profile";
 
