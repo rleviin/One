@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ImageBackground,
   Modal,
@@ -9,6 +9,8 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import type { PersonalSetupData } from "../storage";
+import { loadPersonalSetup } from "../storage";
 
 type ProfileTabProps = {
   onOpenSetup?: () => void;
@@ -49,6 +51,27 @@ const preferences = [
 
 export default function ProfileTab({ onOpenSetup }: ProfileTabProps) {
   const [showHealthRecords, setShowHealthRecords] = useState(false);
+  const [setupData, setSetupData] = useState<PersonalSetupData | null>(null);
+
+ useEffect(() => {
+    let mounted = true;
+
+    async function loadProfileData() {
+      const data = await loadPersonalSetup();
+
+      if (mounted) {
+        setSetupData(data);
+      }
+    }
+
+    loadProfileData();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+
   return (
     <ImageBackground
       source={require("../../assets/onboarding-bg.png")}
@@ -90,13 +113,29 @@ export default function ProfileTab({ onOpenSetup }: ProfileTabProps) {
             <Ionicons name="person-circle-outline" size={26} color="#FFFFFF" />
           </View>
 
-          <View style={styles.setupTextBlock}>
-            <Text style={styles.setupTitle}>Personal baseline</Text>
-            <Text style={styles.setupText}>
-              Edit country, age, sleep goal, work style and finance context.
-            </Text>
-          </View>
+<View style={styles.setupTextBlock}>
+  <Text style={styles.setupTitle}>Personal baseline</Text>
 
+  <Text style={styles.setupText}>
+    {setupData
+      ? `${setupData.country || "Country not set"} · Age ${
+          setupData.age || "—"
+        } · Sleep goal ${setupData.sleepGoal || "—"}h`
+      : "Not completed yet. Add country, age, sleep goal and work style."}
+  </Text>
+
+  {setupData && (
+    <View style={styles.baselineTags}>
+      <Text style={styles.baselineTag}>{setupData.workType || "work"}</Text>
+      <Text style={styles.baselineTag}>
+        Income: {setupData.incomeRange || "optional"}
+      </Text>
+      <Text style={styles.baselineTag}>
+        Spending: {setupData.spendingRange || "optional"}
+      </Text>
+    </View>
+  )}
+</View>
           <View style={styles.arrowCircle}>
             <Ionicons
               name="chevron-forward"
@@ -612,4 +651,23 @@ sheetButtonText: {
   fontSize: 17,
   fontWeight: "900",
 },
+baselineTags: {
+  flexDirection: "row",
+  flexWrap: "wrap",
+  gap: 6,
+  marginTop: 10,
+},
+
+baselineTag: {
+  color: "rgba(255,255,255,0.72)",
+  fontSize: 12,
+  fontWeight: "800",
+  paddingHorizontal: 9,
+  paddingVertical: 6,
+  borderRadius: 999,
+  backgroundColor: "rgba(255,255,255,0.08)",
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.12)",
+},
+
 });
