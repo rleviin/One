@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   ImageBackground,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -47,6 +48,7 @@ const preferences = [
 ];
 
 export default function ProfileTab({ onOpenSetup }: ProfileTabProps) {
+  const [showHealthRecords, setShowHealthRecords] = useState(false);
   return (
     <ImageBackground
       source={require("../../assets/onboarding-bg.png")}
@@ -103,7 +105,29 @@ export default function ProfileTab({ onOpenSetup }: ProfileTabProps) {
             />
           </View>
         </Pressable>
+        <Pressable
+  style={styles.healthRecordsCard}
+  onPress={() => setShowHealthRecords(true)}
+>
+  <View style={styles.healthRecordsIcon}>
+    <Ionicons name="flask-outline" size={25} color="#FF647C" />
+  </View>
 
+  <View style={styles.setupTextBlock}>
+    <Text style={styles.setupTitle}>Health records</Text>
+    <Text style={styles.setupText}>
+      Blood tests, biomarkers and Apple Health connections will live here.
+    </Text>
+  </View>
+
+  <View style={styles.arrowCircle}>
+    <Ionicons
+      name="chevron-forward"
+      size={22}
+      color="rgba(255,255,255,0.86)"
+    />
+  </View>
+</Pressable>
         <Text style={styles.sectionTitle}>Connected areas</Text>
 
         <View style={styles.areaGrid}>
@@ -145,10 +169,78 @@ export default function ProfileTab({ onOpenSetup }: ProfileTabProps) {
           </Text>
         </View>
       </ScrollView>
+
+      <Modal
+        visible={showHealthRecords}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowHealthRecords(false)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setShowHealthRecords(false)}
+        />
+
+        <View style={styles.sheet}>
+          <View style={styles.sheetHandle} />
+
+          <View style={styles.sheetIcon}>
+            <Ionicons name="flask-outline" size={25} color="#FF647C" />
+          </View>
+
+          <Text style={styles.sheetTitle}>Health records</Text>
+
+          <Text style={styles.sheetSubtitle}>
+            This will become Dara&apos;s place for blood tests, biomarkers and
+            long-term health context.
+          </Text>
+
+          <View style={styles.recordList}>
+            <View style={styles.recordItem}>
+              <Ionicons name="document-attach-outline" size={20} color="#FF647C" />
+              <View style={styles.recordTextBlock}>
+                <Text style={styles.recordTitle}>Blood tests</Text>
+                <Text style={styles.recordText}>
+                  Upload PDF or photo reports to track fatigue, inflammation,
+                  iron, vitamin D, B12, glucose and other biomarkers.
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.recordItem}>
+              <Ionicons name="heart-outline" size={20} color="#58E7FF" />
+              <View style={styles.recordTextBlock}>
+                <Text style={styles.recordTitle}>Apple Health</Text>
+                <Text style={styles.recordText}>
+                  Later Dara can connect sleep, activity, HRV and recovery data
+                  from HealthKit.
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.recordItem}>
+              <Ionicons name="analytics-outline" size={20} color="#B9C6FF" />
+              <View style={styles.recordTextBlock}>
+                <Text style={styles.recordTitle}>Biomarker trends</Text>
+                <Text style={styles.recordText}>
+                  Dara will compare new records against your baseline and show
+                  what changed.
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <Pressable
+            style={styles.sheetButton}
+            onPress={() => setShowHealthRecords(false)}
+          >
+            <Text style={styles.sheetButtonText}>Got it</Text>
+          </Pressable>
+        </View>
+      </Modal>
     </ImageBackground>
   );
 }
-
 const styles = StyleSheet.create({
   background: {
     flex: 1,
@@ -393,4 +485,131 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginLeft: 10,
   },
+
+healthRecordsCard: {
+  flexDirection: "row",
+  alignItems: "center",
+  borderRadius: 28,
+  padding: 16,
+  backgroundColor: "rgba(255,100,124,0.10)",
+  borderWidth: 1,
+  borderColor: "rgba(255,100,124,0.24)",
+  marginBottom: 24,
+},
+
+healthRecordsIcon: {
+  width: 52,
+  height: 52,
+  borderRadius: 26,
+  backgroundColor: "rgba(255,100,124,0.14)",
+  borderWidth: 1,
+  borderColor: "rgba(255,100,124,0.30)",
+  alignItems: "center",
+  justifyContent: "center",
+  marginRight: 14,
+},
+
+modalBackdrop: {
+  flex: 1,
+  backgroundColor: "rgba(0,0,0,0.48)",
+},
+
+sheet: {
+  position: "absolute",
+  left: 0,
+  right: 0,
+  bottom: 0,
+  borderTopLeftRadius: 34,
+  borderTopRightRadius: 34,
+  paddingHorizontal: 24,
+  paddingTop: 12,
+  paddingBottom: 34,
+  backgroundColor: "rgba(8, 16, 38, 0.97)",
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.14)",
+},
+
+sheetHandle: {
+  alignSelf: "center",
+  width: 44,
+  height: 5,
+  borderRadius: 99,
+  backgroundColor: "rgba(255,255,255,0.24)",
+  marginBottom: 20,
+},
+
+sheetIcon: {
+  width: 54,
+  height: 54,
+  borderRadius: 27,
+  backgroundColor: "rgba(255,100,124,0.14)",
+  borderWidth: 1,
+  borderColor: "rgba(255,100,124,0.30)",
+  alignItems: "center",
+  justifyContent: "center",
+  marginBottom: 14,
+},
+
+sheetTitle: {
+  color: "#FFFFFF",
+  fontSize: 30,
+  lineHeight: 35,
+  fontWeight: "900",
+  letterSpacing: -0.8,
+  marginBottom: 8,
+},
+
+sheetSubtitle: {
+  color: "rgba(255,255,255,0.66)",
+  fontSize: 16,
+  lineHeight: 23,
+  marginBottom: 18,
+},
+
+recordList: {
+  gap: 12,
+  marginBottom: 22,
+},
+
+recordItem: {
+  flexDirection: "row",
+  alignItems: "flex-start",
+  borderRadius: 20,
+  padding: 14,
+  backgroundColor: "rgba(255,255,255,0.055)",
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.10)",
+},
+
+recordTextBlock: {
+  flex: 1,
+  marginLeft: 12,
+},
+
+recordTitle: {
+  color: "#FFFFFF",
+  fontSize: 16,
+  fontWeight: "900",
+  marginBottom: 4,
+},
+
+recordText: {
+  color: "rgba(255,255,255,0.64)",
+  fontSize: 14,
+  lineHeight: 20,
+},
+
+sheetButton: {
+  height: 56,
+  borderRadius: 28,
+  backgroundColor: "#FFFFFF",
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+sheetButtonText: {
+  color: "#07101F",
+  fontSize: 17,
+  fontWeight: "900",
+},
 });
