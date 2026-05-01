@@ -7,6 +7,7 @@ import OnboardingScreen from "./src/screens/OnboardingScreen";
 import ExplanationScreen from "./src/screens/ExplanationScreen";
 import PersonalSetupScreen from "./src/screens/PersonalSetupScreen";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import DailyCheckInScreen from "./src/screens/DailyCheckInScreen";
 import {
   SafeAreaView,
   View,
@@ -77,15 +78,19 @@ const HOME_CARD_WIDTH = SCREEN_WIDTH - 88;
 function MainApp() {
   const [tab, setTab] = useState<Tab>("home");
   const [showSetup, setShowSetup] = useState(false);
+  const [showCheckIn, setShowCheckIn] = useState(false);
 
   if (showSetup) {
   return <PersonalSetupScreen onDone={() => setShowSetup(false)} />;
 }
-
+ 
+ if (showCheckIn) {
+  return <DailyCheckInScreen onDone={() => setShowCheckIn(false)} />;
+}
   return (
     <SafeAreaView style={styles.mainAppContainer}>
       <View style={styles.mainContent}>
-        {tab === "home" && <HomeTab />}
+        {tab === "home" && <HomeTab onOpenCheckIn={() => setShowCheckIn(true)} />}
         {tab === "forecast" && <ForecastTab />}
         {tab === "insights" && <InsightsTab />}
         {tab === "profile" && (

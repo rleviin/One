@@ -1,18 +1,18 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
   Pressable,
   StyleSheet,
   ScrollView,
-  Animated,
   Modal,
   Dimensions,
+  ImageBackground,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
-import type { HomeData, RiskLevel, UserSignals } from "../types";
+import type { RiskLevel, UserSignals } from "../types";
 import {
   calculateRisk,
   getFinanceRecommendation,
@@ -24,818 +24,1000 @@ import {
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const IS_COMPACT_HOME = SCREEN_HEIGHT < 760;
-const HOME_CARD_WIDTH = SCREEN_WIDTH - 88;
 
-export default function HomeTab() {
-  const [signals, setSignals] = useState<UserSignals>({
-  sleepHours: 6.2,
-  workload: 7,
-  recovery: 4,
-  spendingPressure: 6,
-});
+type DetailKind = "summary" | "signal" | "action";
 
-const heroFade = useRef(new Animated.Value(1)).current;
+type DetailState = {
+  kind: DetailKind;
+  title: string;
+  subtitle: string;
+  points: string[];
+  accent: "blue" | "purple" | "cyan" | "orange" | "green" | "red";
+} | null;
 
-function updateSignals(nextSignals: UserSignals) {
-  Animated.timing(heroFade, {
-    toValue: 0.35,
-    duration: 140,
-    useNativeDriver: true,
-  }).start(() => {
-    setSignals(nextSignals);
+type SignalCard = {
+  key: "sleep" | "workload" | "recovery" | "finance";
+  label: string;
+  value: string;
+  note: string;
+  recommendation: string;
+  status: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  accent: "blue" | "purple" | "cyan" | "orange" | "green" | "red";
+};
 
-    Animated.timing(heroFade, {
-      toValue: 1,
-      duration: 260,
-      useNativeDriver: true,
-    }).start();
-  });
+type ActionCard = {
+  key: "recovery" | "finance" | "reset";
+  title: string;
+  text: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  accent: "blue" | "purple" | "cyan" | "orange" | "green" | "red";
+};
+
+type HomeTabProps = {
+  onOpenCheckIn?: () => void;
+};
+
+function getRiskCopy(risk: RiskLevel) {
+  if (risk === "high") {
+    return {
+      label: "High risk",
+      title: "Your balance is starting to slip.",
+      text: "Sleep, load and recovery are moving out of sync. Small shifts now can prevent a bigger dip later.",
+      accent: "red" as const,
+    };
+  }
+
+  if (risk === "medium") {
+    return {
+      label: "Watch",
+      title: "Your balance needs attention.",
+      text: "Signals are becoming less stable. A small recovery action today can keep things under control.",
+      accent: "orange" as const,
+    };
+  }
+
+  return {
+    label: "Stable",
+    title: "You are in a stable zone.",
+    text: "Your current pattern looks stable. Keep protecting sleep, recovery and daily load.",
+    accent: "green" as const,
+  };
 }
 
-const risk = calculateRisk(signals);
-const riskColor =
-  risk === "high"
-    ? "#FF6B6B"
-    : risk === "medium"
-    ? "#FFD166"
-    : "#4ADE80";
-const fade = useRef(new Animated.Value(1)).current;
-
-useEffect(() => {
-  fade.setValue(0.6);
-
-  Animated.timing(fade, {
-    toValue: 1,
-    duration: 250,
-    useNativeDriver: true,
-  }).start();
-}, [risk, fade]);
-  const data = useMemo<HomeData & { consequence: string[] }>(() => {
-    if (risk === "low") {
-      return {
-        hero: "Your system is stable",
-        sub: "You are within safe limits. Keep the rhythm.",
-        why: [
-          "Sleep consistency is stable",
-          "Workload is under control",
-          "Recovery is sufficient",
-        ],
-        context: "No major external pressure signals detected right now.",
-        actions: [
-          "Keep your current routine",
-          "Protect recovery time",
-          "Avoid unnecessary overload",
-        ],
-        consequence: [
-          "Low risk of fatigue",
-          "Stable focus window",
-          "Good recovery capacity",
-        ],
-      };
-    }
-
-    if (risk === "high") {
-      return {
-        hero: "You are moving toward overload",
-        sub: "If nothing changes, fatigue is not a possibility — it is the likely outcome.",
-        why: [
-          "Sleep quality dropped",
-          "Workload increased beyond recovery",
-          "Stress signals are accumulating",
-        ],
-        context:
-          "External pressure is rising: workload instability, inflation, and financial stress can amplify the risk.",
-        actions: [
-          "Stop non-essential tasks today",
-          "Reduce cognitive load immediately",
-          "Prioritize recovery over output",
-        ],
-        consequence: [
-          "Performance drop",
-          "Mood instability",
-          "Higher burnout probability",
-        ],
-      };
-    }
-
-    return {
-      hero: "You are approaching fatigue",
-      sub: "A small correction now prevents a bigger problem later.",
-      why: [
-        "Sleep slightly decreased",
-        "Workload is trending upward",
-        "Recovery is not fully compensating",
-      ],
-      context:
-        "Financial and workload pressure are rising. This can reduce mental bandwidth if ignored.",
-      actions: [
-        "Reduce load today",
-        "Increase hydration and rest",
-        "Add one recovery activity",
-      ],
-      consequence: [
-        "Fatigue accumulation",
-        "Lower focus in 5–7 days",
-        "Reduced decision quality",
-      ],
-    };
-  }, [risk]);
-const [detailsVisible, setDetailsVisible] = useState(false);
-
-const heroTitle =
-  risk === "high"
-    ? "You are moving toward overload"
-    : risk === "medium"
-    ? "Your balance is starting to slip"
-    : "You are in a stable zone";
-
-const heroSubtitle =
-  risk === "high"
-    ? "If nothing changes, fatigue is not a possibility — it is the likely outcome."
-    : risk === "medium"
-    ? "Signals are becoming less balanced. Small adjustments now can prevent overload."
-    : "Your current pattern looks stable. Keep protecting sleep and recovery.";
-
-const metricCards = [
-  {
-    key: "sleep",
-    label: "Sleep",
-    value: `${signals.sleepHours.toFixed(1)}h`,
-    note: "Last night",
-    recommendation: getSleepRecommendation(signals.sleepHours),
-  },
-  {
-    key: "workload",
-    label: "Workload",
-    value: `${signals.workload}/10`,
-    note: "Current load",
-    recommendation: getWorkloadRecommendation(signals.workload),
-  },
-  {
-    key: "recovery",
-    label: "Recovery",
-    value: `${signals.recovery}/10`,
-    note: "Recovery state",
-    recommendation: getRecoveryRecommendation(signals.recovery),
-  },
-  {
-    key: "finance",
-    label: "Finance",
-    value: `${signals.spendingPressure}/10`,
-    note: "External pressure",
-    recommendation: getFinanceRecommendation(signals.spendingPressure),
-  },
-];
-
-return (
-  <>
-      <ScrollView
-      contentContainerStyle={styles.homeModernContent}
-      showsVerticalScrollIndicator={false}
-    >
-<Animated.View style={{ opacity: heroFade }}>
-  <Pressable
-    style={styles.alertCard}
-    onPress={() => setDetailsVisible(true)}
-  >
-    <View style={styles.alertTopRow}>
-      <Text style={styles.alertLabel}>Active signal</Text>
-      <View
-        style={[
-          styles.riskBadge,
-          risk === "high"
-            ? styles.riskBadgeHigh
-            : risk === "medium"
-            ? styles.riskBadgeMedium
-            : styles.riskBadgeLow,
-        ]}
-      >
-        <Text style={styles.riskBadgeText}>
-          {risk === "high" ? "High risk" : risk === "medium" ? "Medium" : "Stable"}
-        </Text>
-      </View>
-    </View>
-
-<Text
-  style={[
-    styles.alertTitle,
-    heroTitle.length > 34 && styles.alertTitleSmall,
-  ]}
-  numberOfLines={2}
->
-  {heroTitle}
-</Text>
-
-<Text
-  style={styles.alertText}
-  numberOfLines={2}
->
-  {heroSubtitle}
-</Text>
-
-    <Text style={styles.alertAction}>Tap to open details</Text>
-  </Pressable>
-</Animated.View>
-
-      <View style={styles.sectionRow}>
-        <Text style={styles.homeSectionTitle}>Signals</Text>
-        <Text style={styles.sectionMuted}>Swipe</Text>
-      </View>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        snapToInterval={HOME_CARD_WIDTH + 14}
-        decelerationRate="fast"
-        snapToAlignment="start"
-        style={styles.metricCarouselScroll}
-        contentContainerStyle={styles.metricCarouselContent}      
-      >
-        {metricCards.map((card) => (
-          <View
-            key={card.key}
-            style={[
-              styles.metricHeroCard,
-              styles[`metricHeroCard_${card.key}`],
-              { width: HOME_CARD_WIDTH },
-            ]}
-          >
-<LinearGradient
-  colors={
-    card.key === "sleep"
-      ? ["rgba(92,130,255,0.34)", "rgba(92,130,255,0.08)", "rgba(92,130,255,0.00)"]
-      : card.key === "workload"
-      ? ["rgba(255,120,70,0.34)", "rgba(255,120,70,0.08)", "rgba(255,120,70,0.00)"]
-      : card.key === "recovery"
-      ? ["rgba(190,105,255,0.34)", "rgba(190,105,255,0.08)", "rgba(190,105,255,0.00)"]
-      : ["rgba(92,220,255,0.32)", "rgba(92,220,255,0.08)", "rgba(92,220,255,0.00)"]
+function getAccentColor(accent: DetailState["accent"] | SignalCard["accent"]) {
+  switch (accent) {
+    case "purple":
+      return "#C96BFF";
+    case "cyan":
+      return "#58E7FF";
+    case "orange":
+      return "#FF8A4C";
+    case "green":
+      return "#4ADE80";
+    case "red":
+      return "#FF647C";
+    case "blue":
+    default:
+      return "#7DA2FF";
   }
-  start={{ x: 0, y: 0 }}
-  end={{ x: 1, y: 1 }}
-  style={styles.cardGradient}
-/>
-<View>
-  <Text style={styles.metricHeroLabel}>{card.label}</Text>
-  <Text style={styles.metricHeroValue}>{card.value}</Text>
+}
+
+function Sparkline({ accent }: { accent: SignalCard["accent"] }) {
+  const color = getAccentColor(accent);
+
+  return (
+    <View style={styles.sparkline}>
+      {[22, 14, 26, 18, 30, 20, 34].map((height, index) => (
+        <View key={index} style={styles.sparkColumn}>
+          <View
+            style={[
+              styles.sparkDot,
+              {
+                height,
+                backgroundColor:
+                  index >= 5 ? color : "rgba(255,255,255,0.64)",
+              },
+            ]}
+          />
+        </View>
+      ))}
+    </View>
+  );
+}
+
+export default function HomeTab({ onOpenCheckIn }: HomeTabProps) {
+  const [signals, setSignals] = useState<UserSignals>({
+    sleepHours: 6.2,
+    workload: 7,
+    recovery: 4,
+    spendingPressure: 5,
+  });
+
+  const [detail, setDetail] = useState<DetailState>(null);
+
+  const risk = calculateRisk(signals);
+  const riskCopy = getRiskCopy(risk);
+
+  const signalCards = useMemo<SignalCard[]>(
+    () => [
+      {
+        key: "sleep",
+        label: "Sleep",
+        value: `${signals.sleepHours.toFixed(1)}h`,
+        note: "Last night",
+        recommendation: getSleepRecommendation(signals.sleepHours),
+        status: signals.sleepHours < 6.8 ? "Below goal" : "Good range",
+        icon: "moon-outline",
+        accent: "purple",
+      },
+      {
+        key: "workload",
+        label: "Load",
+        value: `${signals.workload}/10`,
+        note: "Current load",
+        recommendation: getWorkloadRecommendation(signals.workload),
+        status: signals.workload >= 7 ? "Trending up" : "Controlled",
+        icon: "trending-up-outline",
+        accent: "orange",
+      },
+      {
+        key: "recovery",
+        label: "Recovery",
+        value: `${signals.recovery}/10`,
+        note: "Recovery state",
+        recommendation: getRecoveryRecommendation(signals.recovery),
+        status: signals.recovery <= 4 ? "Needs care" : "Compensating",
+        icon: "leaf-outline",
+        accent: "green",
+      },
+      {
+        key: "finance",
+        label: "Finance",
+        value: `${signals.spendingPressure}/10`,
+        note: "External pressure",
+        recommendation: getFinanceRecommendation(signals.spendingPressure),
+        status: signals.spendingPressure >= 5 ? "Pressure up" : "Stable",
+        icon: "card-outline",
+        accent: "cyan",
+      },
+    ],
+    [signals]
+  );
+
+  const actions = useMemo<ActionCard[]>(
+    () => [
+      {
+        key: "recovery",
+        title: "Recovery",
+        text: "Prioritize recovery today.",
+        icon: "leaf-outline",
+        accent: "green",
+      },
+      {
+        key: "finance",
+        title: "Finance",
+        text: "Reduce external pressure.",
+        icon: "cash-outline",
+        accent: "cyan",
+      },
+      {
+        key: "reset",
+        title: "Reset",
+        text: "A 10 min reset can help you recalibrate.",
+        icon: "refresh-outline",
+        accent: "orange",
+      },
+    ],
+    []
+  );
+
+  function openSummary() {
+    setDetail({
+      kind: "summary",
+      title: riskCopy.title,
+      subtitle: riskCopy.text,
+      accent: riskCopy.accent,
+      points: [
+        `Sleep is at ${signals.sleepHours.toFixed(1)}h.`,
+        `Workload is ${signals.workload}/10.`,
+        `Recovery is ${signals.recovery}/10.`,
+        `Financial pressure is ${signals.spendingPressure}/10.`,
+        "Dara combines these signals to estimate where your balance is moving.",
+      ],
+    });
+  }
+
+  function openSignal(card: SignalCard) {
+    const extra =
+      card.key === "sleep"
+        ? [
+            "Goal: aim for 7.5h tonight.",
+            "Watch for 2–3 short nights in a row.",
+            "Earlier wind-down has the highest impact today.",
+          ]
+        : card.key === "workload"
+        ? [
+            "High workload increases overload risk.",
+            "Remove or postpone one non-critical task.",
+            "Recovery becomes more important when load rises.",
+          ]
+        : card.key === "recovery"
+        ? [
+            "Low recovery means the body is compensating poorly.",
+            "Keep intensity low today.",
+            "Prioritize sleep, hydration and a calm evening.",
+          ]
+        : [
+            "Financial pressure can increase cognitive load.",
+            "Avoid major commitments today.",
+            "Reduce unnecessary spending to lower background stress.",
+          ];
+
+    setDetail({
+      kind: "signal",
+      title: card.label,
+      subtitle: `${card.value} · ${card.status}`,
+      accent: card.accent,
+      points: [card.recommendation, ...extra],
+    });
+  }
+
+  function openAction(card: ActionCard) {
+    const points =
+      card.key === "recovery"
+        ? [
+            "Why: recovery is low while load is elevated.",
+            "Do today: avoid hard training, add a walk or mobility session.",
+            "Expected effect: reduce overload risk tomorrow.",
+          ]
+        : card.key === "finance"
+        ? [
+            "Why: external pressure is contributing to overall load.",
+            "Do today: avoid major purchases or new commitments.",
+            "Expected effect: lower background stress.",
+          ]
+        : [
+            "Why: a short reset can interrupt the overload pattern.",
+            "Do today: 10 minutes breathing, stretching or quiet walk.",
+            "Expected effect: bring your system closer to baseline.",
+          ];
+
+    setDetail({
+      kind: "action",
+      title: card.title,
+      subtitle: card.text,
+      accent: card.accent,
+      points,
+    });
+  }
+
+  return (
+    <ImageBackground
+      source={require("../../assets/onboarding-bg.png")}
+      style={styles.background}
+      imageStyle={styles.backgroundImage}
+      resizeMode="cover"
+    >
+      <View style={styles.overlay} />
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+      >
+<View style={styles.headerRow}>
+  <Text style={styles.brandTitle}>Dara</Text>
+
+  <View style={styles.headerActions}>
+    <Pressable style={styles.checkInButton} onPress={onOpenCheckIn}>
+      <Ionicons name="add-outline" size={18} color="#07101F" />
+      <Text style={styles.checkInButtonText}>Check in</Text>
+    </Pressable>
+
+    <Pressable style={styles.headerIcon}>
+      <Ionicons name="pulse-outline" size={24} color="#FFFFFF" />
+    </Pressable>
+  </View>
 </View>
 
-<View>
-  <Text style={styles.metricHeroNote}>{card.note}</Text>
-  <Text style={styles.metricHeroRecommendation}>
-    {card.recommendation}
-  </Text>
-</View>
+        <Pressable style={styles.heroCard} onPress={openSummary}>
+          <LinearGradient
+            colors={[
+              "rgba(255,255,255,0.12)",
+              "rgba(95,130,255,0.08)",
+              "rgba(255,255,255,0.04)",
+            ]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroGradient}
+          />
+
+          <View style={styles.heroTop}>
+            <View style={styles.heroIcon}>
+              <Ionicons
+                name="analytics-outline"
+                size={24}
+                color={getAccentColor(riskCopy.accent)}
+              />
+            </View>
+
+            <Text style={styles.heroLabel}>Active signal</Text>
+
+            <View
+              style={[
+                styles.riskBadge,
+                {
+                  borderColor: `${getAccentColor(riskCopy.accent)}66`,
+                  backgroundColor: `${getAccentColor(riskCopy.accent)}22`,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.riskBadgeText,
+                  { color: getAccentColor(riskCopy.accent) },
+                ]}
+              >
+                {riskCopy.label}
+              </Text>
+            </View>
           </View>
-        ))}
+
+          <Text style={styles.heroTitle}>{riskCopy.title}</Text>
+          <Text style={styles.heroText}>{riskCopy.text}</Text>
+
+          <View style={styles.heroActionRow}>
+            <Text style={styles.heroAction}>Tap to open details</Text>
+            <Ionicons
+              name="chevron-forward"
+              size={18}
+              color={getAccentColor(riskCopy.accent)}
+            />
+          </View>
+        </Pressable>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Signals</Text>
+          <Text style={styles.sectionLink}>View all</Text>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.signalsRow}
+        >
+          {signalCards.map((card) => (
+            <Pressable
+              key={card.key}
+              style={styles.signalCard}
+              onPress={() => openSignal(card)}
+            >
+              <LinearGradient
+                colors={[
+                  `${getAccentColor(card.accent)}33`,
+                  "rgba(255,255,255,0.06)",
+                  "rgba(255,255,255,0.03)",
+                ]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.cardGradient}
+              />
+
+              <View style={styles.signalTop}>
+                <View
+                  style={[
+                    styles.signalIcon,
+                    {
+                      borderColor: `${getAccentColor(card.accent)}88`,
+                      backgroundColor: `${getAccentColor(card.accent)}22`,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={card.icon}
+                    size={25}
+                    color={getAccentColor(card.accent)}
+                  />
+                </View>
+
+                <View
+                  style={[
+                    styles.signalStatus,
+                    {
+                      borderColor: `${getAccentColor(card.accent)}55`,
+                      backgroundColor: `${getAccentColor(card.accent)}18`,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.signalStatusText,
+                      { color: getAccentColor(card.accent) },
+                    ]}
+                  >
+                    {card.status}
+                  </Text>
+                </View>
+              </View>
+
+              <View>
+                <Text style={styles.signalLabel}>{card.label}</Text>
+                <Text style={styles.signalValue}>{card.value}</Text>
+                <Text style={styles.signalNote}>{card.note}</Text>
+              </View>
+
+              <Sparkline accent={card.accent} />
+
+              <View style={styles.signalBottom}>
+                <Text style={styles.signalRecommendation}>
+                  {card.recommendation}
+                </Text>
+
+                <View style={styles.smallArrow}>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={18}
+                    color="rgba(255,255,255,0.82)"
+                  />
+                </View>
+              </View>
+            </Pressable>
+          ))}
+        </ScrollView>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Actions</Text>
+        </View>
+
+        <View style={styles.actionsList}>
+          {actions.map((card) => (
+            <Pressable
+              key={card.key}
+              style={styles.actionCard}
+              onPress={() => openAction(card)}
+            >
+              <LinearGradient
+                colors={[
+                  `${getAccentColor(card.accent)}26`,
+                  "rgba(255,255,255,0.055)",
+                  "rgba(255,255,255,0.035)",
+                ]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.cardGradient}
+              />
+
+              <View
+                style={[
+                  styles.actionIcon,
+                  {
+                    borderColor: `${getAccentColor(card.accent)}88`,
+                    backgroundColor: `${getAccentColor(card.accent)}18`,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name={card.icon}
+                  size={25}
+                  color={getAccentColor(card.accent)}
+                />
+              </View>
+
+              <View style={styles.actionTextBlock}>
+                <Text style={styles.actionTitle}>{card.title}</Text>
+                <Text style={styles.actionText}>{card.text}</Text>
+              </View>
+
+              <View style={styles.actionArrow}>
+                <Ionicons
+                  name="chevron-forward"
+                  size={22}
+                  color="rgba(255,255,255,0.82)"
+                />
+              </View>
+            </Pressable>
+          ))}
+        </View>
       </ScrollView>
 
-<View style={[styles.sectionRow, styles.actionsSectionRow]}>
-  <Text style={styles.homeSectionTitle}>Actions</Text>
-</View>
-<View style={styles.actionGrid}>
-  <Pressable
-    style={[styles.actionCard, styles.actionCardLarge, styles.actionRecovery]}
-    onPress={() =>
-      updateSignals({
-        ...signals,
-        recovery: Math.min(signals.recovery + 2, 10),
-        workload: Math.max(signals.workload - 1, 0),
-      })
-    }
-  >
-    <LinearGradient
-      colors={[
-        "rgba(190,105,255,0.34)",
-        "rgba(190,105,255,0.10)",
-        "rgba(190,105,255,0.00)",
-      ]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.cardGradient}
-    />
+      <Modal
+        visible={detail !== null}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setDetail(null)}
+      >
+        <Pressable style={styles.modalBackdrop} onPress={() => setDetail(null)} />
 
-    <View style={styles.actionIcon}>
-      <Ionicons name="leaf-outline" size={20} color="#FFFFFF" />
-    </View>
-
-    <View>
-      <Text style={styles.actionCardTitle}>Recovery</Text>
-      <Text style={styles.actionCardText}>
-        Boost recovery and lower load.
-      </Text>
-    </View>
-
-    <View style={styles.actionArrow}>
-      <Ionicons name="chevron-forward" size={18} color="#FFFFFF" />
-    </View>
-  </Pressable>
-
-        <View style={styles.actionCardStack}>
-<Pressable
-  style={[styles.actionCard, styles.actionCardSmall, styles.actionFinance]}
-  onPress={() =>
-    updateSignals({
-      ...signals,
-      spendingPressure: Math.max(signals.spendingPressure - 1, 0),
-    })
-  }
->
-  <LinearGradient
-    colors={[
-      "rgba(92,220,255,0.30)",
-      "rgba(92,220,255,0.08)",
-      "rgba(92,220,255,0.00)",
-    ]}
-    start={{ x: 0, y: 0 }}
-    end={{ x: 1, y: 1 }}
-    style={styles.cardGradient}
-  />
-
-  <View style={styles.actionIconSmall}>
-    <Ionicons name="cash-outline" size={17} color="#FFFFFF" />
-  </View>
-
-  <View>
-    <Text style={styles.actionCardTitle}>Finance</Text>
-    <Text style={styles.actionCardText}>
-      Reduce external pressure.
-    </Text>
-  </View>
-
-  <View style={styles.actionArrowSmall}>
-    <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
-  </View>
-</Pressable>
-
-<Pressable
-  style={[styles.actionCard, styles.actionCardSmall, styles.actionReset]}
-  onPress={() =>
-    updateSignals({
-      sleepHours: 7,
-      workload: 5,
-      recovery: 6,
-      spendingPressure: 5,
-    })
-  }
->
-  <LinearGradient
-    colors={[
-      "rgba(255,120,70,0.32)",
-      "rgba(255,120,70,0.08)",
-      "rgba(255,120,70,0.00)",
-    ]}
-    start={{ x: 0, y: 0 }}
-    end={{ x: 1, y: 1 }}
-    style={styles.cardGradient}
-  />
-
-  <View style={styles.actionIconSmall}>
-    <Ionicons name="refresh-outline" size={17} color="#FFFFFF" />
-  </View>
-
-  <View>
-    <Text style={styles.actionCardTitle}>Reset</Text>
-    <Text style={styles.actionCardText}>
-      Return to baseline.
-    </Text>
-  </View>
-
-  <View style={styles.actionArrowSmall}>
-    <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
-  </View>
-</Pressable>
-
-        </View>
-      </View>
-    </ScrollView>
-
-    <Modal
-      visible={detailsVisible}
-      transparent
-      animationType="fade"
-      onRequestClose={() => setDetailsVisible(false)}
-    >
-      <View style={styles.modalOverlay}>
-        <Pressable
-          style={styles.modalBackdrop}
-          onPress={() => setDetailsVisible(false)}
-        />
-
-        <View style={styles.sheetCard}>
+        <View style={styles.sheet}>
           <View style={styles.sheetHandle} />
 
-          <Text style={styles.sheetTitle}>Why Dara thinks so</Text>
+          {detail && (
+            <>
+              <View
+                style={[
+                  styles.sheetIcon,
+                  {
+                    borderColor: `${getAccentColor(detail.accent)}88`,
+                    backgroundColor: `${getAccentColor(detail.accent)}18`,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name={
+                    detail.kind === "summary"
+                      ? "pulse-outline"
+                      : detail.kind === "signal"
+                      ? "analytics-outline"
+                      : "flash-outline"
+                  }
+                  size={24}
+                  color={getAccentColor(detail.accent)}
+                />
+              </View>
 
-          <Text style={styles.sheetSectionTitle}>Why</Text>
-          <View style={styles.sheetInfoCard}>
-            {data.why.map((item, index) => (
-              <Text key={index} style={styles.sheetInfoText}>
-                • {item}
-              </Text>
-            ))}
-          </View>
+              <Text style={styles.sheetTitle}>{detail.title}</Text>
+              <Text style={styles.sheetSubtitle}>{detail.subtitle}</Text>
 
-          <Text style={styles.sheetSectionTitle}>If ignored</Text>
-          <View style={styles.sheetInfoCard}>
-            {data.consequence.map((item, index) => (
-              <Text key={index} style={styles.sheetInfoText}>
-                → {item}
-              </Text>
-            ))}
-          </View>
+              <View style={styles.sheetPoints}>
+                {detail.points.map((point, index) => (
+                  <View key={index} style={styles.sheetPoint}>
+                    <View
+                      style={[
+                        styles.sheetPointDot,
+                        { backgroundColor: getAccentColor(detail.accent) },
+                      ]}
+                    />
+                    <Text style={styles.sheetPointText}>{point}</Text>
+                  </View>
+                ))}
+              </View>
 
-          <Text style={styles.sheetSectionTitle}>External context</Text>
-          <View style={styles.sheetInfoCard}>
-            <Text style={styles.sheetInfoText}>{data.context}</Text>
-          </View>
-
-          <Text style={styles.sheetSectionTitle}>Do today</Text>
-          <View style={styles.sheetInfoCard}>
-            {data.actions.map((item, index) => (
-              <Text key={index} style={styles.sheetInfoText}>
-                • {item}
-              </Text>
-            ))}
-          </View>
-
-          <Pressable
-            style={styles.sheetCloseBtn}
-            onPress={() => setDetailsVisible(false)}
-          >
-            <Text style={styles.sheetCloseText}>Close</Text>
-          </Pressable>
+              <Pressable
+                style={styles.sheetButton}
+                onPress={() => setDetail(null)}
+              >
+                <Text style={styles.sheetButtonText}>Got it</Text>
+              </Pressable>
+            </>
+          )}
         </View>
-      </View>
-    </Modal>
-  </>
-);
+      </Modal>
+    </ImageBackground>
+  );
 }
 
 const styles = StyleSheet.create({
-homeModernContent: {
-  paddingTop: 10,
-  paddingHorizontal: 20,
-  paddingBottom: 130,
-},
+  background: {
+    flex: 1,
+    backgroundColor: "#050A14",
+  },
 
-alertCard: {
-  minHeight: 158,
-  backgroundColor: "rgba(255,255,255,0.06)",
-  borderRadius: 26,
-  borderWidth: 1,
-  borderColor: "rgba(255,255,255,0.10)",
-  padding: IS_COMPACT_HOME ? 14 : 16,
-  marginBottom: IS_COMPACT_HOME ? 10 : 14,
-},
+  backgroundImage: {
+    resizeMode: "cover",
+  },
 
-alertTopRow: {
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(3, 7, 18, 0.48)",
+  },
+
+  content: {
+    paddingTop: IS_COMPACT_HOME ? 10 : 18,
+    paddingHorizontal: 20,
+    paddingBottom: 140,
+  },
+
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 18,
+  },
+
+  brandTitle: {
+    color: "#FFFFFF",
+    fontSize: 34,
+    fontWeight: "900",
+    letterSpacing: -1.2,
+  },
+
+  headerIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.18)",
+    backgroundColor: "rgba(255,255,255,0.06)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  heroCard: {
+    minHeight: IS_COMPACT_HOME ? 245 : 270,
+    borderRadius: 30,
+    padding: 22,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.18)",
+    backgroundColor: "rgba(8, 16, 38, 0.56)",
+    overflow: "hidden",
+    marginBottom: 24,
+  },
+
+  heroGradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+
+  heroTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+
+  heroIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: "rgba(255,138,76,0.7)",
+    backgroundColor: "rgba(255,138,76,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
+  },
+
+  heroLabel: {
+    flex: 1,
+    color: "rgba(255,255,255,0.68)",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+
+  riskBadge: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+
+  riskBadgeText: {
+    fontSize: 14,
+    fontWeight: "800",
+  },
+
+  heroTitle: {
+    color: "#FFFFFF",
+    fontSize: IS_COMPACT_HOME ? 31 : 36,
+    lineHeight: IS_COMPACT_HOME ? 36 : 42,
+    fontWeight: "900",
+    letterSpacing: -1.1,
+    maxWidth: "82%",
+    marginBottom: 12,
+  },
+
+  heroText: {
+    color: "rgba(255,255,255,0.68)",
+    fontSize: 16,
+    lineHeight: 23,
+    maxWidth: "82%",
+    marginBottom: 18,
+  },
+
+  heroActionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  heroAction: {
+    color: "#FF9A4D",
+    fontSize: 16,
+    fontWeight: "800",
+    marginRight: 4,
+  },
+
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+
+  sectionTitle: {
+    color: "#FFFFFF",
+    fontSize: 23,
+    fontWeight: "900",
+    letterSpacing: -0.5,
+  },
+
+  sectionLink: {
+    color: "#8FA8FF",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  signalsRow: {
+    paddingRight: 20,
+    gap: 14,
+    marginBottom: 24,
+  },
+
+  signalCard: {
+    width: SCREEN_WIDTH - 96,
+    minHeight: IS_COMPACT_HOME ? 210 : 230,
+    borderRadius: 28,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.16)",
+    backgroundColor: "rgba(8, 16, 38, 0.54)",
+    overflow: "hidden",
+  },
+
+  cardGradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+
+  signalTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 14,
+  },
+
+  signalIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  signalStatus: {
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+
+  signalStatusText: {
+    fontSize: 12,
+    fontWeight: "800",
+  },
+
+  signalLabel: {
+    color: "rgba(255,255,255,0.78)",
+    fontSize: 18,
+    fontWeight: "800",
+  },
+
+  signalValue: {
+    color: "#FFFFFF",
+    fontSize: 38,
+    lineHeight: 44,
+    fontWeight: "900",
+    marginTop: 4,
+  },
+
+  signalNote: {
+    color: "rgba(255,255,255,0.54)",
+    fontSize: 14,
+    marginTop: 2,
+  },
+
+  sparkline: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    height: 42,
+    marginTop: 10,
+    marginBottom: 12,
+  },
+
+  sparkColumn: {
+    flex: 1,
+    height: 42,
+    justifyContent: "flex-end",
+  },
+
+  sparkDot: {
+    width: 4,
+    borderRadius: 999,
+    opacity: 0.9,
+  },
+
+  signalBottom: {
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.10)",
+    paddingTop: 12,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  signalRecommendation: {
+    flex: 1,
+    color: "rgba(255,255,255,0.76)",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  smallArrow: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.10)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  actionsList: {
+    gap: 10,
+  },
+
+  actionCard: {
+    minHeight: 84,
+    borderRadius: 24,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.16)",
+    backgroundColor: "rgba(8, 16, 38, 0.54)",
+    overflow: "hidden",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  actionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
+  },
+
+  actionTextBlock: {
+    flex: 1,
+  },
+
+  actionTitle: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "900",
+    marginBottom: 3,
+  },
+
+  actionText: {
+    color: "rgba(255,255,255,0.66)",
+    fontSize: 14,
+    lineHeight: 19,
+  },
+
+  actionArrow: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.10)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 12,
+  },
+
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+  },
+
+headerActions: {
   flexDirection: "row",
   alignItems: "center",
-  justifyContent: "space-between",
-  marginBottom: 8,
+  gap: 10,
 },
 
-alertLabel: {
-  color: "rgba(255,255,255,0.55)",
-  fontSize: 13,
-  fontWeight: "600",
-  marginBottom: 6,
+checkInButton: {
+  height: 44,
+  borderRadius: 22,
+  backgroundColor: "#FFFFFF",
+  paddingHorizontal: 14,
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
 },
 
-riskBadge: {
-  paddingHorizontal: 10,
-  paddingVertical: 6,
-  borderRadius: 999,
-  borderWidth: 1,
-},
-
-riskBadgeHigh: {
-  backgroundColor: "rgba(255, 92, 92, 0.14)",
-  borderColor: "rgba(255, 92, 92, 0.28)",
-},
-
-riskBadgeMedium: {
-  backgroundColor: "rgba(255, 180, 80, 0.14)",
-  borderColor: "rgba(255, 180, 80, 0.28)",
-},
-
-riskBadgeLow: {
-  backgroundColor: "rgba(74, 222, 128, 0.12)",
-  borderColor: "rgba(74, 222, 128, 0.24)",
-},
-
-riskBadgeText: {
-  color: "rgba(255,255,255,0.78)",
-  fontSize: 12,
-  fontWeight: "700",
-},
-
-alertTitle: {
-  color: "#FFFFFF",
-  fontSize: IS_COMPACT_HOME ? 25 : 28,
-  lineHeight: IS_COMPACT_HOME ? 30 : 33,
-  fontWeight: "800",
-  marginBottom: 6,
-},
-
-alertTitleSmall: {
-  fontSize: IS_COMPACT_HOME ? 22 : 24,
-  lineHeight: IS_COMPACT_HOME ? 26 : 29,
-},
-
-alertText: {
-  color: "rgba(255,255,255,0.74)",
-  fontSize: IS_COMPACT_HOME ? 14 : 15,
-  lineHeight: IS_COMPACT_HOME ? 19 : 21,
-  marginBottom: 8,
-},
-
-alertAction: {
-  color: "#9EB7FF",
+checkInButtonText: {
+  color: "#07101F",
   fontSize: 14,
-  fontWeight: "700",
-  marginTop: 0,
+  fontWeight: "900",
+  marginLeft: 4,
 },
 
-sectionRow: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: IS_COMPACT_HOME ? 6 : 8,
-},
+  sheet: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderTopLeftRadius: 34,
+    borderTopRightRadius: 34,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 34,
+    backgroundColor: "rgba(8, 16, 38, 0.96)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.14)",
+  },
 
-actionsSectionRow: {
-  marginTop: 10,
-},
+  sheetHandle: {
+    alignSelf: "center",
+    width: 44,
+    height: 5,
+    borderRadius: 99,
+    backgroundColor: "rgba(255,255,255,0.24)",
+    marginBottom: 20,
+  },
 
-homeSectionTitle: {
-  color: "#FFFFFF",
-  fontSize: IS_COMPACT_HOME ? 18 : 19,
-  fontWeight: "800",
-},
+  sheetIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+  },
 
-sectionMuted: {
-  color: "rgba(255,255,255,0.42)",
-  fontSize: 14,
-  fontWeight: "700",
-},
+  sheetTitle: {
+    color: "#FFFFFF",
+    fontSize: 28,
+    lineHeight: 34,
+    fontWeight: "900",
+    letterSpacing: -0.8,
+    marginBottom: 8,
+  },
 
-metricCarouselScroll: {
-  marginHorizontal: -20,
-},
+  sheetSubtitle: {
+    color: "rgba(255,255,255,0.66)",
+    fontSize: 16,
+    lineHeight: 23,
+    marginBottom: 18,
+  },
 
-metricCarouselContent: {
-  paddingLeft: 20,
-  paddingRight: 44,
-},
+  sheetPoints: {
+    gap: 12,
+    marginBottom: 22,
+  },
 
-metricHeroCard: {
-  marginRight: 14,
-  minHeight: IS_COMPACT_HOME ? 142 : 158,
-  borderRadius: 28,
-  padding: IS_COMPACT_HOME ? 15 : 18,
-  justifyContent: "space-between",
-  overflow: "hidden",
-  backgroundColor: "rgba(16, 22, 44, 0.88)",
-  borderWidth: 1,
-  borderColor: "rgba(255,255,255,0.08)",
-},
+  sheetPoint: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
 
-metricHeroCard_sleep: {
-  backgroundColor: "rgba(18, 28, 60, 0.92)",
-  borderColor: "rgba(102, 153, 255, 0.24)",
-},
+  sheetPointDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 99,
+    marginTop: 8,
+    marginRight: 10,
+  },
 
-metricHeroCard_workload: {
-  backgroundColor: "rgba(46, 24, 18, 0.92)",
-  borderColor: "rgba(255, 128, 80, 0.24)",
-},
+  sheetPointText: {
+    flex: 1,
+    color: "rgba(255,255,255,0.76)",
+    fontSize: 15,
+    lineHeight: 22,
+  },
 
-metricHeroCard_recovery: {
-  backgroundColor: "rgba(32, 22, 58, 0.92)",
-  borderColor: "rgba(190, 105, 255, 0.24)",
-},
+  sheetButton: {
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
-metricHeroCard_finance: {
-  backgroundColor: "rgba(16, 36, 46, 0.92)",
-  borderColor: "rgba(92, 220, 255, 0.22)",
-},
-
-cardGradient: {
-  position: "absolute",
-  left: 0,
-  right: 0,
-  top: 0,
-  bottom: 0,
-  opacity: 1,
-},
-
-metricHeroLabel: {
-  color: "rgba(255,255,255,0.68)",
-  fontSize: IS_COMPACT_HOME ? 14 : 15,
-  fontWeight: "700",
-},
-
-metricHeroValue: {
-  color: "#FFFFFF",
-  fontSize: IS_COMPACT_HOME ? 40 : 46,
-  lineHeight: IS_COMPACT_HOME ? 44 : 50,
-  fontWeight: "800",
-  letterSpacing: -1.2,
-  marginTop: 4,
-},
-
-metricHeroNote: {
-  color: "rgba(255,255,255,0.50)",
-  fontSize: 12,
-  marginTop: 3,
-},
-
-metricHeroRecommendation: {
-  color: "rgba(255,255,255,0.76)",
-  fontSize: IS_COMPACT_HOME ? 12 : 13,
-  lineHeight: IS_COMPACT_HOME ? 15 : 17,
-  fontWeight: "600",
-},
-
-actionGrid: {
-  flexDirection: "row",
-  gap: IS_COMPACT_HOME ? 10 : 12,
-  marginTop: 0,
-},
-
-actionCard: {
-  backgroundColor: "rgba(255,255,255,0.06)",
-  borderRadius: 24,
-  borderWidth: 1,
-  borderColor: "rgba(255,255,255,0.08)",
-  padding: IS_COMPACT_HOME ? 14 : 16,
-  justifyContent: "space-between",
-  overflow: "hidden",
-  position: "relative",
-},
-
-actionCardLarge: {
-  flex: 1.08,
-  minHeight: IS_COMPACT_HOME ? 128 : 148,
-  justifyContent: "space-between",
-},
-
-actionCardStack: {
-  flex: 1,
-  gap: 14,
-},
-
-actionCardSmall: {
-  minHeight: IS_COMPACT_HOME ? 62 : 72,
-},
-
-actionRecovery: {
-  backgroundColor: "rgba(48, 24, 78, 0.78)",
-  borderColor: "rgba(190,105,255,0.38)",
-},
-
-actionFinance: {
-  backgroundColor: "rgba(14, 46, 56, 0.78)",
-  borderColor: "rgba(92,220,255,0.34)",
-},
-
-actionReset: {
-  backgroundColor: "rgba(68, 30, 18, 0.78)",
-  borderColor: "rgba(255,120,70,0.34)",
-},
-
-actionCardTitle: {
-  color: "#FFFFFF",
-  fontSize: IS_COMPACT_HOME ? 17 : 18,
-  fontWeight: "800",
-},
-
-actionCardText: {
-  color: "rgba(255,255,255,0.64)",
-  fontSize: IS_COMPACT_HOME ? 12 : 13,
-  lineHeight: IS_COMPACT_HOME ? 15 : 17,
-  marginTop: 4,
-},
-
-actionIcon: {
-  width: 42,
-  height: 42,
-  borderRadius: 21,
-  alignItems: "center",
-  justifyContent: "center",
-  backgroundColor: "rgba(255,255,255,0.10)",
-  borderWidth: 1,
-  borderColor: "rgba(255,255,255,0.10)",
-  marginBottom: 0,
-},
-
-actionIconSmall: {
-  width: 34,
-  height: 34,
-  borderRadius: 17,
-  alignItems: "center",
-  justifyContent: "center",
-  backgroundColor: "rgba(255,255,255,0.10)",
-  borderWidth: 1,
-  borderColor: "rgba(255,255,255,0.10)",
-  marginBottom: 6,
-},
-
-actionArrow: {
-  position: "absolute",
-  right: 14,
-  bottom: 14,
-  width: 34,
-  height: 34,
-  borderRadius: 17,
-  alignItems: "center",
-  justifyContent: "center",
-  backgroundColor: "rgba(255,255,255,0.10)",
-},
-
-actionArrowSmall: {
-  position: "absolute",
-  right: 12,
-  bottom: 12,
-  width: 28,
-  height: 28,
-  borderRadius: 14,
-  alignItems: "center",
-  justifyContent: "center",
-  backgroundColor: "rgba(255,255,255,0.10)",
-},
-
-modalOverlay: {
-  flex: 1,
-  justifyContent: "flex-end",
-},
-
-modalBackdrop: {
-  ...StyleSheet.absoluteFillObject,
-  backgroundColor: "rgba(0,0,0,0.45)",
-},
-
-sheetCard: {
-  backgroundColor: "#0D1430",
-  borderTopLeftRadius: 28,
-  borderTopRightRadius: 28,
-  paddingHorizontal: 20,
-  paddingTop: 12,
-  paddingBottom: 28,
-  maxHeight: "88%",
-},
-
-sheetHandle: {
-  width: 42,
-  height: 5,
-  borderRadius: 999,
-  backgroundColor: "rgba(255,255,255,0.18)",
-  alignSelf: "center",
-  marginBottom: 14,
-},
-
-sheetTitle: {
-  color: "#FFFFFF",
-  fontSize: 24,
-  fontWeight: "800",
-  marginBottom: 16,
-},
-
-sheetSectionTitle: {
-  color: "#FFFFFF",
-  fontSize: 18,
-  fontWeight: "700",
-  marginTop: 14,
-  marginBottom: 10,
-},
-
-sheetInfoCard: {
-  backgroundColor: "rgba(255,255,255,0.05)",
-  borderRadius: 20,
-  padding: 16,
-  borderWidth: 1,
-  borderColor: "rgba(255,255,255,0.06)",
-},
-
-sheetInfoText: {
-  color: "rgba(255,255,255,0.78)",
-  fontSize: 15,
-  lineHeight: 24,
-  marginBottom: 6,
-},
-
-sheetCloseBtn: {
-  marginTop: 18,
-  backgroundColor: "#3B5BFF",
-  borderRadius: 18,
-  paddingVertical: 14,
-  alignItems: "center",
-},
-
-sheetCloseText: {
-  color: "#FFFFFF",
-  fontSize: 16,
-  fontWeight: "700",
-},
+  sheetButtonText: {
+    color: "#07101F",
+    fontSize: 17,
+    fontWeight: "900",
+  },
 });
