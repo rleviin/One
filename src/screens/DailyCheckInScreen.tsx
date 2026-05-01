@@ -12,17 +12,9 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import * as DocumentPicker from "expo-document-picker";
 
 type DailyCheckInScreenProps = {
   onDone: () => void;
-};
-
-type BloodTestFile = {
-  name: string;
-  uri: string;
-  size?: number;
-  mimeType?: string;
 };
 
 type ScaleKey = "energy" | "stress" | "workload" | "spendingPressure";
@@ -74,7 +66,6 @@ export default function DailyCheckInScreen({ onDone }: DailyCheckInScreenProps) 
 
   const [note, setNote] = useState("");
   const [mealPhotoUri, setMealPhotoUri] = useState<string | null>(null);
-  const [bloodTestFile, setBloodTestFile] = useState<BloodTestFile | null>(null);
 
   function setScaleValue(key: ScaleKey, value: number) {
     setValues((current) => ({
@@ -100,23 +91,6 @@ export default function DailyCheckInScreen({ onDone }: DailyCheckInScreenProps) 
       setMealPhotoUri(result.assets[0].uri);
     }
   }
-async function pickBloodTestFile() {
-  const result = await DocumentPicker.getDocumentAsync({
-    type: ["application/pdf", "image/*"],
-    copyToCacheDirectory: true,
-  });
-
-  if (!result.canceled && result.assets.length > 0) {
-    const file = result.assets[0];
-
-    setBloodTestFile({
-      name: file.name,
-      uri: file.uri,
-      size: file.size,
-      mimeType: file.mimeType,
-    });
-  }
-}
   return (
     <ImageBackground
       source={require("../../assets/onboarding-bg_0.png")}
@@ -233,31 +207,7 @@ async function pickBloodTestFile() {
       </View>
     </View>
   )}
-
-  <Pressable style={styles.documentButton} onPress={pickBloodTestFile}>
-    <Ionicons name="document-attach-outline" size={21} color="#FFFFFF" />
-    <Text style={styles.documentButtonText}>
-      {bloodTestFile ? "Change blood test file" : "Attach blood test"}
-    </Text>
-  </Pressable>
-
-  {bloodTestFile && (
-    <View style={styles.bloodTestCard}>
-      <View style={styles.bloodTestIcon}>
-        <Ionicons name="flask-outline" size={22} color="#FF647C" />
-      </View>
-
-      <View style={{ flex: 1 }}>
-        <Text style={styles.bloodTestTitle}>{bloodTestFile.name}</Text>
-        <Text style={styles.bloodTestText}>
-          Blood test attached. Dara will use this later to understand recovery,
-          fatigue, inflammation and nutrient signals.
-        </Text>
-      </View>
-    </View>
-  )}
 </View>
-
           <View style={styles.previewCard}>
             <Ionicons name="sparkles-outline" size={20} color="#B9C6FF" />
             <Text style={styles.previewText}>
@@ -549,60 +499,6 @@ mealInsightText: {
   color: "rgba(255,255,255,0.66)",
   fontSize: 14,
   lineHeight: 20,
-},
-documentButton: {
-  minHeight: 54,
-  borderRadius: 19,
-  backgroundColor: "rgba(255,255,255,0.08)",
-  borderWidth: 1,
-  borderColor: "rgba(255,255,255,0.14)",
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "center",
-  marginTop: 12,
-},
-
-documentButtonText: {
-  color: "#FFFFFF",
-  fontSize: 15,
-  fontWeight: "800",
-  marginLeft: 8,
-},
-
-bloodTestCard: {
-  marginTop: 12,
-  borderRadius: 22,
-  padding: 14,
-  backgroundColor: "rgba(255,100,124,0.08)",
-  borderWidth: 1,
-  borderColor: "rgba(255,100,124,0.22)",
-  flexDirection: "row",
-  alignItems: "center",
-},
-
-bloodTestIcon: {
-  width: 46,
-  height: 46,
-  borderRadius: 23,
-  backgroundColor: "rgba(255,100,124,0.12)",
-  borderWidth: 1,
-  borderColor: "rgba(255,100,124,0.28)",
-  alignItems: "center",
-  justifyContent: "center",
-  marginRight: 12,
-},
-
-bloodTestTitle: {
-  color: "#FFFFFF",
-  fontSize: 15,
-  fontWeight: "900",
-  marginBottom: 4,
-},
-
-bloodTestText: {
-  color: "rgba(255,255,255,0.66)",
-  fontSize: 13,
-  lineHeight: 18,
 },
 
 });
