@@ -18,6 +18,7 @@ import {
 import * as DocumentPicker from "expo-document-picker";
 
 type ProfileTabProps = {
+  dataVersion?: number;
   onOpenSetup?: () => void;
 };
 
@@ -54,7 +55,10 @@ const preferences = [
   "Focus: prediction, context and action",
 ];
 
-export default function ProfileTab({ onOpenSetup }: ProfileTabProps) {
+export default function ProfileTab({
+  dataVersion = 0,
+  onOpenSetup,
+}: ProfileTabProps) {
   const [showHealthRecords, setShowHealthRecords] = useState(false);
   const [setupData, setSetupData] = useState<PersonalSetupData | null>(null);
   const [healthRecord, setHealthRecord] = useState<HealthRecordFile | null>(null);
@@ -78,7 +82,7 @@ if (mounted) {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [dataVersion]);
   async function pickBloodTestFile() {
     const result = await DocumentPicker.getDocumentAsync({
       type: ["application/pdf", "image/*"],

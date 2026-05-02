@@ -79,22 +79,48 @@ function MainApp() {
   const [tab, setTab] = useState<Tab>("home");
   const [showSetup, setShowSetup] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
+  const [dataVersion, setDataVersion] = useState(0);
 
-  if (showSetup) {
-  return <PersonalSetupScreen onDone={() => setShowSetup(false)} />;
+if (showSetup) {
+  return (
+    <PersonalSetupScreen
+      onDone={() => {
+        setShowSetup(false);
+        setDataVersion((current) => current + 1);
+      }}
+    />
+  );
 }
  
- if (showCheckIn) {
-  return <DailyCheckInScreen onDone={() => setShowCheckIn(false)} />;
+if (showCheckIn) {
+  return (
+    <DailyCheckInScreen
+      onDone={() => {
+        setShowCheckIn(false);
+        setDataVersion((current) => current + 1);
+      }}
+    />
+  );
 }
   return (
     <SafeAreaView style={styles.mainAppContainer}>
       <View style={styles.mainContent}>
-        {tab === "home" && <HomeTab onOpenCheckIn={() => setShowCheckIn(true)} />}
-        {tab === "forecast" && <ForecastTab />}
-        {tab === "insights" && <InsightsTab />}
-        {tab === "profile" && (
-  <ProfileTab onOpenSetup={() => setShowSetup(true)} />
+{tab === "home" && (
+  <HomeTab
+    dataVersion={dataVersion}
+    onOpenCheckIn={() => setShowCheckIn(true)}
+  />
+)}
+
+{tab === "forecast" && <ForecastTab dataVersion={dataVersion} />}
+
+{tab === "insights" && <InsightsTab dataVersion={dataVersion} />}
+
+{tab === "profile" && (
+  <ProfileTab
+    dataVersion={dataVersion}
+    onOpenSetup={() => setShowSetup(true)}
+  />
 )}
       </View>
 <View style={styles.tabBar}>

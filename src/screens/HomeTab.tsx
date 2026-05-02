@@ -58,6 +58,7 @@ type ActionCard = {
 };
 
 type HomeTabProps = {
+  dataVersion?: number;
   onOpenCheckIn?: () => void;
 };
 
@@ -148,7 +149,7 @@ function Sparkline({ accent }: { accent: SignalCard["accent"] }) {
   );
 }
 
-export default function HomeTab({ onOpenCheckIn }: HomeTabProps) {
+export default function HomeTab({ dataVersion = 0, onOpenCheckIn }: HomeTabProps) {
   const [signals, setSignals] = useState<UserSignals>({
     sleepHours: 6.2,
     workload: 7,
@@ -179,7 +180,7 @@ export default function HomeTab({ onOpenCheckIn }: HomeTabProps) {
     return () => {
       mounted = false;
     };
-  }, []);
+}, [dataVersion]);
 
   const risk = calculateRisk(signals);
   const riskCopy = getRiskCopy(risk);

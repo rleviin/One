@@ -14,6 +14,9 @@ import type { DailyCheckInData } from "../storage";
 import { loadDailyCheckIn } from "../storage";
 
 type ForecastLevel = "stable" | "watch" | "risk";
+type ForecastTabProps = {
+  dataVersion?: number;
+};
 
 function getForecastLevel(checkIn: DailyCheckInData | null): ForecastLevel {
   if (!checkIn) return "watch";
@@ -59,7 +62,7 @@ function getForecastCopy(level: ForecastLevel) {
   };
 }
 
-export default function ForecastTab() {
+export default function ForecastTab({ dataVersion = 0 }: ForecastTabProps) {
   const [checkIn, setCheckIn] = useState<DailyCheckInData | null>(null);
 
   useEffect(() => {
@@ -78,7 +81,7 @@ export default function ForecastTab() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [dataVersion]);
 
   const level = getForecastLevel(checkIn);
   const forecast = getForecastCopy(level);
@@ -153,7 +156,7 @@ export default function ForecastTab() {
 
   return (
     <ImageBackground
-      source={require("../../assets/onboarding-bg.png")}
+      source={require("../../assets/onboarding-bg_2.png")}
       style={styles.background}
       imageStyle={styles.backgroundImage}
       resizeMode="cover"

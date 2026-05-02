@@ -23,6 +23,9 @@ type Insight = {
   accent: string;
   points: string[];
 };
+type InsightsTabProps = {
+  dataVersion?: number;
+};
 
 function buildInsights(checkIn: DailyCheckInData | null): Insight[] {
   if (!checkIn) {
@@ -163,7 +166,7 @@ function buildInsights(checkIn: DailyCheckInData | null): Insight[] {
   return insights;
 }
 
-export default function InsightsTab() {
+export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
   const [checkIn, setCheckIn] = useState<DailyCheckInData | null>(null);
   const [selectedInsight, setSelectedInsight] = useState<Insight | null>(null);
 
@@ -183,7 +186,7 @@ export default function InsightsTab() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [dataVersion]);
 
   const insights = useMemo(() => buildInsights(checkIn), [checkIn]);
 
