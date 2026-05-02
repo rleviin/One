@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -20,6 +20,9 @@ import {
   getSleepRecommendation,
   getWorkloadRecommendation,
 } from "../logic";
+
+import type { DailyCheckInData } from "../storage";
+import { loadDailyCheckIn } from "../storage";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -85,6 +88,25 @@ function getRiskCopy(risk: RiskLevel) {
   };
 }
 
+function clampSignal(value: number) {
+  return Math.max(0, Math.min(10, Math.round(value)));
+}
+
+function mapCheckInToSignals(
+  current: UserSignals,
+  checkIn: DailyCheckInData
+): UserSignals {
+  const recoveryFromEnergy = checkIn.energy;
+  const recoveryFromStress = 10 - checkIn.stress;
+
+  return {
+    ...current,
+    workload: clampSignal(checkIn.workload),
+    spendingPressure: clampSignal(checkIn.spendingPressure),
+    recovery: clampSignal((recoveryFromEnergy + recoveryFromStress) / 2),
+  };
+}
+
 function getAccentColor(accent: DetailState["accent"] | SignalCard["accent"]) {
   switch (accent) {
     case "purple":
@@ -135,6 +157,29 @@ export default function HomeTab({ onOpenCheckIn }: HomeTabProps) {
   });
 
   const [detail, setDetail] = useState<DetailState>(null);
+  const [latestCheckIn, setLatestCheckIn] = useState<DailyCheckInData | null>(
+    null
+  );
+    useEffect(() => {
+    let mounted = true;
+
+    async function loadHomeData() {
+      const checkIn = await loadDailyCheckIn();
+
+      if (!mounted || !checkIn) {
+        return;
+      }
+
+      setLatestCheckIn(checkIn);
+      setSignals((current) => mapCheckInToSignals(current, checkIn));
+    }
+
+    loadHomeData();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const risk = calculateRisk(signals);
   const riskCopy = getRiskCopy(risk);
@@ -212,21 +257,32 @@ export default function HomeTab({ onOpenCheckIn }: HomeTabProps) {
     []
   );
 
-  function openSummary() {
-    setDetail({
-      kind: "summary",
-      title: riskCopy.title,
-      subtitle: riskCopy.text,
-      accent: riskCopy.accent,
-      points: [
-        `Sleep is at ${signals.sleepHours.toFixed(1)}h.`,
-        `Workload is ${signals.workload}/10.`,
-        `Recovery is ${signals.recovery}/10.`,
-        `Financial pressure is ${signals.spendingPressure}/10.`,
-        "Dara combines these signals to estimate where your balance is moving.",
-      ],
-    });
-  }
+function openSummary() {
+  const checkInPoints = latestCheckIn
+    ? [
+        `Energy check-in: ${latestCheckIn.energy}/10.`,
+        `Stress check-in: ${latestCheckIn.stress}/10.`,
+        latestCheckIn.note
+          ? `Today context: ${latestCheckIn.note}`
+          : "No daily note added today.",
+      ]
+    : ["No daily check-in saved yet."];
+
+  setDetail({
+    kind: "summary",
+    title: riskCopy.title,
+    subtitle: riskCopy.text,
+    accent: riskCopy.accent,
+    points: [
+      `Sleep is at ${signals.sleepHours.toFixed(1)}h.`,
+      `Workload is ${signals.workload}/10.`,
+      `Recovery is ${signals.recovery}/10.`,
+      `Financial pressure is ${signals.spendingPressure}/10.`,
+      ...checkInPoints,
+      "Dara combines body signals, money pressure and daily context to estimate where your balance is moving.",
+    ],
+  });
+}
 
   function openSignal(card: SignalCard) {
     const extra =
@@ -320,6 +376,18 @@ export default function HomeTab({ onOpenCheckIn }: HomeTabProps) {
   </View>
 </View>
 
+{latestCheckIn && (
+  <View style={styles.checkInSummaryCard}>
+    <View style={styles.checkInSummaryIcon}>
+      <Ionicons name="checkmark-circle-outline" size={20} color="#58E7FF" />
+    </View>
+
+    <Text style={styles.checkInSummaryText}>
+      Check-in loaded · Energy {latestCheckIn.energy}/10 · Stress{" "}
+      {latestCheckIn.stress}/10
+    </Text>
+  </View>
+)}
         <Pressable style={styles.heroCard} onPress={openSummary}>
           <LinearGradient
             colors={[
@@ -1020,4 +1088,35 @@ checkInButtonText: {
     fontSize: 17,
     fontWeight: "900",
   },
+ 
+  checkInSummaryCard: {
+  flexDirection: "row",
+  alignItems: "center",
+  borderRadius: 22,
+  padding: 12,
+  backgroundColor: "rgba(88,231,255,0.08)",
+  borderWidth: 1,
+  borderColor: "rgba(88,231,255,0.18)",
+  marginBottom: 14,
+},
+
+checkInSummaryIcon: {
+  width: 34,
+  height: 34,
+  borderRadius: 17,
+  backgroundColor: "rgba(88,231,255,0.12)",
+  borderWidth: 1,
+  borderColor: "rgba(88,231,255,0.24)",
+  alignItems: "center",
+  justifyContent: "center",
+  marginRight: 10,
+},
+
+checkInSummaryText: {
+  flex: 1,
+  color: "rgba(255,255,255,0.72)",
+  fontSize: 13,
+  lineHeight: 18,
+  fontWeight: "700",
+},
 });
