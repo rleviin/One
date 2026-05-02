@@ -12,55 +12,16 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import type { DailyCheckInData } from "../storage";
 import { loadDailyCheckIn } from "../storage";
-
-type ForecastLevel = "stable" | "watch" | "risk";
+import {
+  buildForecastChangePoints,
+  buildForecastWhyPoints,
+  getForecastCopy,
+  getForecastLevel,
+} from "../daraModel";
 type ForecastTabProps = {
   dataVersion?: number;
 };
 
-function getForecastLevel(checkIn: DailyCheckInData | null): ForecastLevel {
-  if (!checkIn) return "watch";
-
-  const pressureScore =
-    checkIn.stress * 1.2 +
-    checkIn.workload * 1.1 +
-    checkIn.spendingPressure * 0.8 -
-    checkIn.energy * 0.9;
-
-  if (pressureScore >= 14) return "risk";
-  if (pressureScore >= 8) return "watch";
-  return "stable";
-}
-
-function getForecastCopy(level: ForecastLevel) {
-  if (level === "risk") {
-    return {
-      badge: "Rising risk",
-      title: "If nothing changes, fatigue risk may rise in 3–5 days.",
-      text: "Your current pressure pattern suggests that recovery may not fully compensate for load.",
-      accent: "#FF647C",
-      icon: "warning-outline" as const,
-    };
-  }
-
-  if (level === "watch") {
-    return {
-      badge: "Watch zone",
-      title: "Your balance may become unstable if pressure keeps building.",
-      text: "Dara sees a pattern that is not urgent yet, but worth adjusting today.",
-      accent: "#FF8A4C",
-      icon: "pulse-outline" as const,
-    };
-  }
-
-  return {
-    badge: "Stable",
-    title: "Your current pattern looks stable for the next few days.",
-    text: "Keep protecting sleep, recovery and daily rhythm to maintain this trend.",
-    accent: "#4ADE80",
-    icon: "checkmark-circle-outline" as const,
-  };
-}
 
 export default function ForecastTab({ dataVersion = 0 }: ForecastTabProps) {
   const [checkIn, setCheckIn] = useState<DailyCheckInData | null>(null);
@@ -86,45 +47,8 @@ export default function ForecastTab({ dataVersion = 0 }: ForecastTabProps) {
   const level = getForecastLevel(checkIn);
   const forecast = getForecastCopy(level);
 
-  const whyPoints = useMemo(() => {
-    if (!checkIn) {
-      return [
-        "No daily check-in saved yet.",
-        "Dara is using a default baseline until you add today’s context.",
-        "Check in from Home to make this forecast more personal.",
-      ];
-    }
-
-    return [
-      `Energy is ${checkIn.energy}/10.`,
-      `Stress is ${checkIn.stress}/10.`,
-      `Workload is ${checkIn.workload}/10.`,
-      `Money pressure is ${checkIn.spendingPressure}/10.`,
-      checkIn.note
-        ? `Today context: ${checkIn.note}`
-        : "No additional note added today.",
-    ];
-  }, [checkIn]);
-
-  const changePoints =
-    level === "risk"
-      ? [
-          "Reduce one non-critical task today.",
-          "Protect sleep tonight as the highest-leverage action.",
-          "Avoid major spending or commitment decisions today.",
-        ]
-      : level === "watch"
-      ? [
-          "Keep workload contained.",
-          "Add one recovery action today.",
-          "Use tomorrow’s check-in to confirm whether pressure is rising.",
-        ]
-      : [
-          "Keep your current rhythm stable.",
-          "Do not add unnecessary load.",
-          "Maintain sleep and recovery consistency.",
-        ];
-
+const whyPoints = useMemo(() => buildForecastWhyPoints(checkIn), [checkIn]);
+const changePoints = buildForecastChangePoints(level);
   const timeline = [
     {
       day: "Today",

@@ -43,3 +43,92 @@ export function buildSummaryPoints(
     "Dara combines body signals, money pressure and daily context to estimate where your balance is moving.",
   ];
 }
+export type ForecastLevel = "stable" | "watch" | "risk";
+
+export function getForecastLevel(checkIn: DailyCheckInData | null): ForecastLevel {
+  if (!checkIn) return "watch";
+
+  const pressureScore =
+    checkIn.stress * 1.2 +
+    checkIn.workload * 1.1 +
+    checkIn.spendingPressure * 0.8 -
+    checkIn.energy * 0.9;
+
+  if (pressureScore >= 14) return "risk";
+  if (pressureScore >= 8) return "watch";
+  return "stable";
+}
+
+export function getForecastCopy(level: ForecastLevel) {
+  if (level === "risk") {
+    return {
+      badge: "Rising risk",
+      title: "If nothing changes, fatigue risk may rise in 3–5 days.",
+      text: "Your current pressure pattern suggests that recovery may not fully compensate for load.",
+      accent: "#FF647C",
+      icon: "warning-outline" as const,
+    };
+  }
+
+  if (level === "watch") {
+    return {
+      badge: "Watch zone",
+      title: "Your balance may become unstable if pressure keeps building.",
+      text: "Dara sees a pattern that is not urgent yet, but worth adjusting today.",
+      accent: "#FF8A4C",
+      icon: "pulse-outline" as const,
+    };
+  }
+
+  return {
+    badge: "Stable",
+    title: "Your current pattern looks stable for the next few days.",
+    text: "Keep protecting sleep, recovery and daily rhythm to maintain this trend.",
+    accent: "#4ADE80",
+    icon: "checkmark-circle-outline" as const,
+  };
+}
+
+export function buildForecastWhyPoints(checkIn: DailyCheckInData | null) {
+  if (!checkIn) {
+    return [
+      "No daily check-in saved yet.",
+      "Dara is using a default baseline until you add today’s context.",
+      "Check in from Home to make this forecast more personal.",
+    ];
+  }
+
+  return [
+    `Energy is ${checkIn.energy}/10.`,
+    `Stress is ${checkIn.stress}/10.`,
+    `Workload is ${checkIn.workload}/10.`,
+    `Money pressure is ${checkIn.spendingPressure}/10.`,
+    checkIn.note
+      ? `Today context: ${checkIn.note}`
+      : "No additional note added today.",
+  ];
+}
+
+export function buildForecastChangePoints(level: ForecastLevel) {
+  if (level === "risk") {
+    return [
+      "Reduce one non-critical task today.",
+      "Protect sleep tonight as the highest-leverage action.",
+      "Avoid major spending or commitment decisions today.",
+    ];
+  }
+
+  if (level === "watch") {
+    return [
+      "Keep workload contained.",
+      "Add one recovery action today.",
+      "Use tomorrow’s check-in to confirm whether pressure is rising.",
+    ];
+  }
+
+  return [
+    "Keep your current rhythm stable.",
+    "Do not add unnecessary load.",
+    "Maintain sleep and recovery consistency.",
+  ];
+}
