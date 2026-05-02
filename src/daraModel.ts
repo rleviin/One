@@ -132,3 +132,133 @@ export function buildForecastChangePoints(level: ForecastLevel) {
     "Maintain sleep and recovery consistency.",
   ];
 }
+export type DaraInsight = {
+  id: string;
+  title: string;
+  label: string;
+  text: string;
+  icon:
+    | "sparkles-outline"
+    | "analytics-outline"
+    | "leaf-outline"
+    | "card-outline"
+    | "bulb-outline"
+    | "restaurant-outline"
+    | "create-outline"
+    | "checkmark-circle-outline";
+  accent: string;
+  points: string[];
+};
+
+export function buildInsights(checkIn: DailyCheckInData | null): DaraInsight[] {
+  if (!checkIn) {
+    return [
+      {
+        id: "baseline",
+        title: "Add your first check-in",
+        label: "Baseline needed",
+        text: "Dara needs today’s context before it can detect personal patterns.",
+        icon: "sparkles-outline",
+        accent: "#B9C6FF",
+        points: [
+          "Check in from Home to add energy, stress, workload and money pressure.",
+          "After that, Dara can connect your signals into patterns.",
+          "Insights become more useful as your history grows.",
+        ],
+      },
+      {
+        id: "future-patterns",
+        title: "Patterns will appear here",
+        label: "Coming soon",
+        text: "Sleep, workload, recovery, food and finances will become connected insights.",
+        icon: "analytics-outline",
+        accent: "#58E7FF",
+        points: [
+          "Dara will look for repeated combinations.",
+          "Example: low sleep plus high workload may predict fatigue.",
+          "Example: high stress plus money pressure may predict unstable focus.",
+        ],
+      },
+    ];
+  }
+
+  const insights: DaraInsight[] = [
+    {
+      id: "recovery-pressure",
+      title: "Recovery pattern",
+      label: "Recovery pattern",
+      text: "Dara checks how energy, stress and workload are interacting today.",
+      icon: "leaf-outline",
+      accent: "#4ADE80",
+      points: [
+        `Energy is ${checkIn.energy}/10.`,
+        `Stress is ${checkIn.stress}/10.`,
+        `Workload is ${checkIn.workload}/10.`,
+        "Dara reads this as a recovery pressure pattern.",
+        "Today’s best move: reduce one non-critical load and protect sleep.",
+      ],
+    },
+    {
+      id: "money-stress",
+      title: "Money and stress pattern",
+      label: "Pressure pattern",
+      text: "Dara watches whether financial pressure is adding background load.",
+      icon: "card-outline",
+      accent: "#58E7FF",
+      points: [
+        `Stress is ${checkIn.stress}/10.`,
+        `Money pressure is ${checkIn.spendingPressure}/10.`,
+        "This combination may affect focus and decision quality.",
+        "Today’s best move: avoid major spending or commitment decisions.",
+      ],
+    },
+    {
+      id: "focus-risk",
+      title: "Focus stability pattern",
+      label: "Focus pattern",
+      text: "Dara checks whether workload and energy support deep work today.",
+      icon: "bulb-outline",
+      accent: "#C96BFF",
+      points: [
+        `Workload is ${checkIn.workload}/10.`,
+        `Energy is ${checkIn.energy}/10.`,
+        "Dara watches whether focus is likely to stay stable.",
+        "Today’s best move: do the most important task first and reduce context switching.",
+      ],
+    },
+  ];
+
+  if (checkIn.mealPhotoUri) {
+    insights.push({
+      id: "nutrition-context",
+      title: "Nutrition context added",
+      label: "Food signal",
+      text: "Your meal photo gives Dara another clue about energy stability.",
+      icon: "restaurant-outline",
+      accent: "#FF8A4C",
+      points: [
+        "Meal photo was added to today’s check-in.",
+        "For now Dara stores this as context.",
+        "Later, AI meal review can estimate balance, protein/fiber and energy stability.",
+      ],
+    });
+  }
+
+  if (checkIn.note) {
+    insights.push({
+      id: "daily-context",
+      title: "Today’s note may matter",
+      label: "Context signal",
+      text: "Your written note can explain changes that numbers alone miss.",
+      icon: "create-outline",
+      accent: "#7DA2FF",
+      points: [
+        `Today context: ${checkIn.note}`,
+        "Dara treats this as a life event signal.",
+        "Later, notes can be classified into work, finance, health, social or opportunity context.",
+      ],
+    });
+  }
+
+  return insights;
+}
