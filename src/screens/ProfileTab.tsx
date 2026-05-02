@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   ImageBackground,
   Modal,
@@ -9,17 +9,9 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import type {
-  DailyCheckInData,
-  HealthRecordFile,
-  PersonalSetupData,
-} from "../storage";
-import {
-  loadDailyCheckIn,
-  loadHealthRecord,
-  loadPersonalSetup,
-  saveHealthRecord,
-} from "../storage";
+import type { HealthRecordFile } from "../storage";
+import { saveHealthRecord } from "../storage";
+import { useDaraData } from "../useDaraData";
 import * as DocumentPicker from "expo-document-picker";
 
 type ProfileTabProps = {
@@ -65,34 +57,13 @@ export default function ProfileTab({
   onOpenSetup,
 }: ProfileTabProps) {
   const [showHealthRecords, setShowHealthRecords] = useState(false);
-  const [setupData, setSetupData] = useState<PersonalSetupData | null>(null);  
-  const [healthRecord, setHealthRecord] = useState<HealthRecordFile | null>(null);
-  const [latestCheckIn, setLatestCheckIn] = useState<DailyCheckInData | null>(
-  null
-);
+  const { data, reload } = useDaraData(dataVersion);
+
+const setupData = data.personalSetup;
+const healthRecord = data.healthRecord;
+const latestCheckIn = data.dailyCheckIn;
   const [showAppleHealth, setShowAppleHealth] = useState(false);
 
- useEffect(() => {
-    let mounted = true;
-
-    async function loadProfileData() {
-const data = await loadPersonalSetup();
-const record = await loadHealthRecord();
-const checkIn = await loadDailyCheckIn();
-
-if (mounted) {
-  setSetupData(data);
-  setHealthRecord(record);
-  setLatestCheckIn(checkIn);
-}
-    }
-
-    loadProfileData();
-
-    return () => {
-      mounted = false;
-    };
-  }, [dataVersion]);
   async function pickBloodTestFile() {
     const result = await DocumentPicker.getDocumentAsync({
       type: ["application/pdf", "image/*"],
@@ -110,8 +81,8 @@ if (mounted) {
         createdAt: new Date().toISOString(),
       };
 
-      await saveHealthRecord(record);
-      setHealthRecord(record);
+ await saveHealthRecord(record);
+await reload();
     }
   }
 
