@@ -58,6 +58,7 @@ export default function ProfileTab({ onOpenSetup }: ProfileTabProps) {
   const [showHealthRecords, setShowHealthRecords] = useState(false);
   const [setupData, setSetupData] = useState<PersonalSetupData | null>(null);
   const [healthRecord, setHealthRecord] = useState<HealthRecordFile | null>(null);
+  const [showAppleHealth, setShowAppleHealth] = useState(false);
 
  useEffect(() => {
     let mounted = true;
@@ -195,6 +196,25 @@ if (mounted) {
     />
   </View>
 </Pressable>
+<Pressable
+  style={styles.appleHealthCard}
+  onPress={() => setShowAppleHealth(true)}
+>
+  <View style={styles.appleHealthIcon}>
+    <Ionicons name="heart-outline" size={25} color="#58E7FF" />
+  </View>
+
+  <View style={styles.setupTextBlock}>
+    <Text style={styles.setupTitle}>Apple Health</Text>
+    <Text style={styles.setupText}>
+      Connect sleep, activity, HRV, workouts and recovery data later.
+    </Text>
+  </View>
+
+  <View style={styles.connectionBadge}>
+    <Text style={styles.connectionBadgeText}>Not connected</Text>
+  </View>
+</Pressable>
         <Text style={styles.sectionTitle}>Connected areas</Text>
 
         <View style={styles.areaGrid}>
@@ -327,6 +347,71 @@ if (mounted) {
           </Pressable>
         </View>
       </Modal>
+<Modal
+  visible={showAppleHealth}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setShowAppleHealth(false)}
+>
+  <Pressable
+    style={styles.modalBackdrop}
+    onPress={() => setShowAppleHealth(false)}
+  />
+
+  <View style={styles.sheet}>
+    <View style={styles.sheetHandle} />
+
+    <View style={styles.appleSheetIcon}>
+      <Ionicons name="heart-outline" size={25} color="#58E7FF" />
+    </View>
+
+    <Text style={styles.sheetTitle}>Apple Health</Text>
+
+    <Text style={styles.sheetSubtitle}>
+      Dara will use Apple Health only with your permission. This can help turn
+      sleep, activity and recovery data into more personal guidance.
+    </Text>
+
+    <View style={styles.recordList}>
+      <View style={styles.recordItem}>
+        <Ionicons name="moon-outline" size={20} color="#B9C6FF" />
+        <View style={styles.recordTextBlock}>
+          <Text style={styles.recordTitle}>Sleep</Text>
+          <Text style={styles.recordText}>
+            Sleep duration, consistency and changes from your usual baseline.
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.recordItem}>
+        <Ionicons name="walk-outline" size={20} color="#58E7FF" />
+        <View style={styles.recordTextBlock}>
+          <Text style={styles.recordTitle}>Activity</Text>
+          <Text style={styles.recordText}>
+            Steps, workouts and movement patterns that may affect recovery.
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.recordItem}>
+        <Ionicons name="pulse-outline" size={20} color="#FF647C" />
+        <View style={styles.recordTextBlock}>
+          <Text style={styles.recordTitle}>Recovery</Text>
+          <Text style={styles.recordText}>
+            HRV, resting heart rate and recovery-related signals when available.
+          </Text>
+        </View>
+      </View>
+    </View>
+
+    <Pressable
+      style={styles.sheetButton}
+      onPress={() => setShowAppleHealth(false)}
+    >
+      <Text style={styles.sheetButtonText}>Connect later</Text>
+    </Pressable>
+  </View>
+</Modal>
     </ImageBackground>
   );
 }
@@ -772,4 +857,54 @@ attachedRecordText: {
   lineHeight: 18,
 },
 
+appleHealthCard: {
+  flexDirection: "row",
+  alignItems: "center",
+  borderRadius: 28,
+  padding: 16,
+  backgroundColor: "rgba(88,231,255,0.09)",
+  borderWidth: 1,
+  borderColor: "rgba(88,231,255,0.22)",
+  marginBottom: 24,
+},
+
+appleHealthIcon: {
+  width: 52,
+  height: 52,
+  borderRadius: 26,
+  backgroundColor: "rgba(88,231,255,0.12)",
+  borderWidth: 1,
+  borderColor: "rgba(88,231,255,0.28)",
+  alignItems: "center",
+  justifyContent: "center",
+  marginRight: 14,
+},
+
+connectionBadge: {
+  paddingHorizontal: 10,
+  paddingVertical: 7,
+  borderRadius: 999,
+  backgroundColor: "rgba(255,255,255,0.08)",
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.12)",
+  marginLeft: 10,
+},
+
+connectionBadgeText: {
+  color: "rgba(255,255,255,0.66)",
+  fontSize: 11,
+  fontWeight: "900",
+},
+
+appleSheetIcon: {
+  width: 54,
+  height: 54,
+  borderRadius: 27,
+  backgroundColor: "rgba(88,231,255,0.12)",
+  borderWidth: 1,
+  borderColor: "rgba(88,231,255,0.28)",
+  alignItems: "center",
+  justifyContent: "center",
+  marginBottom: 14,
+},
 });
