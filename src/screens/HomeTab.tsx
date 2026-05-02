@@ -23,6 +23,7 @@ import {
 
 import type { DailyCheckInData } from "../storage";
 import { loadDailyCheckIn } from "../storage";
+import { buildSummaryPoints, mapCheckInToSignals } from "../daraModel";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -86,25 +87,6 @@ function getRiskCopy(risk: RiskLevel) {
     title: "You are in a stable zone.",
     text: "Your current pattern looks stable. Keep protecting sleep, recovery and daily load.",
     accent: "green" as const,
-  };
-}
-
-function clampSignal(value: number) {
-  return Math.max(0, Math.min(10, Math.round(value)));
-}
-
-function mapCheckInToSignals(
-  current: UserSignals,
-  checkIn: DailyCheckInData
-): UserSignals {
-  const recoveryFromEnergy = checkIn.energy;
-  const recoveryFromStress = 10 - checkIn.stress;
-
-  return {
-    ...current,
-    workload: clampSignal(checkIn.workload),
-    spendingPressure: clampSignal(checkIn.spendingPressure),
-    recovery: clampSignal((recoveryFromEnergy + recoveryFromStress) / 2),
   };
 }
 
@@ -259,29 +241,12 @@ export default function HomeTab({ dataVersion = 0, onOpenCheckIn }: HomeTabProps
   );
 
 function openSummary() {
-  const checkInPoints = latestCheckIn
-    ? [
-        `Energy check-in: ${latestCheckIn.energy}/10.`,
-        `Stress check-in: ${latestCheckIn.stress}/10.`,
-        latestCheckIn.note
-          ? `Today context: ${latestCheckIn.note}`
-          : "No daily note added today.",
-      ]
-    : ["No daily check-in saved yet."];
-
   setDetail({
     kind: "summary",
     title: riskCopy.title,
     subtitle: riskCopy.text,
     accent: riskCopy.accent,
-    points: [
-      `Sleep is at ${signals.sleepHours.toFixed(1)}h.`,
-      `Workload is ${signals.workload}/10.`,
-      `Recovery is ${signals.recovery}/10.`,
-      `Financial pressure is ${signals.spendingPressure}/10.`,
-      ...checkInPoints,
-      "Dara combines body signals, money pressure and daily context to estimate where your balance is moving.",
-    ],
+    points: buildSummaryPoints(signals, latestCheckIn),
   });
 }
 
