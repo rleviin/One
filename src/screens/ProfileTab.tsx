@@ -9,8 +9,13 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import type { HealthRecordFile, PersonalSetupData } from "../storage";
+import type {
+  DailyCheckInData,
+  HealthRecordFile,
+  PersonalSetupData,
+} from "../storage";
 import {
+  loadDailyCheckIn,
   loadHealthRecord,
   loadPersonalSetup,
   saveHealthRecord,
@@ -60,20 +65,25 @@ export default function ProfileTab({
   onOpenSetup,
 }: ProfileTabProps) {
   const [showHealthRecords, setShowHealthRecords] = useState(false);
-  const [setupData, setSetupData] = useState<PersonalSetupData | null>(null);
+  const [setupData, setSetupData] = useState<PersonalSetupData | null>(null);  
   const [healthRecord, setHealthRecord] = useState<HealthRecordFile | null>(null);
+  const [latestCheckIn, setLatestCheckIn] = useState<DailyCheckInData | null>(
+  null
+);
   const [showAppleHealth, setShowAppleHealth] = useState(false);
 
  useEffect(() => {
     let mounted = true;
 
     async function loadProfileData() {
-     const data = await loadPersonalSetup();
+const data = await loadPersonalSetup();
 const record = await loadHealthRecord();
+const checkIn = await loadDailyCheckIn();
 
 if (mounted) {
   setSetupData(data);
   setHealthRecord(record);
+  setLatestCheckIn(checkIn);
 }
     }
 
@@ -219,6 +229,61 @@ if (mounted) {
     <Text style={styles.connectionBadgeText}>Not connected</Text>
   </View>
 </Pressable>
+<View style={styles.latestCheckInCard}>
+  <View style={styles.latestCheckInTop}>
+    <View style={styles.latestCheckInIcon}>
+      <Ionicons name="pulse-outline" size={23} color="#58E7FF" />
+    </View>
+
+    <View style={{ flex: 1 }}>
+      <Text style={styles.latestCheckInTitle}>Latest check-in</Text>
+      <Text style={styles.latestCheckInText}>
+        {latestCheckIn
+          ? `Energy ${latestCheckIn.energy}/10 · Stress ${latestCheckIn.stress}/10 · Workload ${latestCheckIn.workload}/10`
+          : "No check-in saved yet."}
+      </Text>
+    </View>
+  </View>
+
+  {latestCheckIn && (
+    <View style={styles.latestCheckInStats}>
+      <View style={styles.latestCheckInStat}>
+        <Text style={styles.latestCheckInStatValue}>
+          {latestCheckIn.energy}
+        </Text>
+        <Text style={styles.latestCheckInStatLabel}>Energy</Text>
+      </View>
+
+      <View style={styles.latestCheckInStat}>
+        <Text style={styles.latestCheckInStatValue}>
+          {latestCheckIn.stress}
+        </Text>
+        <Text style={styles.latestCheckInStatLabel}>Stress</Text>
+      </View>
+
+      <View style={styles.latestCheckInStat}>
+        <Text style={styles.latestCheckInStatValue}>
+          {latestCheckIn.workload}
+        </Text>
+        <Text style={styles.latestCheckInStatLabel}>Load</Text>
+      </View>
+
+      <View style={styles.latestCheckInStat}>
+        <Text style={styles.latestCheckInStatValue}>
+          {latestCheckIn.spendingPressure}
+        </Text>
+        <Text style={styles.latestCheckInStatLabel}>Money</Text>
+      </View>
+    </View>
+  )}
+
+  {latestCheckIn?.note ? (
+    <View style={styles.latestCheckInNote}>
+      <Text style={styles.latestCheckInNoteLabel}>Today context</Text>
+      <Text style={styles.latestCheckInNoteText}>{latestCheckIn.note}</Text>
+    </View>
+  ) : null}
+</View>
         <Text style={styles.sectionTitle}>Connected areas</Text>
 
         <View style={styles.areaGrid}>
@@ -910,5 +975,97 @@ appleSheetIcon: {
   alignItems: "center",
   justifyContent: "center",
   marginBottom: 14,
+},
+
+latestCheckInCard: {
+  borderRadius: 28,
+  padding: 16,
+  backgroundColor: "rgba(88,231,255,0.08)",
+  borderWidth: 1,
+  borderColor: "rgba(88,231,255,0.20)",
+  marginBottom: 24,
+},
+
+latestCheckInTop: {
+  flexDirection: "row",
+  alignItems: "center",
+},
+
+latestCheckInIcon: {
+  width: 50,
+  height: 50,
+  borderRadius: 25,
+  backgroundColor: "rgba(88,231,255,0.12)",
+  borderWidth: 1,
+  borderColor: "rgba(88,231,255,0.28)",
+  alignItems: "center",
+  justifyContent: "center",
+  marginRight: 14,
+},
+
+latestCheckInTitle: {
+  color: "#FFFFFF",
+  fontSize: 18,
+  fontWeight: "900",
+  marginBottom: 4,
+},
+
+latestCheckInText: {
+  color: "rgba(255,255,255,0.66)",
+  fontSize: 14,
+  lineHeight: 19,
+},
+
+latestCheckInStats: {
+  flexDirection: "row",
+  gap: 8,
+  marginTop: 16,
+},
+
+latestCheckInStat: {
+  flex: 1,
+  borderRadius: 18,
+  paddingVertical: 12,
+  alignItems: "center",
+  backgroundColor: "rgba(255,255,255,0.06)",
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.10)",
+},
+
+latestCheckInStatValue: {
+  color: "#FFFFFF",
+  fontSize: 20,
+  fontWeight: "900",
+  marginBottom: 3,
+},
+
+latestCheckInStatLabel: {
+  color: "rgba(255,255,255,0.54)",
+  fontSize: 11,
+  fontWeight: "800",
+},
+
+latestCheckInNote: {
+  marginTop: 12,
+  borderRadius: 18,
+  padding: 12,
+  backgroundColor: "rgba(255,255,255,0.055)",
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.10)",
+},
+
+latestCheckInNoteLabel: {
+  color: "#B9C6FF",
+  fontSize: 11,
+  fontWeight: "900",
+  letterSpacing: 1.4,
+  marginBottom: 5,
+  textTransform: "uppercase",
+},
+
+latestCheckInNoteText: {
+  color: "rgba(255,255,255,0.72)",
+  fontSize: 14,
+  lineHeight: 20,
 },
 });
