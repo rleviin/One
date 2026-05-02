@@ -40,3 +40,22 @@ export async function loadDailyCheckIn(): Promise<DailyCheckInData | null> {
   const raw = await AsyncStorage.getItem(DAILY_CHECK_IN_KEY);
   return raw ? JSON.parse(raw) : null;
 }
+
+export type HealthRecordFile = {
+  name: string;
+  uri: string;
+  size?: number;
+  mimeType?: string;
+  createdAt: string;
+};
+
+const HEALTH_RECORD_KEY = "dara.healthRecord.latest";
+
+export async function saveHealthRecord(data: HealthRecordFile) {
+  await AsyncStorage.setItem(HEALTH_RECORD_KEY, JSON.stringify(data));
+}
+
+export async function loadHealthRecord(): Promise<HealthRecordFile | null> {
+  const raw = await AsyncStorage.getItem(HEALTH_RECORD_KEY);
+  return raw ? JSON.parse(raw) : null;
+}

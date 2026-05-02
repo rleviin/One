@@ -9,8 +9,13 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import type { PersonalSetupData } from "../storage";
-import { loadPersonalSetup } from "../storage";
+import type { HealthRecordFile, PersonalSetupData } from "../storage";
+import {
+  loadHealthRecord,
+  loadPersonalSetup,
+  saveHealthRecord,
+} from "../storage";
+import * as DocumentPicker from "expo-document-picker";
 
 type ProfileTabProps = {
   onOpenSetup?: () => void;
@@ -52,16 +57,19 @@ const preferences = [
 export default function ProfileTab({ onOpenSetup }: ProfileTabProps) {
   const [showHealthRecords, setShowHealthRecords] = useState(false);
   const [setupData, setSetupData] = useState<PersonalSetupData | null>(null);
+  const [healthRecord, setHealthRecord] = useState<HealthRecordFile | null>(null);
 
  useEffect(() => {
     let mounted = true;
 
     async function loadProfileData() {
-      const data = await loadPersonalSetup();
+     const data = await loadPersonalSetup();
+const record = await loadHealthRecord();
 
-      if (mounted) {
-        setSetupData(data);
-      }
+if (mounted) {
+  setSetupData(data);
+  setHealthRecord(record);
+}
     }
 
     loadProfileData();
@@ -70,7 +78,27 @@ export default function ProfileTab({ onOpenSetup }: ProfileTabProps) {
       mounted = false;
     };
   }, []);
+  async function pickBloodTestFile() {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: ["application/pdf", "image/*"],
+      copyToCacheDirectory: true,
+    });
 
+    if (!result.canceled && result.assets.length > 0) {
+      const file = result.assets[0];
+
+      const record: HealthRecordFile = {
+        name: file.name,
+        uri: file.uri,
+        size: file.size,
+        mimeType: file.mimeType,
+        createdAt: new Date().toISOString(),
+      };
+
+      await saveHealthRecord(record);
+      setHealthRecord(record);
+    }
+  }
 
   return (
     <ImageBackground
@@ -234,6 +262,28 @@ export default function ProfileTab({ onOpenSetup }: ProfileTabProps) {
             long-term health context.
           </Text>
 
+          <Pressable style={styles.attachRecordButton} onPress={pickBloodTestFile}>
+  <Ionicons name="document-attach-outline" size={21} color="#07101F" />
+  <Text style={styles.attachRecordButtonText}>
+    {healthRecord ? "Change blood test" : "Attach blood test"}
+  </Text>
+</Pressable>
+
+{healthRecord && (
+  <View style={styles.attachedRecordCard}>
+    <View style={styles.attachedRecordIcon}>
+      <Ionicons name="flask-outline" size={22} color="#FF647C" />
+    </View>
+
+    <View style={{ flex: 1 }}>
+      <Text style={styles.attachedRecordTitle}>{healthRecord.name}</Text>
+      <Text style={styles.attachedRecordText}>
+        Attached locally. Dara will later analyze biomarkers, fatigue,
+        inflammation and nutrient signals.
+      </Text>
+    </View>
+  </View>
+)}
           <View style={styles.recordList}>
             <View style={styles.recordItem}>
               <Ionicons name="document-attach-outline" size={20} color="#FF647C" />
@@ -668,6 +718,58 @@ baselineTag: {
   backgroundColor: "rgba(255,255,255,0.08)",
   borderWidth: 1,
   borderColor: "rgba(255,255,255,0.12)",
+},
+attachRecordButton: {
+  height: 56,
+  borderRadius: 28,
+  backgroundColor: "#FFFFFF",
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
+  marginBottom: 14,
+},
+
+attachRecordButtonText: {
+  color: "#07101F",
+  fontSize: 16,
+  fontWeight: "900",
+  marginLeft: 8,
+},
+
+attachedRecordCard: {
+  flexDirection: "row",
+  alignItems: "center",
+  borderRadius: 22,
+  padding: 14,
+  backgroundColor: "rgba(255,100,124,0.08)",
+  borderWidth: 1,
+  borderColor: "rgba(255,100,124,0.22)",
+  marginBottom: 18,
+},
+
+attachedRecordIcon: {
+  width: 46,
+  height: 46,
+  borderRadius: 23,
+  backgroundColor: "rgba(255,100,124,0.12)",
+  borderWidth: 1,
+  borderColor: "rgba(255,100,124,0.28)",
+  alignItems: "center",
+  justifyContent: "center",
+  marginRight: 12,
+},
+
+attachedRecordTitle: {
+  color: "#FFFFFF",
+  fontSize: 15,
+  fontWeight: "900",
+  marginBottom: 4,
+},
+
+attachedRecordText: {
+  color: "rgba(255,255,255,0.66)",
+  fontSize: 13,
+  lineHeight: 18,
 },
 
 });
