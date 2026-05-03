@@ -15,6 +15,7 @@ import { saveHealthRecord } from "../storage";
 import { useDaraData } from "../useDaraData";
 import * as DocumentPicker from "expo-document-picker";
 import { lightTap, mediumTap, successTap } from "../haptics";
+import AnimatedPressable from "../components/AnimatedPressable";
 
 type ProfileTabProps = {
   dataVersion?: number;
@@ -133,8 +134,10 @@ contentContainerStyle={styles.tabContent}
           </Text>
         </View>
 
-<Pressable
+<AnimatedPressable
+  style={styles.pressableFullWidth}
   style={styles.setupCard}
+  pressedScale={0.975}
   onPress={() => {
     mediumTap();
     onOpenSetup?.();
@@ -174,13 +177,15 @@ contentContainerStyle={styles.tabContent}
               color="rgba(255,255,255,0.86)"
             />
           </View>
-        </Pressable>
-        <Pressable
+</AnimatedPressable>
+<AnimatedPressable
+  style={styles.pressableFullWidth}
   style={styles.healthRecordsCard}
-onPress={() => {
-  mediumTap();
-  setShowHealthRecords(true);
-}}
+  pressedScale={0.975}
+  onPress={() => {
+    mediumTap();
+    setShowHealthRecords(true);
+  }}
 >
   <View style={styles.healthRecordsIcon}>
     <Ionicons name="flask-outline" size={25} color="#FF647C" />
@@ -200,13 +205,15 @@ onPress={() => {
       color="rgba(255,255,255,0.86)"
     />
   </View>
-</Pressable>
-<Pressable
+</AnimatedPressable>
+<AnimatedPressable
+  style={styles.pressableFullWidth}
   style={styles.appleHealthCard}
-onPress={() => {
-  mediumTap();
-  setShowAppleHealth(true);
-}}
+  pressedScale={0.975}
+  onPress={() => {
+    mediumTap();
+    setShowAppleHealth(true);
+  }}
 >
   <View style={styles.appleHealthIcon}>
     <Ionicons name="heart-outline" size={25} color="#58E7FF" />
@@ -222,7 +229,7 @@ onPress={() => {
   <View style={styles.connectionBadge}>
     <Text style={styles.connectionBadgeText}>Not connected</Text>
   </View>
-</Pressable>
+</AnimatedPressable>
 <View style={styles.latestCheckInCard}>
   <View style={styles.latestCheckInTop}>
     <View style={styles.latestCheckInIcon}>
@@ -1061,5 +1068,9 @@ latestCheckInNoteText: {
   color: "rgba(255,255,255,0.72)",
   fontSize: 14,
   lineHeight: 20,
+},
+
+pressableFullWidth: {
+  width: "100%",
 },
 });

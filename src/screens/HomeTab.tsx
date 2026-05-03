@@ -12,6 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { lightTap, mediumTap } from "../haptics";
+import AnimatedPressable from "../components/AnimatedPressable";
 
 import type { RiskLevel, UserSignals } from "../types";
 import {
@@ -369,8 +370,10 @@ function openSummary() {
   <Text style={styles.brandTitle}>Dara</Text>
 
   <View style={styles.headerActions}>
-<Pressable
+
+<AnimatedPressable
   style={styles.checkInButton}
+  pressedScale={0.96}
   onPress={() => {
     mediumTap();
     onOpenCheckIn?.();
@@ -378,7 +381,7 @@ function openSummary() {
 >
       <Ionicons name="add-outline" size={18} color="#07101F" />
       <Text style={styles.checkInButtonText}>Check in</Text>
-    </Pressable>
+</AnimatedPressable>
 
     <Pressable style={styles.headerIcon}>
       <Ionicons name="pulse-outline" size={24} color="#FFFFFF" />
@@ -398,8 +401,10 @@ function openSummary() {
     </Text>
   </View>
 )}
-<Pressable
+
+<AnimatedPressable
   style={styles.heroCard}
+  pressedScale={0.985}
   onPress={() => {
     mediumTap();
     openSummary();
@@ -459,7 +464,7 @@ backgroundColor: `${getAccentColor(activeSignalCopy.accent)}22`,
 color={getAccentColor(activeSignalCopy.accent)}
             />
           </View>
-        </Pressable>
+         </AnimatedPressable>
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Signals</Text>
@@ -471,12 +476,17 @@ color={getAccentColor(activeSignalCopy.accent)}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.signalsRow}
         >
-          {signalCards.map((card) => (
-            <Pressable
-              key={card.key}
-              style={styles.signalCard}
-              onPress={() => openSignal(card)}
-            >
+
+{signalCards.map((card) => (
+  <AnimatedPressable
+    key={card.key}
+    style={styles.signalCard}
+    pressedScale={0.97}
+    onPress={() => {
+      lightTap();
+      openSignal(card);
+    }}
+  >
               <LinearGradient
                 colors={[
                   `${getAccentColor(card.accent)}33`,
@@ -546,7 +556,7 @@ color={getAccentColor(activeSignalCopy.accent)}
                   />
                 </View>
               </View>
-            </Pressable>
+              </AnimatedPressable>
           ))}
         </ScrollView>
 
@@ -555,12 +565,16 @@ color={getAccentColor(activeSignalCopy.accent)}
         </View>
 
         <View style={styles.actionsList}>
-          {actions.map((card) => (
-            <Pressable
-              key={card.key}
-              style={styles.actionCard}
-              onPress={() => openAction(card)}
-            >
+{actions.map((card) => (
+  <AnimatedPressable
+    key={card.key}
+    style={styles.actionCard}
+    pressedScale={0.975}
+    onPress={() => {
+      lightTap();
+      openAction(card);
+    }}
+  >
               <LinearGradient
                 colors={[
                   `${getAccentColor(card.accent)}26`,
@@ -600,8 +614,8 @@ color={getAccentColor(activeSignalCopy.accent)}
                   color="rgba(255,255,255,0.82)"
                 />
               </View>
-            </Pressable>
-          ))}
+  </AnimatedPressable>
+))}
         </View>
       </ScrollView>
 

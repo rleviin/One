@@ -11,6 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { mediumTap, lightTap } from "../haptics";
+import AnimatedPressable from "../components/AnimatedPressable";
 
 import type { DailyCheckInData } from "../storage";
 import { loadDailyCheckIn } from "../storage";
@@ -109,14 +110,15 @@ export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
 
         <View style={styles.insightList}>
           {insights.map((insight) => (
-            <Pressable
-              key={insight.id}
-              style={styles.insightCard}
-onPress={() => {
-  mediumTap();
-  setSelectedInsight(insight);
-}}
-            >
+<AnimatedPressable
+  key={insight.id}
+  style={styles.insightCard}
+  pressedScale={0.975}
+  onPress={() => {
+    mediumTap();
+    setSelectedInsight(insight);
+  }}
+>
               <LinearGradient
                 colors={[
                   `${insight.accent}22`,
@@ -155,7 +157,7 @@ onPress={() => {
                   color="rgba(255,255,255,0.8)"
                 />
               </View>
-            </Pressable>
+</AnimatedPressable>
           ))}
         </View>
 
