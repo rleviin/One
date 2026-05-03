@@ -9,6 +9,7 @@ import PersonalSetupScreen from "./src/screens/PersonalSetupScreen";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import DailyCheckInScreen from "./src/screens/DailyCheckInScreen";
 import { lightTap } from "./src/haptics";
+import { Asset } from "expo-asset";
 import {
   View,
   Text,
@@ -32,6 +33,13 @@ import type {
   Tab,
   UserSignals,
 } from "./src/types";
+
+const APP_ASSETS = [
+  require("./assets/onboarding-bg.png"),
+  require("./assets/onboarding-bg_0.png"),
+  require("./assets/onboarding-bg_1.png"),
+  require("./assets/onboarding-bg_2.png"),
+];
 
 import {
   calculateRisk,
@@ -200,6 +208,37 @@ if (showCheckIn) {
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("onboarding");
+  const [assetsReady, setAssetsReady] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadAssets() {
+      try {
+        await Asset.loadAsync(APP_ASSETS);
+      } finally {
+        if (mounted) {
+          setAssetsReady(true);
+        }
+      }
+    }
+
+    loadAssets();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (!assetsReady) {
+    return (
+      <View style={styles.appLoadingScreen}>
+        <View style={styles.appLoadingOrb} />
+        <Text style={styles.appLoadingBrand}>DARA AI</Text>
+        <Text style={styles.appLoadingText}>Preparing your signal space...</Text>
+      </View>
+    );
+  }
 
   if (screen === "onboarding") {
     return <OnboardingScreen onDone={() => setScreen("explanation")} />;
@@ -209,15 +248,15 @@ export default function App() {
     return <ExplanationScreen onDone={() => setScreen("auth")} />;
   }
 
-if (screen === "auth") {
-  return <AuthScreen onDone={() => setScreen("setup")} />;
-}
+  if (screen === "auth") {
+    return <AuthScreen onDone={() => setScreen("setup")} />;
+  }
 
-if (screen === "setup") {
-  return <PersonalSetupScreen onDone={() => setScreen("app")} />;
-}
+  if (screen === "setup") {
+    return <PersonalSetupScreen onDone={() => setScreen("app")} />;
+  }
 
-return <MainApp />;
+  return <MainApp />;
 }
 
 const styles = StyleSheet.create({
@@ -1564,5 +1603,38 @@ sheetCloseText: {
   color: "#FFFFFF",
   fontSize: 16,
   fontWeight: "700",
+},
+
+appLoadingScreen: {
+  flex: 1,
+  backgroundColor: "#050A14",
+  alignItems: "center",
+  justifyContent: "center",
+  paddingHorizontal: 28,
+},
+
+appLoadingOrb: {
+  width: 92,
+  height: 92,
+  borderRadius: 46,
+  backgroundColor: "rgba(120,150,255,0.20)",
+  borderWidth: 1,
+  borderColor: "rgba(185,198,255,0.30)",
+  marginBottom: 24,
+},
+
+appLoadingBrand: {
+  color: "#FFFFFF",
+  fontSize: 18,
+  fontWeight: "900",
+  letterSpacing: 7,
+  marginBottom: 10,
+},
+
+appLoadingText: {
+  color: "rgba(255,255,255,0.58)",
+  fontSize: 15,
+  lineHeight: 21,
+  textAlign: "center",
 },
 });
