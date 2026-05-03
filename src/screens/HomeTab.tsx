@@ -5,7 +5,6 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
-  Modal,
   Dimensions,
   ImageBackground,
 } from "react-native";
@@ -13,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { lightTap, mediumTap } from "../haptics";
 import AnimatedPressable from "../components/AnimatedPressable";
+import AnimatedBottomSheet from "../components/AnimatedBottomSheet";
 
 import type { RiskLevel, UserSignals } from "../types";
 import {
@@ -619,77 +619,68 @@ color={getAccentColor(activeSignalCopy.accent)}
         </View>
       </ScrollView>
 
-      <Modal
-        visible={detail !== null}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setDetail(null)}
-      >
-
- <Pressable
-  style={styles.modalBackdrop}
-  onPress={() => {
-    lightTap();
-    setDetail(null);
-  }}
-/>
-        <View style={styles.sheet}>
-          <View style={styles.sheetHandle} />
-
-          {detail && (
-            <>
-              <View
-                style={[
-                  styles.sheetIcon,
-                  {
-                    borderColor: `${getAccentColor(detail.accent)}88`,
-                    backgroundColor: `${getAccentColor(detail.accent)}18`,
-                  },
-                ]}
-              >
-                <Ionicons
-                  name={
-                    detail.kind === "summary"
-                      ? "pulse-outline"
-                      : detail.kind === "signal"
-                      ? "analytics-outline"
-                      : "flash-outline"
-                  }
-                  size={24}
-                  color={getAccentColor(detail.accent)}
-                />
-              </View>
-
-              <Text style={styles.sheetTitle}>{detail.title}</Text>
-              <Text style={styles.sheetSubtitle}>{detail.subtitle}</Text>
-
-              <View style={styles.sheetPoints}>
-                {detail.points.map((point, index) => (
-                  <View key={index} style={styles.sheetPoint}>
-                    <View
-                      style={[
-                        styles.sheetPointDot,
-                        { backgroundColor: getAccentColor(detail.accent) },
-                      ]}
-                    />
-                    <Text style={styles.sheetPointText}>{point}</Text>
-                  </View>
-                ))}
-              </View>
-
-<Pressable
-  style={styles.sheetButton}
-  onPress={() => {
+<AnimatedBottomSheet
+  visible={detail !== null}
+  onClose={() => {
     lightTap();
     setDetail(null);
   }}
 >
-                <Text style={styles.sheetButtonText}>Got it</Text>
-              </Pressable>
-            </>
-          )}
-        </View>
-      </Modal>
+
+  {detail && (
+    <>
+      <View
+        style={[
+          styles.sheetIcon,
+          {
+            borderColor: `${getAccentColor(detail.accent)}77`,
+            backgroundColor: `${getAccentColor(detail.accent)}18`,
+          },
+        ]}
+      >
+        <Ionicons
+          name={
+            detail.kind === "summary"
+              ? "pulse-outline"
+              : detail.kind === "signal"
+              ? "analytics-outline"
+              : "sparkles-outline"
+          }
+          size={25}
+          color={getAccentColor(detail.accent)}
+        />
+      </View>
+
+      <Text style={styles.sheetTitle}>{detail.title}</Text>
+      <Text style={styles.sheetSubtitle}>{detail.subtitle}</Text>
+
+      <View style={styles.sheetPoints}>
+        {detail.points.map((point, index) => (
+          <View key={index} style={styles.sheetPoint}>
+            <View
+              style={[
+                styles.sheetPointDot,
+                { backgroundColor: getAccentColor(detail.accent) },
+              ]}
+            />
+            <Text style={styles.sheetPointText}>{point}</Text>
+          </View>
+        ))}
+      </View>
+
+      <AnimatedPressable
+        style={styles.sheetButton}
+        pressedScale={0.97}
+        onPress={() => {
+          lightTap();
+          setDetail(null);
+        }}
+      >
+        <Text style={styles.sheetButtonText}>Got it</Text>
+      </AnimatedPressable>
+    </>
+  )}
+</AnimatedBottomSheet>
     </ImageBackground>
   );
 }
