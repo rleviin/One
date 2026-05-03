@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   ImageBackground,
-  Modal,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -16,6 +15,7 @@ import { useDaraData } from "../useDaraData";
 import * as DocumentPicker from "expo-document-picker";
 import { lightTap, mediumTap, successTap } from "../haptics";
 import AnimatedPressable from "../components/AnimatedPressable";
+import AnimatedBottomSheet from "../components/AnimatedBottomSheet";
 
 type ProfileTabProps = {
   dataVersion?: number;
@@ -326,162 +326,159 @@ contentContainerStyle={styles.tabContent}
           </Text>
         </View>
       </ScrollView>
-
-      <Modal
-        visible={showHealthRecords}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowHealthRecords(false)}
-      >
-        <Pressable
-          style={styles.modalBackdrop}
-          onPress={() => setShowHealthRecords(false)}
-        />
-
-        <View style={styles.sheet}>
-          <View style={styles.sheetHandle} />
-
-          <View style={styles.sheetIcon}>
-            <Ionicons name="flask-outline" size={25} color="#FF647C" />
-          </View>
-
-          <Text style={styles.sheetTitle}>Health records</Text>
-
-          <Text style={styles.sheetSubtitle}>
-            This will become Dara&apos;s place for blood tests, biomarkers and
-            long-term health context.
-          </Text>
-
-          <Pressable style={styles.attachRecordButton} onPress={pickBloodTestFile}>
-  <Ionicons name="document-attach-outline" size={21} color="#07101F" />
-  <Text style={styles.attachRecordButtonText}>
-    {healthRecord ? "Change blood test" : "Attach blood test"}
-  </Text>
-</Pressable>
-
-{healthRecord && (
-  <View style={styles.attachedRecordCard}>
-    <View style={styles.attachedRecordIcon}>
-      <Ionicons name="flask-outline" size={22} color="#FF647C" />
-    </View>
-
-    <View style={{ flex: 1 }}>
-      <Text style={styles.attachedRecordTitle}>{healthRecord.name}</Text>
-      <Text style={styles.attachedRecordText}>
-        Attached locally. Dara will later analyze biomarkers, fatigue,
-        inflammation and nutrient signals.
-      </Text>
-    </View>
-  </View>
-)}
-          <View style={styles.recordList}>
-            <View style={styles.recordItem}>
-              <Ionicons name="document-attach-outline" size={20} color="#FF647C" />
-              <View style={styles.recordTextBlock}>
-                <Text style={styles.recordTitle}>Blood tests</Text>
-                <Text style={styles.recordText}>
-                  Upload PDF or photo reports to track fatigue, inflammation,
-                  iron, vitamin D, B12, glucose and other biomarkers.
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.recordItem}>
-              <Ionicons name="heart-outline" size={20} color="#58E7FF" />
-              <View style={styles.recordTextBlock}>
-                <Text style={styles.recordTitle}>Apple Health</Text>
-                <Text style={styles.recordText}>
-                  Later Dara can connect sleep, activity, HRV and recovery data
-                  from HealthKit.
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.recordItem}>
-              <Ionicons name="analytics-outline" size={20} color="#B9C6FF" />
-              <View style={styles.recordTextBlock}>
-                <Text style={styles.recordTitle}>Biomarker trends</Text>
-                <Text style={styles.recordText}>
-                  Dara will compare new records against your baseline and show
-                  what changed.
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <Pressable
-            style={styles.sheetButton}
-            onPress={() => setShowHealthRecords(false)}
-          >
-            <Text style={styles.sheetButtonText}>Got it</Text>
-          </Pressable>
-        </View>
-      </Modal>
-<Modal
-  visible={showAppleHealth}
-  transparent
-  animationType="slide"
-  onRequestClose={() => setShowAppleHealth(false)}
+<AnimatedBottomSheet
+  visible={showHealthRecords}
+  onClose={() => {
+    lightTap();
+    setShowHealthRecords(false);
+  }}
 >
-  <Pressable
-    style={styles.modalBackdrop}
-    onPress={() => setShowAppleHealth(false)}
-  />
-
-  <View style={styles.sheet}>
-    <View style={styles.sheetHandle} />
-
-    <View style={styles.appleSheetIcon}>
-      <Ionicons name="heart-outline" size={25} color="#58E7FF" />
-    </View>
-
-    <Text style={styles.sheetTitle}>Apple Health</Text>
-
-    <Text style={styles.sheetSubtitle}>
-      Dara will use Apple Health only with your permission. This can help turn
-      sleep, activity and recovery data into more personal guidance.
-    </Text>
-
-    <View style={styles.recordList}>
-      <View style={styles.recordItem}>
-        <Ionicons name="moon-outline" size={20} color="#B9C6FF" />
-        <View style={styles.recordTextBlock}>
-          <Text style={styles.recordTitle}>Sleep</Text>
-          <Text style={styles.recordText}>
-            Sleep duration, consistency and changes from your usual baseline.
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.recordItem}>
-        <Ionicons name="walk-outline" size={20} color="#58E7FF" />
-        <View style={styles.recordTextBlock}>
-          <Text style={styles.recordTitle}>Activity</Text>
-          <Text style={styles.recordText}>
-            Steps, workouts and movement patterns that may affect recovery.
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.recordItem}>
-        <Ionicons name="pulse-outline" size={20} color="#FF647C" />
-        <View style={styles.recordTextBlock}>
-          <Text style={styles.recordTitle}>Recovery</Text>
-          <Text style={styles.recordText}>
-            HRV, resting heart rate and recovery-related signals when available.
-          </Text>
-        </View>
-      </View>
-    </View>
-
-    <Pressable
-      style={styles.sheetButton}
-      onPress={() => setShowAppleHealth(false)}
-    >
-      <Text style={styles.sheetButtonText}>Connect later</Text>
-    </Pressable>
+  <View style={styles.healthSheetIcon}>
+    <Ionicons name="flask-outline" size={25} color="#FF647C" />
   </View>
-</Modal>
+
+  <Text style={styles.sheetTitle}>Health records</Text>
+
+  <Text style={styles.sheetSubtitle}>
+    This will become Dara&apos;s place for blood tests, biomarkers and
+    long-term health context.
+  </Text>
+
+  <AnimatedPressable
+    style={styles.attachRecordButton}
+    pressedScale={0.97}
+    onPress={pickBloodTestFile}
+  >
+    <Ionicons name="document-attach-outline" size={21} color="#07101F" />
+    <Text style={styles.attachRecordButtonText}>
+      {healthRecord ? "Change blood test" : "Attach blood test"}
+    </Text>
+  </AnimatedPressable>
+
+  {healthRecord && (
+    <View style={styles.attachedRecordCard}>
+      <View style={styles.attachedRecordIcon}>
+        <Ionicons name="flask-outline" size={22} color="#FF647C" />
+      </View>
+
+      <View style={{ flex: 1 }}>
+        <Text style={styles.attachedRecordTitle}>{healthRecord.name}</Text>
+        <Text style={styles.attachedRecordText}>
+          Attached locally. Dara will later analyze biomarkers, fatigue,
+          inflammation and nutrient signals.
+        </Text>
+      </View>
+    </View>
+  )}
+
+  <View style={styles.recordList}>
+    <View style={styles.recordItem}>
+      <Ionicons name="document-attach-outline" size={20} color="#FF647C" />
+      <View style={styles.recordTextBlock}>
+        <Text style={styles.recordTitle}>Blood tests</Text>
+        <Text style={styles.recordText}>
+          Upload PDF or photo reports to track fatigue, inflammation, iron,
+          vitamin D, B12, glucose and other biomarkers.
+        </Text>
+      </View>
+    </View>
+
+    <View style={styles.recordItem}>
+      <Ionicons name="heart-outline" size={20} color="#58E7FF" />
+      <View style={styles.recordTextBlock}>
+        <Text style={styles.recordTitle}>Apple Health</Text>
+        <Text style={styles.recordText}>
+          Later Dara can connect sleep, activity, HRV and recovery data from
+          HealthKit.
+        </Text>
+      </View>
+    </View>
+
+    <View style={styles.recordItem}>
+      <Ionicons name="analytics-outline" size={20} color="#B9C6FF" />
+      <View style={styles.recordTextBlock}>
+        <Text style={styles.recordTitle}>Biomarker trends</Text>
+        <Text style={styles.recordText}>
+          Dara will compare new records against your baseline and show what
+          changed.
+        </Text>
+      </View>
+    </View>
+  </View>
+
+  <AnimatedPressable
+    style={styles.sheetButton}
+    pressedScale={0.97}
+    onPress={() => {
+      lightTap();
+      setShowHealthRecords(false);
+    }}
+  >
+    <Text style={styles.sheetButtonText}>Got it</Text>
+  </AnimatedPressable>
+</AnimatedBottomSheet>
+
+<AnimatedBottomSheet
+  visible={showAppleHealth}
+  onClose={() => {
+    lightTap();
+    setShowAppleHealth(false);
+  }}
+>
+  <View style={styles.appleSheetIcon}>
+    <Ionicons name="heart-outline" size={25} color="#58E7FF" />
+  </View>
+
+  <Text style={styles.sheetTitle}>Apple Health</Text>
+
+  <Text style={styles.sheetSubtitle}>
+    Dara will use Apple Health only with your permission. This can help turn
+    sleep, activity and recovery data into more personal guidance.
+  </Text>
+
+  <View style={styles.recordList}>
+    <View style={styles.recordItem}>
+      <Ionicons name="moon-outline" size={20} color="#B9C6FF" />
+      <View style={styles.recordTextBlock}>
+        <Text style={styles.recordTitle}>Sleep</Text>
+        <Text style={styles.recordText}>
+          Sleep duration, consistency and changes from your usual baseline.
+        </Text>
+      </View>
+    </View>
+
+    <View style={styles.recordItem}>
+      <Ionicons name="walk-outline" size={20} color="#58E7FF" />
+      <View style={styles.recordTextBlock}>
+        <Text style={styles.recordTitle}>Activity</Text>
+        <Text style={styles.recordText}>
+          Steps, workouts and movement patterns that may affect recovery.
+        </Text>
+      </View>
+    </View>
+
+    <View style={styles.recordItem}>
+      <Ionicons name="pulse-outline" size={20} color="#FF647C" />
+      <View style={styles.recordTextBlock}>
+        <Text style={styles.recordTitle}>Recovery</Text>
+        <Text style={styles.recordText}>
+          HRV, resting heart rate and recovery-related signals when available.
+        </Text>
+      </View>
+    </View>
+  </View>
+
+  <AnimatedPressable
+    style={styles.sheetButton}
+    pressedScale={0.97}
+    onPress={() => {
+      lightTap();
+      setShowAppleHealth(false);
+    }}
+  >
+    <Text style={styles.sheetButtonText}>Connect later</Text>
+  </AnimatedPressable>
+</AnimatedBottomSheet>
     </ImageBackground>
   );
 }
