@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ImageBackground,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { mediumTap, lightTap } from "../haptics";
 import AnimatedPressable from "../components/AnimatedPressable";
+import AnimatedBottomSheet from "../components/AnimatedBottomSheet";
 
 import type { DailyCheckInData } from "../storage";
 import { loadDailyCheckIn } from "../storage";
@@ -170,68 +170,61 @@ export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
         </View>
       </ScrollView>
 
-      <Modal
-        visible={selectedInsight !== null}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setSelectedInsight(null)}
+<AnimatedBottomSheet
+  visible={selectedInsight !== null}
+  onClose={() => {
+    lightTap();
+    setSelectedInsight(null);
+  }}
+>
+  {selectedInsight && (
+    <>
+      <View
+        style={[
+          styles.sheetIcon,
+          {
+            borderColor: `${selectedInsight.accent}77`,
+            backgroundColor: `${selectedInsight.accent}18`,
+          },
+        ]}
       >
-        <Pressable
-          style={styles.modalBackdrop}
-onPress={() => {
-  lightTap();
-  setSelectedInsight(null);
-}}
+        <Ionicons
+          name={selectedInsight.icon}
+          size={25}
+          color={selectedInsight.accent}
         />
+      </View>
 
-        <View style={styles.sheet}>
-          <View style={styles.sheetHandle} />
+      <Text style={styles.sheetTitle}>{selectedInsight.title}</Text>
+      <Text style={styles.sheetSubtitle}>{selectedInsight.text}</Text>
 
-          {selectedInsight && (
-            <>
-              <View
-                style={[
-                  styles.sheetIcon,
-                  {
-                    borderColor: `${selectedInsight.accent}77`,
-                    backgroundColor: `${selectedInsight.accent}18`,
-                  },
-                ]}
-              >
-                <Ionicons
-                  name={selectedInsight.icon}
-                  size={25}
-                  color={selectedInsight.accent}
-                />
-              </View>
+      <View style={styles.sheetPoints}>
+        {selectedInsight.points.map((point, index) => (
+          <View key={index} style={styles.sheetPoint}>
+            <View
+              style={[
+                styles.sheetPointDot,
+                { backgroundColor: selectedInsight.accent },
+              ]}
+            />
+            <Text style={styles.sheetPointText}>{point}</Text>
+          </View>
+        ))}
+      </View>
 
-              <Text style={styles.sheetTitle}>{selectedInsight.title}</Text>
-              <Text style={styles.sheetSubtitle}>{selectedInsight.text}</Text>
-
-              <View style={styles.sheetPoints}>
-                {selectedInsight.points.map((point, index) => (
-                  <View key={index} style={styles.sheetPoint}>
-                    <View
-                      style={[
-                        styles.sheetPointDot,
-                        { backgroundColor: selectedInsight.accent },
-                      ]}
-                    />
-                    <Text style={styles.sheetPointText}>{point}</Text>
-                  </View>
-                ))}
-              </View>
-
-              <Pressable
-                style={styles.sheetButton}
-                onPress={() => setSelectedInsight(null)}
-              >
-                <Text style={styles.sheetButtonText}>Got it</Text>
-              </Pressable>
-            </>
-          )}
-        </View>
-      </Modal>
+      <AnimatedPressable
+        style={styles.sheetButton}
+        pressedScale={0.97}
+        onPress={() => {
+          lightTap();
+          setSelectedInsight(null);
+        }}
+      >
+        <Text style={styles.sheetButtonText}>Got it</Text>
+      </AnimatedPressable>
+    </>
+  )}
+</AnimatedBottomSheet>
     </ImageBackground>
   );
 }
