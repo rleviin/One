@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   ImageBackground,
@@ -12,7 +12,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { saveDailyCheckIn } from "../storage";
+import { loadDailyCheckIn, saveDailyCheckIn } from "../storage";
+import { lightTap, successTap } from "../haptics";
 
 type DailyCheckInScreenProps = {
   onDone: () => void;
@@ -67,16 +68,46 @@ export default function DailyCheckInScreen({ onDone }: DailyCheckInScreenProps) 
 
   const [note, setNote] = useState("");
   const [mealPhotoUri, setMealPhotoUri] = useState<string | null>(null);
+useEffect(() => {
+  let mounted = true;
 
-  function setScaleValue(key: ScaleKey, value: number) {
-    setValues((current) => ({
-      ...current,
-      [key]: value,
-    }));
+  async function loadSavedCheckIn() {
+    const saved = await loadDailyCheckIn();
+
+    if (!mounted || !saved) {
+      return;
+    }
+
+    setValues({
+      energy: saved.energy,
+      stress: saved.stress,
+      workload: saved.workload,
+      spendingPressure: saved.spendingPressure,
+    });
+
+    setNote(saved.note);
+    setMealPhotoUri(saved.mealPhotoUri);
   }
 
+  loadSavedCheckIn();
+
+  return () => {
+    mounted = false;
+  };
+}, []);
+
+function setScaleValue(key: ScaleKey, value: number) {
+  lightTap();
+
+  setValues((current) => ({
+    ...current,
+    [key]: value,
+  }));
+}
    async function pickMealPhoto() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+     await lightTap();
+ 
+     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permission.granted) {
       return;
@@ -103,8 +134,9 @@ async function handleSave() {
     createdAt: new Date().toISOString(),
   });
 
+  await successTap();
   onDone();
-}  
+}
 return (
     <ImageBackground
       source={require("../../assets/onboarding-bg_0.png")}

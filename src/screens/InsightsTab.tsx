@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { mediumTap, lightTap } from "../haptics";
 
 import type { DailyCheckInData } from "../storage";
 import { loadDailyCheckIn } from "../storage";
@@ -111,7 +112,10 @@ export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
             <Pressable
               key={insight.id}
               style={styles.insightCard}
-              onPress={() => setSelectedInsight(insight)}
+onPress={() => {
+  mediumTap();
+  setSelectedInsight(insight);
+}}
             >
               <LinearGradient
                 colors={[
@@ -172,7 +176,10 @@ export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
       >
         <Pressable
           style={styles.modalBackdrop}
-          onPress={() => setSelectedInsight(null)}
+onPress={() => {
+  lightTap();
+  setSelectedInsight(null);
+}}
         />
 
         <View style={styles.sheet}>

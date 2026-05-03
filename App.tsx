@@ -8,6 +8,7 @@ import ExplanationScreen from "./src/screens/ExplanationScreen";
 import PersonalSetupScreen from "./src/screens/PersonalSetupScreen";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import DailyCheckInScreen from "./src/screens/DailyCheckInScreen";
+import { lightTap } from "./src/haptics";
 import {
   SafeAreaView,
   View,
@@ -126,7 +127,10 @@ if (showCheckIn) {
 <View style={styles.tabBar}>
   <Pressable
     style={[styles.tabBarItem, tab === "home" && styles.tabBarItemActive]}
-    onPress={() => setTab("home")}
+    onPress={() => {
+  lightTap();
+  setTab("home");
+}}
   >
     <Ionicons
       name={tab === "home" ? "home" : "home-outline"}
@@ -140,7 +144,10 @@ if (showCheckIn) {
 
   <Pressable
     style={[styles.tabBarItem, tab === "forecast" && styles.tabBarItemActive]}
-    onPress={() => setTab("forecast")}
+    onPress={() => {
+  lightTap();
+  setTab("forecast");
+}}
   >
     <Ionicons
       name={tab === "forecast" ? "analytics" : "analytics-outline"}
@@ -154,7 +161,10 @@ if (showCheckIn) {
 
   <Pressable
     style={[styles.tabBarItem, tab === "insights" && styles.tabBarItemActive]}
-    onPress={() => setTab("insights")}
+    onPress={() => {
+  lightTap();
+  setTab("insights");
+}}
   >
     <Ionicons
       name={tab === "insights" ? "bulb" : "bulb-outline"}
@@ -168,7 +178,10 @@ if (showCheckIn) {
 
   <Pressable
     style={[styles.tabBarItem, tab === "profile" && styles.tabBarItemActive]}
-    onPress={() => setTab("profile")}
+    onPress={() => {
+  lightTap();
+  setTab("profile");
+}}
   >
     <Ionicons
       name={tab === "profile" ? "person" : "person-outline"}

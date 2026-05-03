@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { lightTap, mediumTap } from "../haptics";
 
 import type { RiskLevel, UserSignals } from "../types";
 import {
@@ -143,30 +144,68 @@ export default function HomeTab({ dataVersion = 0, onOpenCheckIn }: HomeTabProps
   const [latestCheckIn, setLatestCheckIn] = useState<DailyCheckInData | null>(
     null
   );
-    useEffect(() => {
-    let mounted = true;
 
-    async function loadHomeData() {
-      const checkIn = await loadDailyCheckIn();
+useEffect(() => {
+  let mounted = true;
 
-      if (!mounted || !checkIn) {
-        return;
-      }
+  async function loadHomeData() {
+    const checkIn = await loadDailyCheckIn();
 
-      setLatestCheckIn(checkIn);
-      setSignals((current) => mapCheckInToSignals(current, checkIn));
+    if (!mounted) {
+      return;
     }
 
-    loadHomeData();
+    if (!checkIn) {
+      setLatestCheckIn(null);
+      return;
+    }
 
-    return () => {
-      mounted = false;
-    };
+    setLatestCheckIn(checkIn);
+    setSignals((current) => mapCheckInToSignals(current, checkIn));
+  }
+
+  loadHomeData();
+
+  return () => {
+    mounted = false;
+  };
 }, [dataVersion]);
 
   const risk = calculateRisk(signals);
   const riskCopy = getRiskCopy(risk);
+  const checkInPressureScore = latestCheckIn
+  ? latestCheckIn.stress * 1.2 +
+    latestCheckIn.workload * 1.1 +
+    latestCheckIn.spendingPressure * 0.8 -
+    latestCheckIn.energy * 0.9
+  : null;
 
+const activeSignalCopy = latestCheckIn
+  ? checkInPressureScore !== null && checkInPressureScore >= 14
+    ? {
+        badge: "High risk",
+        title: "Your balance is starting to slip.",
+        text: "Sleep, load and recovery are moving out of sync. Small shifts now can prevent a bigger dip later.",
+        accent: "red" as const,
+      }
+    : checkInPressureScore !== null && checkInPressureScore >= 8
+    ? {
+        badge: "Watch",
+        title: "Pressure is starting to build.",
+        text: "Your check-in shows some load, but there is still room to correct the pattern today.",
+        accent: "orange" as const,
+      }
+    : {
+        badge: "Stable",
+        title: "Your balance looks stable today.",
+        text: "Your latest check-in shows enough energy and low pressure. Keep the rhythm steady.",
+        accent: "green" as const,
+      }
+  : riskCopy;
+
+  const activeSignalContext = latestCheckIn
+  ? `Today: energy ${latestCheckIn.energy}/10, stress ${latestCheckIn.stress}/10, workload ${latestCheckIn.workload}/10.`
+  : "Add a daily check-in to make this signal more personal.";
   const signalCards = useMemo<SignalCard[]>(
     () => [
       {
@@ -243,13 +282,12 @@ export default function HomeTab({ dataVersion = 0, onOpenCheckIn }: HomeTabProps
 function openSummary() {
   setDetail({
     kind: "summary",
-    title: riskCopy.title,
-    subtitle: riskCopy.text,
-    accent: riskCopy.accent,
+    title: activeSignalCopy.title,
+    subtitle: activeSignalCopy.text,
+    accent: activeSignalCopy.accent,
     points: buildSummaryPoints(signals, latestCheckIn),
   });
 }
-
   function openSignal(card: SignalCard) {
     const extra =
       card.key === "sleep"
@@ -331,7 +369,13 @@ function openSummary() {
   <Text style={styles.brandTitle}>Dara</Text>
 
   <View style={styles.headerActions}>
-    <Pressable style={styles.checkInButton} onPress={onOpenCheckIn}>
+<Pressable
+  style={styles.checkInButton}
+  onPress={() => {
+    mediumTap();
+    onOpenCheckIn?.();
+  }}
+>
       <Ionicons name="add-outline" size={18} color="#07101F" />
       <Text style={styles.checkInButtonText}>Check in</Text>
     </Pressable>
@@ -354,7 +398,13 @@ function openSummary() {
     </Text>
   </View>
 )}
-        <Pressable style={styles.heroCard} onPress={openSummary}>
+<Pressable
+  style={styles.heroCard}
+  onPress={() => {
+    mediumTap();
+    openSummary();
+  }}
+>
           <LinearGradient
             colors={[
               "rgba(255,255,255,0.12)",
@@ -371,7 +421,7 @@ function openSummary() {
               <Ionicons
                 name="analytics-outline"
                 size={24}
-                color={getAccentColor(riskCopy.accent)}
+                color={getAccentColor(activeSignalCopy.accent)}
               />
             </View>
 
@@ -381,31 +431,32 @@ function openSummary() {
               style={[
                 styles.riskBadge,
                 {
-                  borderColor: `${getAccentColor(riskCopy.accent)}66`,
-                  backgroundColor: `${getAccentColor(riskCopy.accent)}22`,
+borderColor: `${getAccentColor(activeSignalCopy.accent)}66`,
+backgroundColor: `${getAccentColor(activeSignalCopy.accent)}22`,
                 },
               ]}
             >
               <Text
                 style={[
                   styles.riskBadgeText,
-                  { color: getAccentColor(riskCopy.accent) },
+{ color: getAccentColor(activeSignalCopy.accent) },
                 ]}
               >
-                {riskCopy.label}
+{activeSignalCopy.badge}
               </Text>
             </View>
           </View>
 
-          <Text style={styles.heroTitle}>{riskCopy.title}</Text>
-          <Text style={styles.heroText}>{riskCopy.text}</Text>
-
+          <Text style={styles.heroTitle}>{activeSignalCopy.title}</Text>
+          <Text style={styles.heroText}>
+{activeSignalCopy.text} {activeSignalContext}
+</Text>
           <View style={styles.heroActionRow}>
             <Text style={styles.heroAction}>Tap to open details</Text>
             <Ionicons
               name="chevron-forward"
               size={18}
-              color={getAccentColor(riskCopy.accent)}
+color={getAccentColor(activeSignalCopy.accent)}
             />
           </View>
         </Pressable>
@@ -560,8 +611,14 @@ function openSummary() {
         animationType="slide"
         onRequestClose={() => setDetail(null)}
       >
-        <Pressable style={styles.modalBackdrop} onPress={() => setDetail(null)} />
 
+ <Pressable
+  style={styles.modalBackdrop}
+  onPress={() => {
+    lightTap();
+    setDetail(null);
+  }}
+/>
         <View style={styles.sheet}>
           <View style={styles.sheetHandle} />
 
@@ -606,10 +663,13 @@ function openSummary() {
                 ))}
               </View>
 
-              <Pressable
-                style={styles.sheetButton}
-                onPress={() => setDetail(null)}
-              >
+<Pressable
+  style={styles.sheetButton}
+  onPress={() => {
+    lightTap();
+    setDetail(null);
+  }}
+>
                 <Text style={styles.sheetButtonText}>Got it</Text>
               </Pressable>
             </>

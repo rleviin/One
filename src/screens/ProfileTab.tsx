@@ -3,6 +3,7 @@ import {
   ImageBackground,
   Modal,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,6 +14,7 @@ import type { HealthRecordFile } from "../storage";
 import { saveHealthRecord } from "../storage";
 import { useDaraData } from "../useDaraData";
 import * as DocumentPicker from "expo-document-picker";
+import { lightTap, mediumTap, successTap } from "../haptics";
 
 type ProfileTabProps = {
   dataVersion?: number;
@@ -57,7 +59,7 @@ export default function ProfileTab({
   onOpenSetup,
 }: ProfileTabProps) {
   const [showHealthRecords, setShowHealthRecords] = useState(false);
-  const { data, reload } = useDaraData(dataVersion);
+  const { data, isLoading, reload } = useDaraData(dataVersion);
 
 const setupData = data.personalSetup;
 const healthRecord = data.healthRecord;
@@ -65,6 +67,7 @@ const latestCheckIn = data.dailyCheckIn;
   const [showAppleHealth, setShowAppleHealth] = useState(false);
 
   async function pickBloodTestFile() {
+await lightTap();
     const result = await DocumentPicker.getDocumentAsync({
       type: ["application/pdf", "image/*"],
       copyToCacheDirectory: true,
@@ -83,6 +86,7 @@ const latestCheckIn = data.dailyCheckIn;
 
  await saveHealthRecord(record);
 await reload();
+await successTap();
     }
   }
 
@@ -97,8 +101,15 @@ await reload();
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-      >
+contentContainerStyle={styles.tabContent}
+  refreshControl={
+    <RefreshControl
+      refreshing={isLoading}
+      onRefresh={reload}
+      tintColor="#FFFFFF"
+    />
+  }
+>
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.eyebrow}>PROFILE</Text>
@@ -122,7 +133,13 @@ await reload();
           </Text>
         </View>
 
-        <Pressable style={styles.setupCard} onPress={onOpenSetup}>
+<Pressable
+  style={styles.setupCard}
+  onPress={() => {
+    mediumTap();
+    onOpenSetup?.();
+  }}
+>
           <View style={styles.setupIcon}>
             <Ionicons name="person-circle-outline" size={26} color="#FFFFFF" />
           </View>
@@ -160,7 +177,10 @@ await reload();
         </Pressable>
         <Pressable
   style={styles.healthRecordsCard}
-  onPress={() => setShowHealthRecords(true)}
+onPress={() => {
+  mediumTap();
+  setShowHealthRecords(true);
+}}
 >
   <View style={styles.healthRecordsIcon}>
     <Ionicons name="flask-outline" size={25} color="#FF647C" />
@@ -183,7 +203,10 @@ await reload();
 </Pressable>
 <Pressable
   style={styles.appleHealthCard}
-  onPress={() => setShowAppleHealth(true)}
+onPress={() => {
+  mediumTap();
+  setShowAppleHealth(true);
+}}
 >
   <View style={styles.appleHealthIcon}>
     <Ionicons name="heart-outline" size={25} color="#58E7FF" />
