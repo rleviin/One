@@ -10,7 +10,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import DailyCheckInScreen from "./src/screens/DailyCheckInScreen";
 import { lightTap } from "./src/haptics";
 import {
-  SafeAreaView,
   View,
   Text,
   TextInput,
@@ -22,6 +21,7 @@ import {
   Dimensions,
   ImageBackground,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import type {

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  SafeAreaView,
   View,
   Text,
   TextInput,
@@ -8,6 +7,7 @@ import {
   StyleSheet,
   ImageBackground,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
 type AuthScreenProps = {
