@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  ImageBackground,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import ScreenBackground from "../components/ScreenBackground";
 
 import type { DailyCheckInData } from "../storage";
 import { loadDailyCheckIn } from "../storage";
@@ -24,6 +25,15 @@ type ForecastTabProps = {
 
 
 export default function ForecastTab({ dataVersion = 0 }: ForecastTabProps) {
+  const [refreshing, setRefreshing] = useState(false);
+
+async function handleRefresh() {
+  setRefreshing(true);
+
+  await new Promise((resolve) => setTimeout(resolve, 450));
+
+  setRefreshing(false);
+}
   const [checkIn, setCheckIn] = useState<DailyCheckInData | null>(null);
 
   useEffect(() => {
@@ -78,19 +88,19 @@ const changePoints = buildForecastChangePoints(level);
     },
   ];
 
-  return (
-    <ImageBackground
-      source={require("../../assets/onboarding-bg_2.png")}
-      style={styles.background}
-      imageStyle={styles.backgroundImage}
-      resizeMode="cover"
-    >
-      <View style={styles.overlay} />
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-      >
+return (
+  <ScreenBackground>
+<ScrollView
+  showsVerticalScrollIndicator={false}
+  contentContainerStyle={styles.content}
+  refreshControl={
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={handleRefresh}
+      tintColor="#FFFFFF"
+    />
+  }
+>
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.eyebrow}>FORECAST</Text>
@@ -202,25 +212,12 @@ const changePoints = buildForecastChangePoints(level);
           </Text>
         </View>
       </ScrollView>
-    </ImageBackground>
+     </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    backgroundColor: "#050A14",
-  },
-
-  backgroundImage: {
-    resizeMode: "cover",
-  },
-
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(3, 7, 18, 0.54)",
-  },
-
+  
   content: {
     paddingTop: 22,
     paddingHorizontal: 20,
