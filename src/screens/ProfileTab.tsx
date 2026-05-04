@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  ImageBackground,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -16,6 +15,7 @@ import { useDaraData } from "../useDaraData";
 import { lightTap, mediumTap, successTap } from "../haptics";
 import AnimatedPressable from "../components/AnimatedPressable";
 import AnimatedBottomSheet from "../components/AnimatedBottomSheet";
+import ScreenBackground from "../components/ScreenBackground";
 
 type ProfileTabProps = {
   dataVersion?: number;
@@ -93,15 +93,8 @@ export default function ProfileTab({
     }
   }
 
-  return (
-    <ImageBackground
-      source={require("../../assets/onboarding-bg.png")}
-      style={styles.background}
-      imageStyle={styles.backgroundImage}
-      resizeMode="cover"
-    >
-      <View style={styles.overlay} />
-
+return (
+  <ScreenBackground source={require("../../assets/onboarding-bg.png")}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
@@ -511,24 +504,11 @@ export default function ProfileTab({
           <Text style={styles.sheetButtonText}>Connect later</Text>
         </AnimatedPressable>
       </AnimatedBottomSheet>
-    </ImageBackground>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    backgroundColor: "#050A14",
-  },
-
-  backgroundImage: {
-    resizeMode: "cover",
-  },
-
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(3, 7, 18, 0.54)",
-  },
 
   content: {
     paddingTop: 22,
