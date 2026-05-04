@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   Image,
-  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { loadDailyCheckIn, saveDailyCheckIn } from "../storage";
 import { lightTap, successTap } from "../haptics";
+import ScreenBackground from "../components/ScreenBackground";
 
 type DailyCheckInScreenProps = {
   onDone: () => void;
@@ -137,16 +137,11 @@ async function handleSave() {
   await successTap();
   onDone();
 }
-return (
-    <ImageBackground
-      source={require("../../assets/onboarding-bg_0.png")}
-      style={styles.background}
-      imageStyle={styles.backgroundImage}
-      resizeMode="cover"
-    >
-      <View style={styles.overlay} />
 
-      <SafeAreaView style={styles.container}>
+return (
+  <ScreenBackground source={require("../../assets/onboarding-bg_0.png")}>
+    <SafeAreaView style={styles.container}>
+
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.content}
@@ -271,24 +266,11 @@ return (
           </Pressable>
         </ScrollView>
       </SafeAreaView>
-    </ImageBackground>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    backgroundColor: "#050A14",
-  },
-
-  backgroundImage: {
-    resizeMode: "cover",
-  },
-
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(3, 7, 18, 0.54)",
-  },
 
   container: {
     flex: 1,
