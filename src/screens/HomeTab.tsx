@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
   Pressable,
   StyleSheet,
   ScrollView,
+  RefreshControl,
   Dimensions,
   ImageBackground,
 } from "react-native";
@@ -145,33 +146,29 @@ export default function HomeTab({ dataVersion = 0, onOpenCheckIn }: HomeTabProps
   const [latestCheckIn, setLatestCheckIn] = useState<DailyCheckInData | null>(
     null
   );
+const [refreshing, setRefreshing] = useState(false);
 
-useEffect(() => {
-  let mounted = true;
+const loadHomeData = useCallback(async () => {
+  const checkIn = await loadDailyCheckIn();
 
-  async function loadHomeData() {
-    const checkIn = await loadDailyCheckIn();
-
-    if (!mounted) {
-      return;
-    }
-
-    if (!checkIn) {
-      setLatestCheckIn(null);
-      return;
-    }
-
-    setLatestCheckIn(checkIn);
-    setSignals((current) => mapCheckInToSignals(current, checkIn));
+  if (!checkIn) {
+    setLatestCheckIn(null);
+    return;
   }
 
+  setLatestCheckIn(checkIn);
+  setSignals((current) => mapCheckInToSignals(current, checkIn));
+}, []);
+
+useEffect(() => {
   loadHomeData();
+}, [loadHomeData, dataVersion]);
 
-  return () => {
-    mounted = false;
-  };
-}, [dataVersion]);
-
+async function handleRefresh() {
+  setRefreshing(true);
+  await loadHomeData();
+  setRefreshing(false);
+}
   const risk = calculateRisk(signals);
   const riskCopy = getRiskCopy(risk);
   const checkInPressureScore = latestCheckIn
@@ -362,10 +359,18 @@ function openSummary() {
     >
       <View style={styles.overlay} />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-      >
+     
+<ScrollView
+  showsVerticalScrollIndicator={false}
+ contentContainerStyle={styles.content}
+  refreshControl={
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={handleRefresh}
+      tintColor="#FFFFFF"
+    />
+  }
+>
 <View style={styles.headerRow}>
   <Text style={styles.brandTitle}>Dara</Text>
 
@@ -703,7 +708,7 @@ const styles = StyleSheet.create({
   content: {
     paddingTop: IS_COMPACT_HOME ? 10 : 18,
     paddingHorizontal: 20,
-    paddingBottom: 140,
+    paddingBottom: 190,
   },
 
   headerRow: {
@@ -952,17 +957,18 @@ const styles = StyleSheet.create({
     gap: 10,
   },
 
-  actionCard: {
-    minHeight: 84,
-    borderRadius: 24,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.16)",
-    backgroundColor: "rgba(8, 16, 38, 0.54)",
-    overflow: "hidden",
-    flexDirection: "row",
-    alignItems: "center",
-  },
+actionCard: {
+  width: "100%",
+  minHeight: 84,
+  borderRadius: 24,
+  padding: 14,
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.16)",
+  backgroundColor: "rgba(8, 16, 38, 0.54)",
+  overflow: "hidden",
+  flexDirection: "row",
+  alignItems: "center",
+},
 
   actionIcon: {
     width: 48,
