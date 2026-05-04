@@ -7,13 +7,13 @@ import {
   ScrollView,
   RefreshControl,
   Dimensions,
-  ImageBackground,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { lightTap, mediumTap } from "../haptics";
 import AnimatedPressable from "../components/AnimatedPressable";
 import AnimatedBottomSheet from "../components/AnimatedBottomSheet";
+import ScreenBackground from "../components/ScreenBackground";
 
 import type { RiskLevel, UserSignals } from "../types";
 import {
@@ -350,14 +350,8 @@ function openSummary() {
     });
   }
 
-  return (
-    <ImageBackground
-      source={require("../../assets/onboarding-bg.png")}
-      style={styles.background}
-      imageStyle={styles.backgroundImage}
-      resizeMode="cover"
-    >
-      <View style={styles.overlay} />
+return (
+  <ScreenBackground source={require("../../assets/onboarding-bg.png")}>
 
      
 <ScrollView
@@ -686,24 +680,11 @@ color={getAccentColor(activeSignalCopy.accent)}
     </>
   )}
 </AnimatedBottomSheet>
-    </ImageBackground>
+   </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    backgroundColor: "#050A14",
-  },
-
-  backgroundImage: {
-    resizeMode: "cover",
-  },
-
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(3, 7, 18, 0.48)",
-  },
 
   content: {
     paddingTop: IS_COMPACT_HOME ? 10 : 18,
