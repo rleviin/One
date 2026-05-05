@@ -134,7 +134,10 @@ function Sparkline({ accent }: { accent: SignalCard["accent"] }) {
   );
 }
 
-export default function HomeTab({ dataVersion = 0, onOpenCheckIn }: HomeTabProps) {
+export default function HomeTab({
+  dataVersion = 0,
+  onOpenCheckIn,
+}: HomeTabProps) {
   const [signals, setSignals] = useState<UserSignals>({
     sleepHours: 6.2,
     workload: 7,
@@ -369,6 +372,7 @@ return (
   <Text style={styles.brandTitle}>Dara</Text>
 
   <View style={styles.headerActions}>
+  
 
 <AnimatedPressable
   style={styles.checkInButton}
@@ -1137,4 +1141,5 @@ checkInSummaryText: {
   lineHeight: 18,
   fontWeight: "700",
 },
+
 });

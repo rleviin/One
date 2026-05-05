@@ -2,12 +2,15 @@ import { useCallback, useEffect, useState } from "react";
 
 import type {
   DailyCheckInData,
+  DailyContextEvent,
   HealthRecordFile,
   PersonalSetupData,
 } from "./storage";
 
 import {
   loadDailyCheckIn,
+  loadDailyCheckInHistory,
+  loadDailyContextEvents,
   loadHealthRecord,
   loadPersonalSetup,
 } from "./storage";
@@ -15,34 +18,51 @@ import {
 export type DaraUserData = {
   personalSetup: PersonalSetupData | null;
   dailyCheckIn: DailyCheckInData | null;
+  dailyCheckInHistory: DailyCheckInData[];
+  dailyContextEvents: DailyContextEvent[];
   healthRecord: HealthRecordFile | null;
 };
 
-export function useDaraData(dataVersion = 0) {
-  const [data, setData] = useState<DaraUserData>({
-    personalSetup: null,
-    dailyCheckIn: null,
-    healthRecord: null,
-  });
+const EMPTY_DARA_DATA: DaraUserData = {
+  personalSetup: null,
+  dailyContextEvents: [],
+  dailyCheckIn: null,
+  dailyCheckInHistory: [],
+  healthRecord: null,
+};
 
-  const [isLoading, setIsLoading] = useState(true);
+export function useDaraData(dataVersion = 0) {
+  const [data, setData] = useState<DaraUserData>(EMPTY_DARA_DATA);
+  const [isLoading, setIsLoading] = useState(false);
 
   const reload = useCallback(async () => {
     setIsLoading(true);
 
-    const [personalSetup, dailyCheckIn, healthRecord] = await Promise.all([
-      loadPersonalSetup(),
-      loadDailyCheckIn(),
-      loadHealthRecord(),
-    ]);
-
-    setData({
-      personalSetup,
-      dailyCheckIn,
-      healthRecord,
-    });
-
-    setIsLoading(false);
+    try {
+      const [
+  personalSetup,
+  dailyCheckIn,
+  dailyCheckInHistory,
+  dailyContextEvents,
+  healthRecord,
+] = await Promise.all([
+  loadPersonalSetup(),
+  loadDailyCheckIn(),
+  loadDailyCheckInHistory(),
+  loadDailyContextEvents(),
+  loadHealthRecord(),
+]);
+ 
+      setData({
+        personalSetup,
+        dailyContextEvents,
+        dailyCheckIn,
+        dailyCheckInHistory,
+        healthRecord,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {

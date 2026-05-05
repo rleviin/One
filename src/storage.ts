@@ -20,10 +20,24 @@ export type DailyCheckInData = {
   createdAt: string;
 };
 
+export type DailyContextEventType = "note" | "meal" | "event";
+
+export type DailyContextEvent = {
+  id: string;
+  type: DailyContextEventType;
+  title: string;
+  text?: string;
+  photoUri?: string | null;
+  createdAt: string;
+};
+
 const PERSONAL_SETUP_KEY = "dara.personalSetup";
 const DAILY_CHECK_IN_KEY = "dara.dailyCheckIn.latest";
 const DAILY_CHECK_IN_HISTORY_KEY = "dara.dailyCheckIn.history";
 const MAX_DAILY_CHECK_INS = 30;
+const DAILY_CONTEXT_EVENTS_KEY = "dara.dailyContext.events";
+const MAX_DAILY_CONTEXT_EVENTS = 200;
+
 
 export async function savePersonalSetup(data: PersonalSetupData) {
   await AsyncStorage.setItem(PERSONAL_SETUP_KEY, JSON.stringify(data));
@@ -92,5 +106,46 @@ export async function saveDailyCheckInWithHistory(data: DailyCheckInData) {
   await AsyncStorage.setItem(
     DAILY_CHECK_IN_HISTORY_KEY,
     JSON.stringify(nextHistory)
+  );
+}
+
+export async function loadDailyContextEvents(): Promise<DailyContextEvent[]> {
+  const raw = await AsyncStorage.getItem(DAILY_CONTEXT_EVENTS_KEY);
+  return raw ? JSON.parse(raw) : [];
+}
+
+export async function saveDailyContextEvent(event: DailyContextEvent) {
+  const events = await loadDailyContextEvents();
+
+  const nextEvents = [event, ...events]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+    .slice(0, MAX_DAILY_CONTEXT_EVENTS);
+
+  await AsyncStorage.setItem(
+    DAILY_CONTEXT_EVENTS_KEY,
+    JSON.stringify(nextEvents)
+  );
+}
+
+export async function saveDailyContextEvents(eventsToSave: DailyContextEvent[]) {
+  if (eventsToSave.length === 0) {
+    return;
+  }
+
+  const events = await loadDailyContextEvents();
+
+  const nextEvents = [...eventsToSave, ...events]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+    .slice(0, MAX_DAILY_CONTEXT_EVENTS);
+
+  await AsyncStorage.setItem(
+    DAILY_CONTEXT_EVENTS_KEY,
+    JSON.stringify(nextEvents)
   );
 }

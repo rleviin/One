@@ -9,6 +9,7 @@ import PersonalSetupScreen from "./src/screens/PersonalSetupScreen";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import DailyCheckInScreen from "./src/screens/DailyCheckInScreen";
 import CheckInHistoryScreen from "./src/screens/CheckInHistoryScreen";
+import AddContextScreen from "./src/screens/AddContextScreen";
 import { lightTap } from "./src/haptics";
 import { Asset } from "expo-asset";
 import {
@@ -93,6 +94,7 @@ function MainApp() {
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [dataVersion, setDataVersion] = useState(0);
   const [showHistory, setShowHistory] = useState(false);
+  const [showContext, setShowContext] = useState(false);
 
 if (showSetup) {
   return (
@@ -105,12 +107,17 @@ if (showSetup) {
   );
 }
  
+
 if (showCheckIn) {
   return (
     <DailyCheckInScreen
       onDone={() => {
         setShowCheckIn(false);
         setDataVersion((current) => current + 1);
+      }}
+      onOpenContext={() => {
+        setShowCheckIn(false);
+        setShowContext(true);
       }}
     />
   );
@@ -123,14 +130,27 @@ if (showHistory) {
     />
   );
 }
+if (showContext) {
+  return (
+    <AddContextScreen
+      dataVersion={dataVersion}
+      isPremium={IS_PREMIUM_USER}
+      onDone={() => {
+        setShowContext(false);
+        setDataVersion((current) => current + 1);
+      }}
+    />
+  );
+}
   return (
     <SafeAreaView style={styles.mainAppContainer}>
       <View style={styles.mainContent}>
 {tab === "home" && (
-  <HomeTab
-    dataVersion={dataVersion}
-    onOpenCheckIn={() => setShowCheckIn(true)}
-  />
+<HomeTab
+  dataVersion={dataVersion}
+  onOpenCheckIn={() => setShowCheckIn(true)}
+/>
+  
 )}
 
 {tab === "forecast" && <ForecastTab dataVersion={dataVersion} />}

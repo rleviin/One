@@ -15,12 +15,14 @@ import {
   loadDailyCheckIn,
   loadDailyCheckInHistory,
   saveDailyCheckInWithHistory,
+  saveDailyContextEvents,
 } from "../storage";
 import { lightTap, successTap } from "../haptics";
 import ScreenBackground from "../components/ScreenBackground";
 
 type DailyCheckInScreenProps = {
   onDone: () => void;
+  onOpenContext?: () => void;
 };
 
 type ScaleKey = "energy" | "stress" | "workload" | "spendingPressure";
@@ -72,7 +74,10 @@ function getDayKey(date: Date | string) {
   return `${year}-${month}-${day}`;
 }
 
-export default function DailyCheckInScreen({ onDone }: DailyCheckInScreenProps) {
+export default function DailyCheckInScreen({
+  onDone,
+  onOpenContext,
+}: DailyCheckInScreenProps) {
   const [values, setValues] = useState<Record<ScaleKey, number>>({
     energy: 6,
     stress: 4,
@@ -153,16 +158,51 @@ async function handleSave() {
     return;
   }
 
+async function handleSave() {
+  if (hasSavedToday) {
+    return;
+  }
+
+  const createdAt = new Date().toISOString();
+
   await saveDailyCheckInWithHistory({
     energy: values.energy,
     stress: values.stress,
     workload: values.workload,
     spendingPressure: values.spendingPressure,
-    note,
-    mealPhotoUri,
-    createdAt: new Date().toISOString(),
+    note: "",
+    mealPhotoUri: null,
+    createdAt,
   });
 
+  const contextEvents = [];
+
+  if (note.trim()) {
+    contextEvents.push({
+      id: `note-${createdAt}`,
+      type: "note" as const,
+      title: "Daily note",
+      text: note.trim(),
+      createdAt,
+    });
+  }
+
+  if (mealPhotoUri) {
+    contextEvents.push({
+      id: `meal-${createdAt}`,
+      type: "meal" as const,
+      title: "Meal photo",
+      photoUri: mealPhotoUri,
+      text: "Meal photo added during daily check-in.",
+      createdAt,
+    });
+  }
+
+  await saveDailyContextEvents(contextEvents);
+
+  await successTap();
+  onDone();
+}
   await successTap();
   onDone();
 }
@@ -244,71 +284,103 @@ return (
             ))}
           </View>
 
-<View style={styles.noteCard}>
-  <Text style={styles.sectionLabel}>TODAY CONTEXT</Text>
+{hasSavedToday ? (
+  <View style={styles.noteCard}>
+    <Text style={styles.sectionLabel}>TODAY CONTEXT</Text>
 
-  <TextInput
-    value={note}
-    onChangeText={setNote}
-    placeholder="Example: slept badly, met a banker, started a new book, had a heavy breakfast..."
-    placeholderTextColor="rgba(255,255,255,0.42)"
-    multiline
-    style={styles.noteInput}
-  />
-
-  <Pressable style={styles.photoButton} onPress={pickMealPhoto}>
-    <Ionicons name="camera-outline" size={21} color="#FFFFFF" />
-    <Text style={styles.photoButtonText}>
-      {mealPhotoUri ? "Change meal photo" : "Add meal photo"}
-    </Text>
-  </Pressable>
-
-  {mealPhotoUri && (
-    <View style={styles.mealPreviewCard}>
-      <Image source={{ uri: mealPhotoUri }} style={styles.mealPreviewImage} />
-
-      <View style={styles.mealInsight}>
-        <Text style={styles.mealInsightLabel}>Dara meal read</Text>
-        <Text style={styles.mealInsightTitle}>Balanced energy support</Text>
-        <Text style={styles.mealInsightText}>
-          This looks like it may support stable energy. Full analysis will be
-          available after AI meal review is connected.
-        </Text>
-      </View>
+    <View style={styles.previewCard}>
+      <Ionicons name="sparkles-outline" size={20} color="#B9C6FF" />
+      <Text style={styles.previewText}>
+        Daily check-in is locked for today. You can still add meals, notes and
+        events as separate context.
+      </Text>
     </View>
-  )}
-          <View style={styles.previewCard}>
-            <Ionicons name="sparkles-outline" size={20} color="#B9C6FF" />
-            <Text style={styles.previewText}>
-              Dara will connect this with sleep, recovery, workload and external
-              signals.
-            </Text>
-          </View>
 
+    <Pressable
+      style={[styles.primaryButton, styles.primaryButtonDisabled]}
+      disabled
+      onPress={handleSave}
+    >
+      <Text style={styles.primaryButtonText}>Check-in saved for today</Text>
+    </Pressable>
 
-<Pressable
-  style={[
-    styles.primaryButton,
-    hasSavedToday && styles.primaryButtonDisabled,
-  ]}
-  disabled={hasSavedToday}
-  onPress={handleSave}
->
-  <Text style={styles.primaryButtonText}>
-    {hasSavedToday ? "Check-in saved for today" : "Save check-in"}
-  </Text>
-</Pressable>
+    <Pressable
+      style={styles.addContextButton}
+      onPress={() => {
+        lightTap();
+        onOpenContext?.();
+      }}
+    >
+      <Ionicons name="add-outline" size={22} color="#07101F" />
+      <Text style={styles.addContextButtonText}>Add context</Text>
+    </Pressable>
 
-<Text style={styles.savedTodayHint}>
-  {hasSavedToday
-    ? "Come back tomorrow. Dara works best with one daily check-in, ideally in the evening."
-    : "Tip: check in once in the evening so Dara can better understand your day."}
-</Text>
+    <Text style={styles.savedTodayHint}>
+      Come back tomorrow. Dara works best with one daily check-in, ideally in
+      the evening.
+    </Text>
 
-          <Pressable style={styles.skipButton} onPress={onDone}>
-            <Text style={styles.skipButtonText}>Skip today</Text>
-          </Pressable>
-         </View>
+    <Pressable style={styles.skipButton} onPress={onDone}>
+      <Text style={styles.skipButtonText}>Back home</Text>
+    </Pressable>
+  </View>
+) : (
+  <View style={styles.noteCard}>
+    <Text style={styles.sectionLabel}>TODAY CONTEXT</Text>
+
+    <TextInput
+      value={note}
+      onChangeText={setNote}
+      placeholder="Example: slept badly, met a banker, started a new book, had a heavy breakfast..."
+      placeholderTextColor="rgba(255,255,255,0.42)"
+      multiline
+      style={styles.noteInput}
+    />
+
+    <Pressable style={styles.photoButton} onPress={pickMealPhoto}>
+      <Ionicons name="camera-outline" size={21} color="#FFFFFF" />
+      <Text style={styles.photoButtonText}>
+        {mealPhotoUri ? "Change meal photo" : "Add meal photo"}
+      </Text>
+    </Pressable>
+
+    {mealPhotoUri ? (
+      <View style={styles.mealPreviewCard}>
+        <Image source={{ uri: mealPhotoUri }} style={styles.mealPreviewImage} />
+
+        <View style={styles.mealInsight}>
+          <Text style={styles.mealInsightLabel}>Dara meal read</Text>
+          <Text style={styles.mealInsightTitle}>Balanced energy support</Text>
+          <Text style={styles.mealInsightText}>
+            This looks like it may support stable energy. Full analysis will be
+            available after AI meal review is connected.
+          </Text>
+        </View>
+      </View>
+    ) : null}
+
+    <View style={styles.previewCard}>
+      <Ionicons name="sparkles-outline" size={20} color="#B9C6FF" />
+      <Text style={styles.previewText}>
+        Dara will connect this with sleep, recovery, workload and external
+        signals.
+      </Text>
+    </View>
+
+    <Pressable style={styles.primaryButton} onPress={handleSave}>
+      <Text style={styles.primaryButtonText}>Save check-in</Text>
+    </Pressable>
+
+    <Text style={styles.savedTodayHint}>
+      Tip: check in once in the evening so Dara can better understand your day.
+    </Text>
+
+    <Pressable style={styles.skipButton} onPress={onDone}>
+      <Text style={styles.skipButtonText}>Skip today</Text>
+    </Pressable>
+  </View>
+)}
+
         </ScrollView>
       </SafeAreaView>
     </ScreenBackground>
@@ -586,4 +658,22 @@ savedTodayHint: {
   marginTop: 10,
   marginBottom: 10,
 },
+
+addContextButton: {
+  height: 58,
+  borderRadius: 29,
+  backgroundColor: "#FFFFFF",
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
+  marginTop: 12,
+  gap: 8,
+},
+
+addContextButtonText: {
+  color: "#07101F",
+  fontSize: 17,
+  fontWeight: "900",
+},
+
 });
