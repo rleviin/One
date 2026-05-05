@@ -8,6 +8,7 @@ import ExplanationScreen from "./src/screens/ExplanationScreen";
 import PersonalSetupScreen from "./src/screens/PersonalSetupScreen";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import DailyCheckInScreen from "./src/screens/DailyCheckInScreen";
+import CheckInHistoryScreen from "./src/screens/CheckInHistoryScreen";
 import { lightTap } from "./src/haptics";
 import { Asset } from "expo-asset";
 import {
@@ -84,11 +85,14 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 const IS_COMPACT_HOME = SCREEN_HEIGHT < 760;
 const HOME_CARD_WIDTH = SCREEN_WIDTH - 88;
 
+const IS_PREMIUM_USER = false;
+
 function MainApp() {
   const [tab, setTab] = useState<Tab>("home");
   const [showSetup, setShowSetup] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [dataVersion, setDataVersion] = useState(0);
+  const [showHistory, setShowHistory] = useState(false);
 
 if (showSetup) {
   return (
@@ -111,6 +115,14 @@ if (showCheckIn) {
     />
   );
 }
+if (showHistory) {
+  return (
+    <CheckInHistoryScreen
+      dataVersion={dataVersion}
+      onDone={() => setShowHistory(false)}
+    />
+  );
+}
   return (
     <SafeAreaView style={styles.mainAppContainer}>
       <View style={styles.mainContent}>
@@ -126,10 +138,12 @@ if (showCheckIn) {
 {tab === "insights" && <InsightsTab dataVersion={dataVersion} />}
 
 {tab === "profile" && (
-  <ProfileTab
-    dataVersion={dataVersion}
-    onOpenSetup={() => setShowSetup(true)}
-  />
+<ProfileTab
+  dataVersion={dataVersion}
+  onOpenSetup={() => setShowSetup(true)}
+  isPremium={IS_PREMIUM_USER}
+  onOpenHistory={() => setShowHistory(true)}
+/>
 )}
       </View>
 <View style={styles.tabBar}>

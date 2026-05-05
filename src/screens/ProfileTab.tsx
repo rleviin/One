@@ -20,6 +20,8 @@ import ScreenBackground from "../components/ScreenBackground";
 type ProfileTabProps = {
   dataVersion?: number;
   onOpenSetup?: () => void;
+  isPremium?: boolean;
+  onOpenHistory?: () => void;
 };
 
 const connectedAreas = [
@@ -58,15 +60,19 @@ const preferences = [
 export default function ProfileTab({
   dataVersion = 0,
   onOpenSetup,
+  isPremium = false,
+  onOpenHistory,
 }: ProfileTabProps) {
+
   const [showHealthRecords, setShowHealthRecords] = useState(false);
   const [showAppleHealth, setShowAppleHealth] = useState(false);
-
+  const [showHistoryPreview, setShowHistoryPreview] = useState(false);
   const { data, isLoading, reload } = useDaraData(dataVersion);
 
   const setupData = data.personalSetup;
   const healthRecord = data.healthRecord;
   const latestCheckIn = data.dailyCheckIn;
+  const recentCheckIns = data.dailyCheckInHistory.slice(0, 5);
 
   async function pickBloodTestFile() {
     await lightTap();
@@ -92,7 +98,14 @@ export default function ProfileTab({
       await successTap();
     }
   }
+function formatCheckInDate(createdAt: string) {
+  const date = new Date(createdAt);
 
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+}
 return (
   <ScreenBackground source={require("../../assets/onboarding-bg.png")}>
       <ScrollView
@@ -129,53 +142,7 @@ return (
           </Text>
         </View>
 
-        <AnimatedPressable
-          style={styles.pressableFullWidth}
-          contentStyle={styles.setupCard}
-          pressedScale={0.975}
-          onPress={() => {
-            mediumTap();
-            onOpenSetup?.();
-          }}
-        >
-          <View style={styles.setupIcon}>
-            <Ionicons name="person-circle-outline" size={26} color="#FFFFFF" />
-          </View>
-
-          <View style={styles.setupTextBlock}>
-            <Text style={styles.setupTitle}>Personal baseline</Text>
-
-            <Text style={styles.setupText}>
-              {setupData
-                ? `${setupData.country || "Country not set"} · Age ${
-                    setupData.age || "—"
-                  } · Sleep goal ${setupData.sleepGoal || "—"}h`
-                : "Not completed yet. Add country, age, sleep goal and work style."}
-            </Text>
-
-            {setupData && (
-              <View style={styles.baselineTags}>
-                <Text style={styles.baselineTag}>
-                  {setupData.workType || "work"}
-                </Text>
-                <Text style={styles.baselineTag}>
-                  Income: {setupData.incomeRange || "optional"}
-                </Text>
-                <Text style={styles.baselineTag}>
-                  Spending: {setupData.spendingRange || "optional"}
-                </Text>
-              </View>
-            )}
-          </View>
-
-          <View style={styles.arrowCircle}>
-            <Ionicons
-              name="chevron-forward"
-              size={22}
-              color="rgba(255,255,255,0.86)"
-            />
-          </View>
-        </AnimatedPressable>
+        
 
         <AnimatedPressable
           style={styles.pressableFullWidth}
@@ -232,70 +199,85 @@ return (
           </View>
         </AnimatedPressable>
 
-        <View style={styles.profileCardWrap}>
-          <View style={styles.latestCheckInCard}>
-            <View style={styles.latestCheckInTop}>
-              <View style={styles.latestCheckInIcon}>
-                <Ionicons name="pulse-outline" size={23} color="#58E7FF" />
-              </View>
+        <AnimatedPressable
+          style={styles.pressableFullWidth}
+          contentStyle={styles.latestCheckInCard}
+          pressedScale={0.975}
+          onPress={() => {
+            mediumTap();
 
-              <View style={{ flex: 1 }}>
-                <Text style={styles.latestCheckInTitle}>Latest check-in</Text>
-                <Text style={styles.latestCheckInText}>
-                  {latestCheckIn
-                    ? `Energy ${latestCheckIn.energy}/10 · Stress ${latestCheckIn.stress}/10 · Workload ${latestCheckIn.workload}/10`
-                    : "No check-in saved yet."}
-                </Text>
-              </View>
+            if (isPremium) {
+              onOpenHistory?.();
+              return;
+            }
+
+            setShowHistoryPreview(true);
+          }}
+        >
+          <View style={styles.latestCheckInTop}>
+            <View style={styles.latestCheckInIcon}>
+              <Ionicons name="pulse-outline" size={23} color="#58E7FF" />
             </View>
 
-            {latestCheckIn && (
-              <View style={styles.latestCheckInStats}>
-                <View style={styles.latestCheckInStat}>
-                  <Text style={styles.latestCheckInStatValue}>
-                    {latestCheckIn.energy}
-                  </Text>
-                  <Text style={styles.latestCheckInStatLabel}>Energy</Text>
-                </View>
-
-                <View style={styles.latestCheckInStat}>
-                  <Text style={styles.latestCheckInStatValue}>
-                    {latestCheckIn.stress}
-                  </Text>
-                  <Text style={styles.latestCheckInStatLabel}>Stress</Text>
-                </View>
-
-                <View style={styles.latestCheckInStat}>
-                  <Text style={styles.latestCheckInStatValue}>
-                    {latestCheckIn.workload}
-                  </Text>
-                  <Text style={styles.latestCheckInStatLabel}>Load</Text>
-                </View>
-
-                <View style={styles.latestCheckInStat}>
-                  <Text style={styles.latestCheckInStatValue}>
-                    {latestCheckIn.spendingPressure}
-                  </Text>
-                  <Text style={styles.latestCheckInStatLabel}>Money</Text>
-                </View>
-              </View>
-            )}
-
-            {latestCheckIn?.note ? (
-              <View style={styles.latestCheckInNote}>
-                <Text style={styles.latestCheckInNoteLabel}>Today context</Text>
-                <Text style={styles.latestCheckInNoteText}>
-                  {latestCheckIn.note}
-                </Text>
-              </View>
-            ) : null}
+            <View style={{ flex: 1 }}>
+              <Text style={styles.latestCheckInTitle}>Latest check-in</Text>
+              <Text style={styles.latestCheckInText}>
+                {latestCheckIn
+                  ? `Energy ${latestCheckIn.energy}/10 · Stress ${latestCheckIn.stress}/10 · Workload ${latestCheckIn.workload}/10`
+                  : "No check-in saved yet."}
+              </Text>
+            </View>
           </View>
-        </View>
+
+          {latestCheckIn && (
+            <View style={styles.latestCheckInStats}>
+              <View style={styles.latestCheckInStat}>
+                <Text style={styles.latestCheckInStatValue}>
+                  {latestCheckIn.energy}
+                </Text>
+                <Text style={styles.latestCheckInStatLabel}>Energy</Text>
+              </View>
+
+              <View style={styles.latestCheckInStat}>
+                <Text style={styles.latestCheckInStatValue}>
+                  {latestCheckIn.stress}
+                </Text>
+                <Text style={styles.latestCheckInStatLabel}>Stress</Text>
+              </View>
+
+              <View style={styles.latestCheckInStat}>
+                <Text style={styles.latestCheckInStatValue}>
+                  {latestCheckIn.workload}
+                </Text>
+                <Text style={styles.latestCheckInStatLabel}>Load</Text>
+              </View>
+
+              <View style={styles.latestCheckInStat}>
+                <Text style={styles.latestCheckInStatValue}>
+                  {latestCheckIn.spendingPressure}
+                </Text>
+                <Text style={styles.latestCheckInStatLabel}>Money</Text>
+              </View>
+            </View>
+          )}
+
+          {latestCheckIn?.note ? (
+            <View style={styles.latestCheckInNote}>
+              <Text style={styles.latestCheckInNoteLabel}>Today context</Text>
+              <Text style={styles.latestCheckInNoteText}>
+                {latestCheckIn.note}
+              </Text>
+            </View>
+          ) : null}
+        </AnimatedPressable>
+
+
+
+        
 
         <Text style={[styles.sectionTitle, styles.profileSectionTitle]}>
           Connected areas
         </Text>
-
         <View style={styles.areaGrid}>
           {connectedAreas.map((area) => (
             <View key={area.title} style={styles.areaCard}>
@@ -504,9 +486,65 @@ return (
           <Text style={styles.sheetButtonText}>Connect later</Text>
         </AnimatedPressable>
       </AnimatedBottomSheet>
+
+<AnimatedBottomSheet
+  visible={showHistoryPreview}
+  onClose={() => {
+    lightTap();
+    setShowHistoryPreview(false);
+  }}
+>
+  <View style={styles.appleSheetIcon}>
+    <Ionicons name="calendar-outline" size={25} color="#58E7FF" />
+  </View>
+
+  <Text style={styles.sheetTitle}>Check-in history</Text>
+
+  <Text style={styles.sheetSubtitle}>
+    Free preview shows your latest 5 check-ins. Full calendar, month trends and
+    long-term patterns are part of Dara Premium.
+  </Text>
+
+  <View style={styles.recordList}>
+    {recentCheckIns.length > 0 ? (
+      recentCheckIns.map((item) => (
+        <View key={item.createdAt} style={styles.recordItem}>
+          <Ionicons name="pulse-outline" size={20} color="#58E7FF" />
+
+          <View style={styles.recordTextBlock}>
+            <Text style={styles.recordTitle}>
+              {formatCheckInDate(item.createdAt)}
+            </Text>
+            <Text style={styles.recordText}>
+              Energy {item.energy}/10 · Stress {item.stress}/10 · Load{" "}
+              {item.workload}/10
+            </Text>
+          </View>
+        </View>
+      ))
+    ) : (
+      <Text style={styles.historyEmptyText}>
+        Your recent check-ins will appear here.
+      </Text>
+    )}
+  </View>
+
+  <AnimatedPressable
+    style={styles.sheetButton}
+    pressedScale={0.97}
+    onPress={() => {
+      lightTap();
+      setShowHistoryPreview(false);
+    }}
+  >
+    <Text style={styles.sheetButtonText}>Unlock full history</Text>
+  </AnimatedPressable>
+</AnimatedBottomSheet>
     </ScreenBackground>
   );
 }
+
+
 
 const styles = StyleSheet.create({
 
@@ -1067,4 +1105,57 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "900",
   },
+historyCard: {
+  borderRadius: 26,
+  padding: 14,
+  backgroundColor: "rgba(8, 16, 38, 0.54)",
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.14)",
+  marginBottom: 24,
+},
+
+historyRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  paddingVertical: 10,
+  borderBottomWidth: 1,
+  borderBottomColor: "rgba(255,255,255,0.08)",
+},
+
+historyDatePill: {
+  minWidth: 62,
+  borderRadius: 999,
+  paddingHorizontal: 10,
+  paddingVertical: 7,
+  backgroundColor: "rgba(185,198,255,0.12)",
+  borderWidth: 1,
+  borderColor: "rgba(185,198,255,0.18)",
+  marginRight: 12,
+  alignItems: "center",
+},
+
+historyDateText: {
+  color: "#B9C6FF",
+  fontSize: 12,
+  fontWeight: "900",
+},
+
+historyMetrics: {
+  flex: 1,
+  flexDirection: "row",
+  flexWrap: "wrap",
+  gap: 8,
+},
+
+historyMetricText: {
+  color: "rgba(255,255,255,0.68)",
+  fontSize: 13,
+  fontWeight: "800",
+},
+
+historyEmptyText: {
+  color: "rgba(255,255,255,0.58)",
+  fontSize: 14,
+  lineHeight: 20,
+},
 });
