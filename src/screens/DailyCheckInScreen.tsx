@@ -11,7 +11,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { loadDailyCheckIn, saveDailyCheckIn } from "../storage";
+import {
+  loadDailyCheckIn,
+  loadDailyCheckInHistory,
+  saveDailyCheckInWithHistory,
+} from "../storage";
 import { lightTap, successTap } from "../haptics";
 import ScreenBackground from "../components/ScreenBackground";
 
@@ -58,6 +62,16 @@ const scaleItems: {
   },
 ];
 
+function getDayKey(date: Date | string) {
+  const value = typeof date === "string" ? new Date(date) : date;
+
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 export default function DailyCheckInScreen({ onDone }: DailyCheckInScreenProps) {
   const [values, setValues] = useState<Record<ScaleKey, number>>({
     energy: 6,
@@ -67,33 +81,44 @@ export default function DailyCheckInScreen({ onDone }: DailyCheckInScreenProps) 
   });
 
   const [note, setNote] = useState("");
+  const [hasSavedToday, setHasSavedToday] = useState(false);
   const [mealPhotoUri, setMealPhotoUri] = useState<string | null>(null);
+
 useEffect(() => {
-  let mounted = true;
-
   async function loadSavedCheckIn() {
-    const saved = await loadDailyCheckIn();
+    const latest = await loadDailyCheckIn();
+    const history = await loadDailyCheckInHistory();
 
-    if (!mounted || !saved) {
+    const todayKey = getDayKey(new Date());
+
+    const todayFromHistory = history.find(
+      (item) => getDayKey(item.createdAt) === todayKey
+    );
+
+    const todayCheckIn =
+      latest && getDayKey(latest.createdAt) === todayKey
+        ? latest
+        : todayFromHistory;
+
+    if (!todayCheckIn) {
+      setHasSavedToday(false);
       return;
     }
 
+    setHasSavedToday(true);
+
     setValues({
-      energy: saved.energy,
-      stress: saved.stress,
-      workload: saved.workload,
-      spendingPressure: saved.spendingPressure,
+      energy: todayCheckIn.energy,
+      stress: todayCheckIn.stress,
+      workload: todayCheckIn.workload,
+      spendingPressure: todayCheckIn.spendingPressure,
     });
 
-    setNote(saved.note);
-    setMealPhotoUri(saved.mealPhotoUri);
+    setNote(todayCheckIn.note ?? "");
+    setMealPhotoUri(todayCheckIn.mealPhotoUri ?? null);
   }
 
   loadSavedCheckIn();
-
-  return () => {
-    mounted = false;
-  };
 }, []);
 
 function setScaleValue(key: ScaleKey, value: number) {
@@ -124,7 +149,11 @@ function setScaleValue(key: ScaleKey, value: number) {
     }
   }
 async function handleSave() {
-  await saveDailyCheckIn({
+  if (hasSavedToday) {
+    return;
+  }
+
+  await saveDailyCheckInWithHistory({
     energy: values.energy,
     stress: values.stress,
     workload: values.workload,
@@ -248,7 +277,6 @@ return (
       </View>
     </View>
   )}
-</View>
           <View style={styles.previewCard}>
             <Ionicons name="sparkles-outline" size={20} color="#B9C6FF" />
             <Text style={styles.previewText}>
@@ -257,13 +285,30 @@ return (
             </Text>
           </View>
 
-             <Pressable style={styles.primaryButton} onPress={handleSave}>
-            <Text style={styles.primaryButtonText}>Save check-in</Text>
-          </Pressable>
+
+<Pressable
+  style={[
+    styles.primaryButton,
+    hasSavedToday && styles.primaryButtonDisabled,
+  ]}
+  disabled={hasSavedToday}
+  onPress={handleSave}
+>
+  <Text style={styles.primaryButtonText}>
+    {hasSavedToday ? "Check-in saved for today" : "Save check-in"}
+  </Text>
+</Pressable>
+
+<Text style={styles.savedTodayHint}>
+  {hasSavedToday
+    ? "Come back tomorrow. Dara works best with one daily check-in, ideally in the evening."
+    : "Tip: check in once in the evening so Dara can better understand your day."}
+</Text>
 
           <Pressable style={styles.skipButton} onPress={onDone}>
             <Text style={styles.skipButtonText}>Skip today</Text>
           </Pressable>
+         </View>
         </ScrollView>
       </SafeAreaView>
     </ScreenBackground>
@@ -529,4 +574,16 @@ mealInsightText: {
   lineHeight: 20,
 },
 
+primaryButtonDisabled: {
+  opacity: 0.56,
+},
+
+savedTodayHint: {
+  color: "rgba(255,255,255,0.58)",
+  fontSize: 13,
+  lineHeight: 18,
+  textAlign: "center",
+  marginTop: 10,
+  marginBottom: 10,
+},
 });
