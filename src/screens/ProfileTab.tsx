@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  Image,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -68,11 +69,21 @@ export default function ProfileTab({
   const [showAppleHealth, setShowAppleHealth] = useState(false);
   const [showHistoryPreview, setShowHistoryPreview] = useState(false);
   const { data, isLoading, reload } = useDaraData(dataVersion);
-
+  const [showContextSheet, setShowContextSheet] = useState(false);
   const setupData = data.personalSetup;
   const healthRecord = data.healthRecord;
   const latestCheckIn = data.dailyCheckIn;
   const recentCheckIns = data.dailyCheckInHistory.slice(0, 5);
+  const todayContextEvents = data.dailyContextEvents.filter((item) => {
+  const eventDate = new Date(item.createdAt);
+  const today = new Date();
+
+  return (
+    eventDate.getFullYear() === today.getFullYear() &&
+    eventDate.getMonth() === today.getMonth() &&
+    eventDate.getDate() === today.getDate()
+  );
+});
 
   async function pickBloodTestFile() {
     await lightTap();
@@ -104,6 +115,13 @@ function formatCheckInDate(createdAt: string) {
   return date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
+  });
+}
+
+function formatContextTime(createdAt: string) {
+  return new Date(createdAt).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
   });
 }
 return (
@@ -273,7 +291,38 @@ return (
 
 
 
-        
+                <AnimatedPressable
+          style={styles.pressableFullWidth}
+          contentStyle={styles.todayContextCard}
+          pressedScale={0.975}
+          onPress={() => {
+            lightTap();
+            setShowContextSheet(true);
+          }}
+        >
+          <View style={styles.todayContextIcon}>
+            <Ionicons name="sparkles-outline" size={22} color="#B9C6FF" />
+          </View>
+
+          <View style={styles.todayContextTextBlock}>
+            <Text style={styles.todayContextTitle}>Today context</Text>
+            <Text style={styles.todayContextText}>
+              {todayContextEvents.length > 0
+                ? `${todayContextEvents.length} context item${
+                    todayContextEvents.length === 1 ? "" : "s"
+                  } saved today`
+                : "No notes, meals or events added yet."}
+            </Text>
+          </View>
+
+          <View style={styles.todayContextArrow}>
+            <Ionicons
+              name="chevron-forward"
+              size={21}
+              color="rgba(255,255,255,0.82)"
+            />
+          </View>
+        </AnimatedPressable>
 
         <Text style={[styles.sectionTitle, styles.profileSectionTitle]}>
           Connected areas
@@ -540,6 +589,83 @@ return (
     <Text style={styles.sheetButtonText}>Unlock full history</Text>
   </AnimatedPressable>
 </AnimatedBottomSheet>
+
+      <AnimatedBottomSheet
+        visible={showContextSheet}
+        onClose={() => {
+          lightTap();
+          setShowContextSheet(false);
+        }}
+      >
+        <View style={styles.contextSheetIcon}>
+          <Ionicons name="sparkles-outline" size={25} color="#B9C6FF" />
+        </View>
+
+        <Text style={styles.sheetTitle}>Today context</Text>
+
+        <Text style={styles.sheetSubtitle}>
+          Notes, meals and events saved today. Dara will later connect these
+          with your daily check-in patterns.
+        </Text>
+
+        <View style={styles.contextList}>
+          {todayContextEvents.length > 0 ? (
+            todayContextEvents.map((item) => (
+              <View key={item.id} style={styles.contextItem}>
+                <View style={styles.contextItemIcon}>
+                  <Ionicons
+                    name={
+                      item.type === "meal"
+                        ? "restaurant-outline"
+                        : item.type === "event"
+                          ? "flash-outline"
+                          : "document-text-outline"
+                    }
+                    size={20}
+                    color="#B9C6FF"
+                  />
+                </View>
+
+                <View style={{ flex: 1 }}>
+                  <View style={styles.contextItemTop}>
+                    <Text style={styles.contextItemTitle}>{item.title}</Text>
+                    <Text style={styles.contextItemTime}>
+                      {formatContextTime(item.createdAt)}
+                    </Text>
+                  </View>
+
+                  {item.text ? (
+                    <Text style={styles.contextItemText}>{item.text}</Text>
+                  ) : null}
+
+                  {item.photoUri ? (
+                    <Image
+                      source={{ uri: item.photoUri }}
+                      style={styles.contextItemImage}
+                    />
+                  ) : null}
+                </View>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.contextEmptyText}>
+              No context saved yet. After your daily check-in, use Add context
+              to add a note, meal or event.
+            </Text>
+          )}
+        </View>
+
+        <AnimatedPressable
+          style={styles.sheetButton}
+          pressedScale={0.97}
+          onPress={() => {
+            lightTap();
+            setShowContextSheet(false);
+          }}
+        >
+          <Text style={styles.sheetButtonText}>Got it</Text>
+        </AnimatedPressable>
+      </AnimatedBottomSheet>
     </ScreenBackground>
   );
 }
@@ -1154,6 +1280,136 @@ historyMetricText: {
 },
 
 historyEmptyText: {
+  color: "rgba(255,255,255,0.58)",
+  fontSize: 14,
+  lineHeight: 20,
+},
+
+todayContextCard: {
+  minHeight: 86,
+  borderRadius: 26,
+  padding: 14,
+  marginBottom: 24,
+  flexDirection: "row",
+  alignItems: "center",
+  backgroundColor: "rgba(8, 16, 38, 0.54)",
+  borderWidth: 1,
+  borderColor: "rgba(185,198,255,0.18)",
+},
+
+todayContextIcon: {
+  width: 50,
+  height: 50,
+  borderRadius: 25,
+  backgroundColor: "rgba(185,198,255,0.12)",
+  borderWidth: 1,
+  borderColor: "rgba(185,198,255,0.26)",
+  alignItems: "center",
+  justifyContent: "center",
+  marginRight: 13,
+},
+
+todayContextTextBlock: {
+  flex: 1,
+},
+
+todayContextTitle: {
+  color: "#FFFFFF",
+  fontSize: 18,
+  fontWeight: "900",
+  marginBottom: 4,
+},
+
+todayContextText: {
+  color: "rgba(255,255,255,0.62)",
+  fontSize: 14,
+  lineHeight: 19,
+},
+
+todayContextArrow: {
+  width: 40,
+  height: 40,
+  borderRadius: 20,
+  backgroundColor: "rgba(255,255,255,0.07)",
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.10)",
+  alignItems: "center",
+  justifyContent: "center",
+  marginLeft: 10,
+},
+
+contextSheetIcon: {
+  width: 54,
+  height: 54,
+  borderRadius: 27,
+  backgroundColor: "rgba(185,198,255,0.12)",
+  borderWidth: 1,
+  borderColor: "rgba(185,198,255,0.28)",
+  alignItems: "center",
+  justifyContent: "center",
+  marginBottom: 14,
+},
+
+contextList: {
+  gap: 12,
+  marginBottom: 22,
+},
+
+contextItem: {
+  flexDirection: "row",
+  alignItems: "flex-start",
+  borderRadius: 20,
+  padding: 14,
+  backgroundColor: "rgba(255,255,255,0.055)",
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.10)",
+},
+
+contextItemIcon: {
+  width: 38,
+  height: 38,
+  borderRadius: 19,
+  backgroundColor: "rgba(185,198,255,0.10)",
+  borderWidth: 1,
+  borderColor: "rgba(185,198,255,0.20)",
+  alignItems: "center",
+  justifyContent: "center",
+  marginRight: 12,
+},
+
+contextItemTop: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  marginBottom: 5,
+},
+
+contextItemTitle: {
+  color: "#FFFFFF",
+  fontSize: 15,
+  fontWeight: "900",
+},
+
+contextItemTime: {
+  color: "rgba(255,255,255,0.42)",
+  fontSize: 12,
+  fontWeight: "800",
+},
+
+contextItemText: {
+  color: "rgba(255,255,255,0.66)",
+  fontSize: 14,
+  lineHeight: 20,
+},
+
+contextItemImage: {
+  width: "100%",
+  height: 150,
+  borderRadius: 16,
+  marginTop: 10,
+},
+
+contextEmptyText: {
   color: "rgba(255,255,255,0.58)",
   fontSize: 14,
   lineHeight: 20,

@@ -144,13 +144,13 @@ export default function HomeTab({
     recovery: 4,
     spendingPressure: 5,
   });
-
+  
   const [detail, setDetail] = useState<DetailState>(null);
   const [latestCheckIn, setLatestCheckIn] = useState<DailyCheckInData | null>(
     null
   );
-const [refreshing, setRefreshing] = useState(false);
 
+const [refreshing, setRefreshing] = useState(false);
 const loadHomeData = useCallback(async () => {
   const checkIn = await loadDailyCheckIn();
 
@@ -468,7 +468,6 @@ color={getAccentColor(activeSignalCopy.accent)}
             />
           </View>
          </AnimatedPressable>
-
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Signals</Text>
           <Text style={styles.sectionLink}>View all</Text>
@@ -684,6 +683,8 @@ color={getAccentColor(activeSignalCopy.accent)}
     </>
   )}
 </AnimatedBottomSheet>
+
+
    </ScreenBackground>
   );
 }
