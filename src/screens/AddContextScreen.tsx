@@ -156,11 +156,13 @@ export default function AddContextScreen({
                 <Ionicons name="lock-closed-outline" size={24} color="#B9C6FF" />
               </View>
 
-              <Text style={styles.lockedTitle}>Today context saved</Text>
-              <Text style={styles.lockedText}>
-                Free preview allows one context item per day. Unlock Dara Premium
-                to add unlimited notes, meals and events.
-              </Text>
+<Text style={styles.lockedTitle}>You already added context today</Text>
+<Text style={styles.lockedText}>
+  Free preview includes one daily context item. Dara will use it with your
+  check-in to understand today&apos;s patterns. Premium unlocks unlimited notes,
+  meals and events.
+</Text>
+    
 
               <AnimatedPressable
                 style={styles.primaryButton}
@@ -169,7 +171,7 @@ export default function AddContextScreen({
                   lightTap();
                 }}
               >
-                <Text style={styles.primaryButtonText}>Unlock full context memory</Text>
+                <Text style={styles.primaryButtonText}>Unlock unlimited context</Text>
               </AnimatedPressable>
 
               <Pressable style={styles.skipButton} onPress={onDone}>
