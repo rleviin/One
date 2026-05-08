@@ -176,12 +176,16 @@ if (showPremium) {
 {tab === "insights" && <InsightsTab dataVersion={dataVersion} />}
 
 {tab === "profile" && (
+
+
 <ProfileTab
   dataVersion={dataVersion}
   onOpenSetup={() => setShowSetup(true)}
   isPremium={IS_PREMIUM_USER}
   onOpenHistory={() => setShowHistory(true)}
+  onOpenPremium={() => setShowPremium(true)}
 />
+
 )}
       </View>
 <View style={styles.tabBar}>

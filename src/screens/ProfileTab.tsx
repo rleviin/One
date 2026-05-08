@@ -23,7 +23,9 @@ type ProfileTabProps = {
   onOpenSetup?: () => void;
   isPremium?: boolean;
   onOpenHistory?: () => void;
+  onOpenPremium?: () => void;
 };
+
 
 const connectedAreas = [
   {
@@ -63,7 +65,9 @@ export default function ProfileTab({
   onOpenSetup,
   isPremium = false,
   onOpenHistory,
+  onOpenPremium,
 }: ProfileTabProps) {
+
 
   const [showHealthRecords, setShowHealthRecords] = useState(false);
   const [showAppleHealth, setShowAppleHealth] = useState(false);
@@ -578,16 +582,18 @@ return (
     )}
   </View>
 
-  <AnimatedPressable
-    style={styles.sheetButton}
-    pressedScale={0.97}
-    onPress={() => {
-      lightTap();
-      setShowHistoryPreview(false);
-    }}
-  >
-    <Text style={styles.sheetButtonText}>Unlock full history</Text>
-  </AnimatedPressable>
+
+<AnimatedPressable
+  style={styles.sheetButton}
+  pressedScale={0.97}
+  onPress={() => {
+    lightTap();
+    setShowHistoryPreview(false);
+    onOpenPremium?.();
+  }}
+>
+  <Text style={styles.sheetButtonText}>Unlock full history</Text>
+</AnimatedPressable>
 </AnimatedBottomSheet>
 
       <AnimatedBottomSheet
