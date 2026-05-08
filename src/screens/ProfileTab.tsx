@@ -23,6 +23,7 @@ type ProfileTabProps = {
   isPremium?: boolean;
   onOpenHistory?: () => void;
   onOpenPremium?: () => void;
+  onOpenContextMemory?: () => void;
 };
 
 
@@ -65,6 +66,7 @@ export default function ProfileTab({
   isPremium = false,
   onOpenHistory,
   onOpenPremium,
+  onOpenContextMemory,
 }: ProfileTabProps) {
 
 
@@ -300,6 +302,12 @@ return (
           pressedScale={0.975}
           onPress={() => {
             lightTap();
+
+            if (isPremium) {
+              onOpenContextMemory?.();
+              return;
+            }
+
             setShowContextSheet(true);
           }}
         >
