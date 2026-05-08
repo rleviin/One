@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from "react";
 import {
+  ActionSheetIOS,
   Image,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -17,6 +19,8 @@ import AnimatedPressable from "../components/AnimatedPressable";
 import { lightTap, successTap } from "../haptics";
 import { saveDailyContextEvents } from "../storage";
 import { useDaraData } from "../useDaraData";
+
+const FREE_CONTEXT_LIMIT_PER_DAY = 5;
 
 type AddContextScreenProps = {
   dataVersion?: number;
@@ -50,31 +54,87 @@ export default function AddContextScreen({
     ).length;
   }, [data.dailyContextEvents]);
 
-  const isLocked = !isPremium && todayContextCount >= 1;
+const isLocked =
+  !isPremium && todayContextCount >= FREE_CONTEXT_LIMIT_PER_DAY;
 
-  async function pickMealPhoto() {
-    if (isLocked) {
-      return;
-    }
 
-    await lightTap();
-
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permission.granted) {
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 0.75,
-    });
-
-    if (!result.canceled && result.assets.length > 0) {
-      setMealPhotoUri(result.assets[0].uri);
-    }
+async function chooseMealPhotoFromLibrary() {
+  if (isLocked) {
+    return;
   }
+
+  await lightTap();
+
+  const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+  if (!permission.granted) {
+    return;
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsEditing: true,
+    quality: 0.75,
+  });
+
+  if (!result.canceled && result.assets.length > 0) {
+    setMealPhotoUri(result.assets[0].uri);
+  }
+}
+
+async function takeMealPhoto() {
+  if (isLocked) {
+    return;
+  }
+
+  await lightTap();
+
+  const permission = await ImagePicker.requestCameraPermissionsAsync();
+
+  if (!permission.granted) {
+    return;
+  }
+
+  const result = await ImagePicker.launchCameraAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsEditing: true,
+    quality: 0.75,
+  });
+
+  if (!result.canceled && result.assets.length > 0) {
+    setMealPhotoUri(result.assets[0].uri);
+  }
+}
+
+function pickMealPhoto() {
+  if (isLocked) {
+    return;
+  }
+
+  if (Platform.OS === "ios") {
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        title: "Add meal photo",
+        message: "Take a new photo or choose one from your library.",
+        options: ["Take photo", "Choose from library", "Cancel"],
+        cancelButtonIndex: 2,
+      },
+      (buttonIndex) => {
+        if (buttonIndex === 0) {
+          takeMealPhoto();
+        }
+
+        if (buttonIndex === 1) {
+          chooseMealPhotoFromLibrary();
+        }
+      }
+    );
+
+    return;
+  }
+
+  chooseMealPhotoFromLibrary();
+}
 
   async function handleSave() {
     if (isLocked) {
@@ -156,11 +216,12 @@ export default function AddContextScreen({
                 <Ionicons name="lock-closed-outline" size={24} color="#B9C6FF" />
               </View>
 
-<Text style={styles.lockedTitle}>You already added context today</Text>
+
+<Text style={styles.lockedTitle}>Today context limit reached</Text>
 <Text style={styles.lockedText}>
-  Free preview includes one daily context item. Dara will use it with your
-  check-in to understand today&apos;s patterns. Premium unlocks unlimited notes,
-  meals and events.
+  Free preview includes {FREE_CONTEXT_LIMIT_PER_DAY} context items per day. Dara
+  will use them with your check-in to understand today's patterns. Premium
+  unlocks unlimited notes, meals and events.
 </Text>
     
 
@@ -223,8 +284,8 @@ export default function AddContextScreen({
               </AnimatedPressable>
 
               <Text style={styles.hintText}>
-                Free preview: one context item per day. Premium unlocks unlimited
-                context memory.
+Free preview: up to {FREE_CONTEXT_LIMIT_PER_DAY} context items per day.
+Premium unlocks unlimited context memory.
               </Text>
             </View>
           )}

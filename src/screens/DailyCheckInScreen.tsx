@@ -1,21 +1,17 @@
 import React, { useEffect, useState } from "react";
 import {
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
 import {
   loadDailyCheckIn,
   loadDailyCheckInHistory,
   saveDailyCheckInWithHistory,
-  saveDailyContextEvents,
 } from "../storage";
 import { lightTap, successTap } from "../haptics";
 import ScreenBackground from "../components/ScreenBackground";
@@ -85,9 +81,8 @@ export default function DailyCheckInScreen({
     spendingPressure: 3,
   });
 
-  const [note, setNote] = useState("");
   const [hasSavedToday, setHasSavedToday] = useState(false);
-  const [mealPhotoUri, setMealPhotoUri] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
 useEffect(() => {
   async function loadSavedCheckIn() {
@@ -119,8 +114,6 @@ useEffect(() => {
       spendingPressure: todayCheckIn.spendingPressure,
     });
 
-    setNote(todayCheckIn.note ?? "");
-    setMealPhotoUri(todayCheckIn.mealPhotoUri ?? null);
   }
 
   loadSavedCheckIn();
@@ -134,77 +127,32 @@ function setScaleValue(key: ScaleKey, value: number) {
     [key]: value,
   }));
 }
-   async function pickMealPhoto() {
-     await lightTap();
- 
-     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    if (!permission.granted) {
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 0.75,
-    });
-
-    if (!result.canceled && result.assets.length > 0) {
-      setMealPhotoUri(result.assets[0].uri);
-    }
-  }
 async function handleSave() {
-  if (hasSavedToday) {
+  if (hasSavedToday || isSaving) {
     return;
   }
 
-async function handleSave() {
-  if (hasSavedToday) {
-    return;
-  }
+  setIsSaving(true);
 
-  const createdAt = new Date().toISOString();
+  try {
+    const createdAt = new Date().toISOString();
 
-  await saveDailyCheckInWithHistory({
-    energy: values.energy,
-    stress: values.stress,
-    workload: values.workload,
-    spendingPressure: values.spendingPressure,
-    note: "",
-    mealPhotoUri: null,
-    createdAt,
-  });
-
-  const contextEvents = [];
-
-  if (note.trim()) {
-    contextEvents.push({
-      id: `note-${createdAt}`,
-      type: "note" as const,
-      title: "Daily note",
-      text: note.trim(),
+    await saveDailyCheckInWithHistory({
+      energy: values.energy,
+      stress: values.stress,
+      workload: values.workload,
+      spendingPressure: values.spendingPressure,
+      note: "",
+      mealPhotoUri: null,
       createdAt,
     });
+
+    setHasSavedToday(true);
+    await successTap();
+  } finally {
+    setIsSaving(false);
   }
-
-  if (mealPhotoUri) {
-    contextEvents.push({
-      id: `meal-${createdAt}`,
-      type: "meal" as const,
-      title: "Meal photo",
-      photoUri: mealPhotoUri,
-      text: "Meal photo added during daily check-in.",
-      createdAt,
-    });
-  }
-
-  await saveDailyContextEvents(contextEvents);
-
-  await successTap();
-  onDone();
-}
-  await successTap();
-  onDone();
 }
 
 return (
@@ -231,6 +179,31 @@ return (
             Dara uses your daily context to understand pressure, recovery and
             what may happen next.
           </Text>
+
+<Pressable
+  style={styles.topContextCard}
+  onPress={() => {
+    lightTap();
+    onOpenContext?.();
+  }}
+>
+  <View style={styles.topContextIcon}>
+    <Ionicons name="sparkles-outline" size={22} color="#B9C6FF" />
+  </View>
+
+  <View style={styles.topContextTextBlock}>
+    <Text style={styles.topContextTitle}>Add today context</Text>
+    <Text style={styles.topContextText}>
+      Add meals, notes or events during the day. Save your check-in later.
+    </Text>
+  </View>
+
+  <Ionicons
+    name="chevron-forward"
+    size={22}
+    color="rgba(255,255,255,0.72)"
+  />
+</Pressable>
 
           <View style={styles.card}>
             {scaleItems.map((item) => (
@@ -326,49 +299,24 @@ return (
   </View>
 ) : (
   <View style={styles.noteCard}>
-    <Text style={styles.sectionLabel}>TODAY CONTEXT</Text>
-
-    <TextInput
-      value={note}
-      onChangeText={setNote}
-      placeholder="Example: slept badly, met a banker, started a new book, had a heavy breakfast..."
-      placeholderTextColor="rgba(255,255,255,0.42)"
-      multiline
-      style={styles.noteInput}
-    />
-
-    <Pressable style={styles.photoButton} onPress={pickMealPhoto}>
-      <Ionicons name="camera-outline" size={21} color="#FFFFFF" />
-      <Text style={styles.photoButtonText}>
-        {mealPhotoUri ? "Change meal photo" : "Add meal photo"}
-      </Text>
-    </Pressable>
-
-    {mealPhotoUri ? (
-      <View style={styles.mealPreviewCard}>
-        <Image source={{ uri: mealPhotoUri }} style={styles.mealPreviewImage} />
-
-        <View style={styles.mealInsight}>
-          <Text style={styles.mealInsightLabel}>Dara meal read</Text>
-          <Text style={styles.mealInsightTitle}>Balanced energy support</Text>
-          <Text style={styles.mealInsightText}>
-            This looks like it may support stable energy. Full analysis will be
-            available after AI meal review is connected.
-          </Text>
-        </View>
-      </View>
-    ) : null}
+    <Text style={styles.sectionLabel}>READY TO SAVE</Text>
 
     <View style={styles.previewCard}>
       <Ionicons name="sparkles-outline" size={20} color="#B9C6FF" />
       <Text style={styles.previewText}>
-        Dara will connect this with sleep, recovery, workload and external
-        signals.
+        Save your daily check-in first. After that, you can add meals, notes and
+        events as separate context.
       </Text>
     </View>
 
-    <Pressable style={styles.primaryButton} onPress={handleSave}>
-      <Text style={styles.primaryButtonText}>Save check-in</Text>
+    <Pressable
+      style={[styles.primaryButton, isSaving && styles.primaryButtonDisabled]}
+      disabled={isSaving}
+      onPress={handleSave}
+    >
+      <Text style={styles.primaryButtonText}>
+        {isSaving ? "Saving..." : "Save check-in"}
+      </Text>
     </Pressable>
 
     <Text style={styles.savedTodayHint}>
@@ -380,6 +328,7 @@ return (
     </Pressable>
   </View>
 )}
+
 
         </ScrollView>
       </SafeAreaView>
@@ -675,5 +624,43 @@ addContextButtonText: {
   fontSize: 17,
   fontWeight: "900",
 },
+topContextCard: {
+  flexDirection: "row",
+  alignItems: "center",
+  borderRadius: 28,
+  padding: 15,
+  backgroundColor: "rgba(8, 16, 38, 0.58)",
+  borderWidth: 1,
+  borderColor: "rgba(185,198,255,0.18)",
+  marginBottom: 16,
+},
 
+topContextIcon: {
+  width: 50,
+  height: 50,
+  borderRadius: 25,
+  backgroundColor: "rgba(185,198,255,0.12)",
+  borderWidth: 1,
+  borderColor: "rgba(185,198,255,0.28)",
+  alignItems: "center",
+  justifyContent: "center",
+  marginRight: 13,
+},
+
+topContextTextBlock: {
+  flex: 1,
+},
+
+topContextTitle: {
+  color: "#FFFFFF",
+  fontSize: 18,
+  fontWeight: "900",
+  marginBottom: 4,
+},
+
+topContextText: {
+  color: "rgba(255,255,255,0.62)",
+  fontSize: 14,
+  lineHeight: 19,
+},
 });
