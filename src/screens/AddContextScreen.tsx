@@ -22,9 +22,11 @@ import { useDaraData } from "../useDaraData";
 
 const FREE_CONTEXT_LIMIT_PER_DAY = 5;
 
+
 type AddContextScreenProps = {
   dataVersion?: number;
   isPremium?: boolean;
+  onOpenPremium?: () => void;
   onDone: () => void;
 };
 
@@ -37,11 +39,14 @@ function getDayKey(date: Date | string) {
   return `${year}-${month}-${day}`;
 }
 
+
 export default function AddContextScreen({
   dataVersion = 0,
   isPremium = false,
+  onOpenPremium,
   onDone,
 }: AddContextScreenProps) {
+
   const { data } = useDaraData(dataVersion);
   const [note, setNote] = useState("");
   const [mealPhotoUri, setMealPhotoUri] = useState<string | null>(null);
@@ -225,15 +230,17 @@ function pickMealPhoto() {
 </Text>
     
 
-              <AnimatedPressable
-                style={styles.primaryButton}
-                pressedScale={0.97}
-                onPress={() => {
-                  lightTap();
-                }}
-              >
-                <Text style={styles.primaryButtonText}>Unlock unlimited context</Text>
-              </AnimatedPressable>
+
+<AnimatedPressable
+  style={styles.primaryButton}
+  pressedScale={0.97}
+  onPress={() => {
+    lightTap();
+    onOpenPremium?.();
+  }}
+>
+  <Text style={styles.primaryButtonText}>Unlock unlimited context</Text>
+</AnimatedPressable>
 
               <Pressable style={styles.skipButton} onPress={onDone}>
                 <Text style={styles.skipButtonText}>Back home</Text>

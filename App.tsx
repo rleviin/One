@@ -10,6 +10,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import DailyCheckInScreen from "./src/screens/DailyCheckInScreen";
 import CheckInHistoryScreen from "./src/screens/CheckInHistoryScreen";
 import AddContextScreen from "./src/screens/AddContextScreen";
+import PremiumScreen from "./src/screens/PremiumScreen";
 import { lightTap } from "./src/haptics";
 import { Asset } from "expo-asset";
 import {
@@ -35,6 +36,7 @@ import type {
   Tab,
   UserSignals,
 } from "./src/types";
+
 
 const APP_ASSETS = [
   require("./assets/onboarding-bg.png"),
@@ -95,6 +97,7 @@ function MainApp() {
   const [dataVersion, setDataVersion] = useState(0);
   const [showHistory, setShowHistory] = useState(false);
   const [showContext, setShowContext] = useState(false);
+  const [showPremium, setShowPremium] = useState(false);
 
 if (showSetup) {
   return (
@@ -132,12 +135,27 @@ if (showHistory) {
 }
 if (showContext) {
   return (
-    <AddContextScreen
-      dataVersion={dataVersion}
-      isPremium={IS_PREMIUM_USER}
+
+<AddContextScreen
+  dataVersion={dataVersion}
+  isPremium={IS_PREMIUM_USER}
+  onOpenPremium={() => {
+    setShowContext(false);
+    setShowPremium(true);
+  }}
+  onDone={() => {
+    setShowContext(false);
+    setDataVersion((current) => current + 1);
+  }}
+/>
+  );
+}
+
+if (showPremium) {
+  return (
+    <PremiumScreen
       onDone={() => {
-        setShowContext(false);
-        setDataVersion((current) => current + 1);
+        setShowPremium(false);
       }}
     />
   );
