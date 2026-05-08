@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  Image,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -614,53 +613,56 @@ return (
           with your daily check-in patterns.
         </Text>
 
-        <View style={styles.contextList}>
-          {todayContextEvents.length > 0 ? (
-            todayContextEvents.map((item) => (
-              <View key={item.id} style={styles.contextItem}>
-                <View style={styles.contextItemIcon}>
-                  <Ionicons
-                    name={
-                      item.type === "meal"
-                        ? "restaurant-outline"
-                        : item.type === "event"
-                          ? "flash-outline"
-                          : "document-text-outline"
-                    }
-                    size={20}
-                    color="#B9C6FF"
-                  />
-                </View>
-
-                <View style={{ flex: 1 }}>
-                  <View style={styles.contextItemTop}>
-                    <Text style={styles.contextItemTitle}>{item.title}</Text>
-                    <Text style={styles.contextItemTime}>
-                      {formatContextTime(item.createdAt)}
-                    </Text>
-                  </View>
-
-                  {item.text ? (
-                    <Text style={styles.contextItemText}>{item.text}</Text>
-                  ) : null}
-
-                  {item.photoUri ? (
-                    <Image
-                      source={{ uri: item.photoUri }}
-                      style={styles.contextItemImage}
-                    />
-                  ) : null}
-                </View>
-              </View>
-            ))
-          ) : (
-            <Text style={styles.contextEmptyText}>
-              No context saved yet. After your daily check-in, use Add context
-              to add a note, meal or event.
-            </Text>
-          )}
+<ScrollView
+  style={styles.contextListScroll}
+  contentContainerStyle={styles.contextList}
+  showsVerticalScrollIndicator={false}
+>
+  {todayContextEvents.length > 0 ? (
+    todayContextEvents.map((item) => (
+      <View key={item.id} style={styles.contextItem}>
+        <View style={styles.contextItemIcon}>
+          <Ionicons
+            name={
+              item.type === "meal"
+                ? "restaurant-outline"
+                : item.type === "event"
+                  ? "flash-outline"
+                  : "document-text-outline"
+            }
+            size={20}
+            color="#B9C6FF"
+          />
         </View>
 
+        <View style={{ flex: 1 }}>
+          <View style={styles.contextItemTop}>
+            <Text style={styles.contextItemTitle}>{item.title}</Text>
+            <Text style={styles.contextItemTime}>
+              {formatContextTime(item.createdAt)}
+            </Text>
+          </View>
+
+          {item.text ? (
+            <Text style={styles.contextItemText}>{item.text}</Text>
+          ) : null}
+
+
+{item.type === "meal" && item.photoUri ? (
+  <Text style={styles.contextItemText}>
+    Meal photo saved for future analysis.
+  </Text>
+) : null}
+        </View>
+      </View>
+    ))
+  ) : (
+    <Text style={styles.contextEmptyText}>
+      No context saved yet. After your daily check-in, use Add context to add a
+      note, meal or event.
+    </Text>
+  )}
+</ScrollView>
         <AnimatedPressable
           style={styles.sheetButton}
           pressedScale={0.97}
@@ -1358,8 +1360,9 @@ contextSheetIcon: {
 
 contextList: {
   gap: 12,
-  marginBottom: 22,
+  paddingBottom: 4,
 },
+
 
 contextItem: {
   flexDirection: "row",
@@ -1420,4 +1423,10 @@ contextEmptyText: {
   fontSize: 14,
   lineHeight: 20,
 },
+
+contextListScroll: {
+  maxHeight: 360,
+  marginBottom: 22,
+},
+
 });

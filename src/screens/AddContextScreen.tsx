@@ -159,16 +159,16 @@ function pickMealPhoto() {
       });
     }
 
-    if (mealPhotoUri) {
-      events.push({
-        id: `meal-${createdAt}`,
-        type: "meal" as const,
-        title: "Meal photo",
-        text: "Meal photo added from daily context.",
-        photoUri: mealPhotoUri,
-        createdAt,
-      });
-    }
+
+if (mealPhotoUri) {
+  events.push({
+    id: `meal-${createdAt}`,
+    type: "meal" as const,
+    title: "Meal photo",
+    text: "Meal photo added for future analysis. Dara will later estimate meal quality, protein, carbs, energy impact and recommendations.",
+    createdAt,
+  });
+}
 
     if (events.length === 0) {
       return;
