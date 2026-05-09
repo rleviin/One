@@ -3,7 +3,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export type PersonalSetupData = {
   country: string;
   age: string;
-  sleepGoal: string;
+  height: string;
+  weight: string;
   workType: string;
   incomeRange: string;
   spendingRange: string;

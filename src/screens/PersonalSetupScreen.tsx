@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { savePersonalSetup } from "../storage";
+import ScreenBackground from "../components/ScreenBackground";
 
 type PersonalSetupScreenProps = {
   onDone: () => void;
@@ -29,17 +29,19 @@ const workTypes: { key: WorkType; label: string; icon: keyof typeof Ionicons.gly
 export default function PersonalSetupScreen({ onDone }: PersonalSetupScreenProps) {
   const [country, setCountry] = useState("");
   const [age, setAge] = useState("");
-  const [sleepGoal, setSleepGoal] = useState("7.5");
+  const [height, setHeight] = useState("");
+  const [weight, setWeight] = useState("");
   const [workType, setWorkType] = useState<WorkType>("office");
   const [incomeRange, setIncomeRange] = useState("");
   const [spendingRange, setSpendingRange] = useState("");
   const [dailyContext, setDailyContext] = useState("");
 
 async function handleContinue() {
-  await savePersonalSetup({
-    country,
-    age,
-    sleepGoal,
+await savePersonalSetup({
+  country,
+  age,
+  height,
+  weight,
     workType,
     incomeRange,
     spendingRange,
@@ -50,15 +52,8 @@ async function handleContinue() {
 }
   
 return (
-    <ImageBackground
-      source={require("../../assets/onboarding-bg_0.png")}
-      style={styles.background}
-      imageStyle={styles.backgroundImage}
-      resizeMode="cover"
-    >
-      <View style={styles.overlay} />
-
-      <SafeAreaView style={styles.container}>
+  <ScreenBackground source={require("../../assets/onboarding-bg.png")}>
+    <SafeAreaView style={styles.container}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.content}
@@ -100,17 +95,34 @@ return (
               </View>
             </View>
 
-            <View style={styles.field}>
-              <Text style={styles.inputLabel}>SLEEP GOAL</Text>
-              <TextInput
-                value={sleepGoal}
-                onChangeText={setSleepGoal}
-                placeholder="7.5"
-                placeholderTextColor="rgba(255,255,255,0.42)"
-                keyboardType="decimal-pad"
-                style={styles.input}
-              />
-            </View>
+
+<View style={styles.row}>
+  <View style={styles.fieldHalf}>
+    <Text style={styles.inputLabel}>HEIGHT (CM)</Text>
+
+    <TextInput
+      value={height}
+      onChangeText={setHeight}
+      placeholder="182"
+      placeholderTextColor="rgba(255,255,255,0.42)"
+      keyboardType="number-pad"
+      style={styles.input}
+    />
+  </View>
+
+  <View style={styles.fieldHalf}>
+    <Text style={styles.inputLabel}>WEIGHT (KG)</Text>
+
+    <TextInput
+      value={weight}
+      onChangeText={setWeight}
+      placeholder="82"
+      placeholderTextColor="rgba(255,255,255,0.42)"
+      keyboardType="decimal-pad"
+      style={styles.input}
+    />
+  </View>
+</View>
 
             <Text style={styles.sectionLabel}>WORK STYLE</Text>
 
@@ -196,24 +208,11 @@ return (
           </Pressable>
         </ScrollView>
       </SafeAreaView>
-    </ImageBackground>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    backgroundColor: "#050A14",
-  },
-
-  backgroundImage: {
-    resizeMode: "cover",
-  },
-
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(3, 7, 18, 0.48)",
-  },
 
   container: {
     flex: 1,
