@@ -199,6 +199,9 @@ async function handleRefresh() {
   const riskCopy = getRiskCopy(risk);
   const checkInActiveSignal = buildActiveSignalFromCheckIn(latestCheckIn);
   const activeSignalCopy = checkInActiveSignal || riskCopy;
+  const todayMealCount = todayContextEvents.filter(
+    (event) => event.type === "meal"
+  ).length;
 
   const activeSignalContext = latestCheckIn
   ? `Today: energy ${latestCheckIn.energy}/10, stress ${latestCheckIn.stress}/10, workload ${latestCheckIn.workload}/10.`
@@ -397,7 +400,7 @@ return (
     <Text style={styles.checkInSummaryText}>
       Check-in loaded · Energy {latestCheckIn.energy}/10 · Stress{" "}
       {latestCheckIn.stress}/10 · Context {todayContextEvents.length} · Meals{" "}
-      {todayContextEvents.filter((event) => event.type === "meal").length}
+      {todayMealCount}
     </Text>
   </View>
 )}
