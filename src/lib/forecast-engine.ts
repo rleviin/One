@@ -12,6 +12,7 @@ export type DaraForecast = {
   risk: ForecastRiskLevel;
   confidence: number;
   reasons: string[];
+  changePoints: string[];
 };
 
 type BuildForecastInput = {
@@ -38,6 +39,11 @@ export function buildForecast({
         "No recent check-in is available.",
         "Forecast confidence increases after daily check-ins.",
         "Context, meals and history will make future forecasts stronger.",
+      ],
+      changePoints: [
+        "Complete a daily check-in.",
+        "Add meals, notes or events during the day.",
+        "Connect health and external context later.",
       ],
     };
   }
@@ -92,6 +98,11 @@ export function buildForecast({
         externalReason,
         "Pressure is high enough that recovery may weaken over the next 48 hours.",
       ],
+      changePoints: [
+        "Reduce non-critical workload for the next 24 hours.",
+        "Protect sleep and avoid late high-intensity activity.",
+        "Avoid major financial or schedule commitments today.",
+      ],
     };
   }
 
@@ -110,6 +121,11 @@ export function buildForecast({
         externalReason,
         "The current pattern is manageable, but recovery should be monitored.",
       ],
+      changePoints: [
+        "Add one recovery action today.",
+        "Keep workload from increasing further.",
+        "Add meal or context signals to improve tomorrow’s forecast.",
+      ],
     };
   }
 
@@ -123,6 +139,11 @@ export function buildForecast({
       ...baseReasons,
       externalReason,
       "Current pressure and recovery signals are balanced.",
+    ],
+    changePoints: [
+      "Keep sleep and workload rhythm consistent.",
+      "Maintain meal consistency.",
+      "Add context if something unusual happens today.",
     ],
   };
 }

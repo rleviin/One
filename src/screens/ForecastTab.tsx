@@ -14,8 +14,6 @@ import ScreenBackground from "../components/ScreenBackground";
 import { useDaraData } from "../useDaraData";
 import { buildForecast } from "../lib/forecast-engine";
 import {
-  buildForecastChangePoints,
-  buildForecastWhyPoints,
   getForecastCopy,
   getForecastLevel,
 } from "../daraModel";
@@ -43,7 +41,7 @@ export default function ForecastTab({ dataVersion = 0 }: ForecastTabProps) {
   const forecast = getForecastCopy(level);
 
 const whyPoints = engineForecast.reasons;
-const changePoints = buildForecastChangePoints(level);
+const changePoints = engineForecast.changePoints;
   const timeline = [
     {
       day: "Today",
