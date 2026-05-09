@@ -64,6 +64,19 @@ export function buildRecoveryScore(checkIn: DailyCheckInData | null) {
   return Math.round(Math.min(100, Math.max(0, recovery * 10)));
 }
 
+export function buildCheckInPressureScore(checkIn: DailyCheckInData | null) {
+  if (!checkIn) {
+    return null;
+  }
+
+  return (
+    checkIn.stress * 1.2 +
+    checkIn.workload * 1.1 +
+    checkIn.spendingPressure * 0.8 -
+    checkIn.energy * 0.9
+  );
+}
+
 export function buildDailySummary({
   checkIn,
   contextEvents,

@@ -27,6 +27,7 @@ import {
 import type { DailyCheckInData } from "../storage";
 import { loadDailyCheckIn } from "../storage";
 import { buildSummaryPoints, mapCheckInToSignals } from "../daraModel";
+import { buildCheckInPressureScore } from "../lib/context-engine";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -175,12 +176,7 @@ async function handleRefresh() {
 }
   const risk = calculateRisk(signals);
   const riskCopy = getRiskCopy(risk);
-  const checkInPressureScore = latestCheckIn
-  ? latestCheckIn.stress * 1.2 +
-    latestCheckIn.workload * 1.1 +
-    latestCheckIn.spendingPressure * 0.8 -
-    latestCheckIn.energy * 0.9
-  : null;
+  const checkInPressureScore = buildCheckInPressureScore(latestCheckIn);
 
 const activeSignalCopy = latestCheckIn
   ? checkInPressureScore !== null && checkInPressureScore >= 14
