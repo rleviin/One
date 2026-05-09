@@ -11,6 +11,7 @@ export type DaraForecast = {
   summary: string;
   risk: ForecastRiskLevel;
   confidence: number;
+  reasons: string[];
 };
 
 type BuildForecastInput = {
@@ -33,6 +34,11 @@ export function buildForecast({
         "Dara needs more recent check-ins to build a forecast.",
       risk: "low",
       confidence: 12,
+      reasons: [
+        "No recent check-in is available.",
+        "Forecast confidence increases after daily check-ins.",
+        "Context, meals and history will make future forecasts stronger.",
+      ],
     };
   }
 
@@ -56,6 +62,19 @@ export function buildForecast({
       contextDepth * 4
   );
 
+  const baseReasons = [
+    `Energy ${latestCheckIn.energy}/10 and stress ${latestCheckIn.stress}/10 are driving the short-term forecast.`,
+    `${historyDepth} historical check-in${historyDepth === 1 ? "" : "s"} available for trend confidence.`,
+    `${contextDepth} context signal${contextDepth === 1 ? "" : "s"} included in today’s model.`,
+  ];
+
+  const externalReason =
+    externalContext?.economicPressure === "high"
+      ? "External economic pressure is elevated and may increase background load."
+      : externalContext
+      ? "External country context is available but not currently elevated."
+      : "External country context is not connected yet.";
+
   if (
     pressureScore >= 7 ||
     recoveryScore <= 4
@@ -68,6 +87,11 @@ export function buildForecast({
           : "Recent signals suggest increasing overload probability in the next 48 hours.",
       risk: "high",
       confidence,
+      reasons: [
+        ...baseReasons,
+        externalReason,
+        "Pressure is high enough that recovery may weaken over the next 48 hours.",
+      ],
     };
   }
 
@@ -81,6 +105,11 @@ export function buildForecast({
         "Current patterns remain manageable, but recovery consistency may weaken if pressure increases.",
       risk: "medium",
       confidence,
+      reasons: [
+        ...baseReasons,
+        externalReason,
+        "The current pattern is manageable, but recovery should be monitored.",
+      ],
     };
   }
 
@@ -90,5 +119,10 @@ export function buildForecast({
       "Recent signals suggest balanced recovery and manageable pressure levels.",
     risk: "low",
     confidence,
+    reasons: [
+      ...baseReasons,
+      externalReason,
+      "Current pressure and recovery signals are balanced.",
+    ],
   };
 }

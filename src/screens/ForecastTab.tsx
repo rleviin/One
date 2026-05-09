@@ -42,7 +42,7 @@ export default function ForecastTab({ dataVersion = 0 }: ForecastTabProps) {
   const level = getForecastLevel(checkIn);
   const forecast = getForecastCopy(level);
 
-const whyPoints = useMemo(() => buildForecastWhyPoints(checkIn), [checkIn]);
+const whyPoints = engineForecast.reasons;
 const changePoints = buildForecastChangePoints(level);
   const timeline = [
     {
