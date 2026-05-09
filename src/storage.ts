@@ -32,12 +32,22 @@ export type DailyContextEvent = {
   createdAt: string;
 };
 
+export type ExternalContextData = {
+  country: string;
+  economicPressure: "low" | "medium" | "high";
+  inflationTrend: "falling" | "stable" | "rising";
+  costOfLivingPressure: "low" | "medium" | "high";
+  politicalStability: "stable" | "watch" | "volatile";
+  updatedAt: string;
+};
+
 const PERSONAL_SETUP_KEY = "dara.personalSetup";
 const DAILY_CHECK_IN_KEY = "dara.dailyCheckIn.latest";
 const DAILY_CHECK_IN_HISTORY_KEY = "dara.dailyCheckIn.history";
 const MAX_DAILY_CHECK_INS = 30;
 const DAILY_CONTEXT_EVENTS_KEY = "dara.dailyContext.events";
 const MAX_DAILY_CONTEXT_EVENTS = 200;
+const EXTERNAL_CONTEXT_KEY = "dara.externalContext.latest";
 
 
 export async function savePersonalSetup(data: PersonalSetupData) {
@@ -46,6 +56,15 @@ export async function savePersonalSetup(data: PersonalSetupData) {
 
 export async function loadPersonalSetup(): Promise<PersonalSetupData | null> {
   const raw = await AsyncStorage.getItem(PERSONAL_SETUP_KEY);
+  return raw ? JSON.parse(raw) : null;
+}
+
+export async function saveExternalContext(data: ExternalContextData) {
+  await AsyncStorage.setItem(EXTERNAL_CONTEXT_KEY, JSON.stringify(data));
+}
+
+export async function loadExternalContext(): Promise<ExternalContextData | null> {
+  const raw = await AsyncStorage.getItem(EXTERNAL_CONTEXT_KEY);
   return raw ? JSON.parse(raw) : null;
 }
 
