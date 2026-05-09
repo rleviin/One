@@ -24,8 +24,8 @@ import {
   getWorkloadRecommendation,
 } from "../logic";
 
-import type { DailyCheckInData } from "../storage";
-import { loadDailyCheckIn } from "../storage";
+import type { DailyCheckInData, DailyContextEvent } from "../storage";
+import { loadDailyCheckIn, loadDailyContextEvents } from "../storage";
 import { buildSummaryPoints, mapCheckInToSignals } from "../daraModel";
 import { buildActiveSignalFromCheckIn } from "../lib/context-engine";
 
@@ -151,19 +151,40 @@ export default function HomeTab({
   const [latestCheckIn, setLatestCheckIn] = useState<DailyCheckInData | null>(
     null
   );
+  const [todayContextEvents, setTodayContextEvents] = useState<
+    DailyContextEvent[]
+  >([]);
 
-const [refreshing, setRefreshing] = useState(false);
-const loadHomeData = useCallback(async () => {
-  const checkIn = await loadDailyCheckIn();
+  const [refreshing, setRefreshing] = useState(false);
 
-  if (!checkIn) {
-    setLatestCheckIn(null);
-    return;
-  }
+  const loadHomeData = useCallback(async () => {
+    const [checkIn, contextEvents] = await Promise.all([
+      loadDailyCheckIn(),
+      loadDailyContextEvents(),
+    ]);
 
-  setLatestCheckIn(checkIn);
-  setSignals((current) => mapCheckInToSignals(current, checkIn));
-}, []);
+    const today = new Date();
+
+    const todaysEvents = contextEvents.filter((event) => {
+      const eventDate = new Date(event.createdAt);
+
+      return (
+        eventDate.getFullYear() === today.getFullYear() &&
+        eventDate.getMonth() === today.getMonth() &&
+        eventDate.getDate() === today.getDate()
+      );
+    });
+
+    setTodayContextEvents(todaysEvents);
+
+    if (!checkIn) {
+      setLatestCheckIn(null);
+      return;
+    }
+
+    setLatestCheckIn(checkIn);
+    setSignals((current) => mapCheckInToSignals(current, checkIn));
+  }, []);
 
 useEffect(() => {
   loadHomeData();
