@@ -42,7 +42,7 @@ export default function AnimatedPressable({
   return (
     <Pressable
       {...props}
-      style={[{ alignSelf: "stretch" }, outerStyle]}
+      style={outerStyle}
       onPressIn={(event) => {
         animateTo(pressedScale);
         onPressIn?.(event);

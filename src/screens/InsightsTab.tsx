@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ImageBackground,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,6 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { mediumTap, lightTap } from "../haptics";
 import AnimatedPressable from "../components/AnimatedPressable";
 import AnimatedBottomSheet from "../components/AnimatedBottomSheet";
+import ScreenBackground from "../components/ScreenBackground";
 
 import type { DailyCheckInData } from "../storage";
 import { loadDailyCheckIn } from "../storage";
@@ -25,39 +26,37 @@ type InsightsTabProps = {
 export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
   const [checkIn, setCheckIn] = useState<DailyCheckInData | null>(null);
   const [selectedInsight, setSelectedInsight] = useState<DaraInsight | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadInsightsData = useCallback(async () => {
+    const data = await loadDailyCheckIn();
+    setCheckIn(data);
+  }, []);
 
   useEffect(() => {
-    let mounted = true;
+    loadInsightsData();
+  }, [loadInsightsData, dataVersion]);
 
-    async function loadData() {
-      const data = await loadDailyCheckIn();
-
-      if (mounted) {
-        setCheckIn(data);
-      }
-    }
-
-    loadData();
-
-    return () => {
-      mounted = false;
-    };
-  }, [dataVersion]);
+  async function handleRefresh() {
+    setRefreshing(true);
+    await loadInsightsData();
+    setRefreshing(false);
+  }
 
   const insights = useMemo(() => buildInsights(checkIn), [checkIn]);
 
   return (
-    <ImageBackground
-      source={require("../../assets/onboarding-bg.png")}
-      style={styles.background}
-      imageStyle={styles.backgroundImage}
-      resizeMode="cover"
-    >
-      <View style={styles.overlay} />
-
+    <ScreenBackground>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#FFFFFF"
+          />
+        }
       >
         <View style={styles.headerRow}>
           <View>
@@ -224,25 +223,12 @@ export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
       </AnimatedPressable>
     </>
   )}
-</AnimatedBottomSheet>
-    </ImageBackground>
+      </AnimatedBottomSheet>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    backgroundColor: "#050A14",
-  },
-
-  backgroundImage: {
-    resizeMode: "cover",
-  },
-
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(3, 7, 18, 0.54)",
-  },
 
   content: {
     paddingTop: 22,
