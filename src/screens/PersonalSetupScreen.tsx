@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { savePersonalSetup } from "../storage";
+import { loadPersonalSetup, savePersonalSetup } from "../storage";
 import ScreenBackground from "../components/ScreenBackground";
 
 type PersonalSetupScreenProps = {
@@ -26,8 +26,42 @@ const workTypes: { key: WorkType; label: string; icon: keyof typeof Ionicons.gly
   { key: "business", label: "Business", icon: "trending-up-outline" },
 ];
 
+const countries = [
+  "United Kingdom",
+  "Germany",
+  "France",
+  "Spain",
+  "Italy",
+  "Portugal",
+  "Netherlands",
+  "Belgium",
+  "Ireland",
+  "Switzerland",
+  "Austria",
+  "Poland",
+  "Czech Republic",
+  "Norway",
+  "Sweden",
+  "Denmark",
+  "Finland",
+  "United States",
+  "Canada",
+  "Australia",
+  "United Arab Emirates",
+  "Turkey",
+  "Georgia",
+  "Armenia",
+  "Kazakhstan",
+  "Russia",
+  "Ukraine",
+  "Lithuania",
+  "Latvia",
+  "Estonia",
+];
+
 export default function PersonalSetupScreen({ onDone }: PersonalSetupScreenProps) {
   const [country, setCountry] = useState("");
+  const [isCountryFocused, setIsCountryFocused] = useState(false);
   const [age, setAge] = useState("");
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
@@ -35,6 +69,42 @@ export default function PersonalSetupScreen({ onDone }: PersonalSetupScreenProps
   const [incomeRange, setIncomeRange] = useState("");
   const [spendingRange, setSpendingRange] = useState("");
   const [dailyContext, setDailyContext] = useState("");
+
+  const countryMatches =
+    country.trim().length === 0
+      ? countries.slice(0, 6)
+      : countries
+          .filter((item) =>
+            item.toLowerCase().startsWith(country.trim().toLowerCase())
+          )
+          .slice(0, 6);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadSavedSetup() {
+      const savedSetup = await loadPersonalSetup();
+
+      if (!isMounted || !savedSetup) {
+        return;
+      }
+
+      setCountry(savedSetup.country || "");
+      setAge(savedSetup.age || "");
+      setHeight(savedSetup.height || "");
+      setWeight(savedSetup.weight || "");
+      setWorkType((savedSetup.workType as WorkType) || "office");
+      setIncomeRange(savedSetup.incomeRange || "");
+      setSpendingRange(savedSetup.spendingRange || "");
+      setDailyContext(savedSetup.dailyContext || "");
+    }
+
+    loadSavedSetup();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
 async function handleContinue() {
 await savePersonalSetup({
@@ -76,10 +146,28 @@ return (
                 <TextInput
                   value={country}
                   onChangeText={setCountry}
+                  onFocus={() => setIsCountryFocused(true)}
                   placeholder="Germany"
                   placeholderTextColor="rgba(255,255,255,0.42)"
                   style={styles.input}
                 />
+
+                {isCountryFocused && countryMatches.length > 0 ? (
+                  <View style={styles.countryDropdown}>
+                    {countryMatches.map((item) => (
+                      <Pressable
+                        key={item}
+                        style={styles.countryOption}
+                        onPress={() => {
+                          setCountry(item);
+                          setIsCountryFocused(false);
+                        }}
+                      >
+                        <Text style={styles.countryOptionText}>{item}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                ) : null}
               </View>
 
               <View style={styles.fieldHalf}>
@@ -173,23 +261,18 @@ return (
               />
             </View>
 
-            <Text style={styles.sectionLabel}>TODAY CONTEXT</Text>
+            <Text style={styles.sectionLabel}>PERSONAL CONTEXT</Text>
 
             <View style={styles.noteBox}>
               <TextInput
                 value={dailyContext}
                 onChangeText={setDailyContext}
-                placeholder="What changed today? New project, stress, meeting, meal, idea..."
+                placeholder="Optional: hobbies, family, goals, routine, stress triggers, things Dara should know..."
                 placeholderTextColor="rgba(255,255,255,0.42)"
                 multiline
                 style={styles.noteInput}
               />
             </View>
-
-            <Pressable style={styles.photoButton}>
-              <Ionicons name="camera-outline" size={20} color="#FFFFFF" />
-              <Text style={styles.photoButtonText}>Add meal photo later</Text>
-            </Pressable>
           </View>
 
           <View style={styles.privacyCard}>
@@ -284,6 +367,29 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 
+  countryDropdown: {
+    marginTop: 8,
+    borderRadius: 18,
+    overflow: "hidden",
+    backgroundColor: "rgba(8,16,38,0.92)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.16)",
+  },
+
+  countryOption: {
+    minHeight: 42,
+    justifyContent: "center",
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.08)",
+  },
+
+  countryOptionText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
   inputLabel: {
     color: "rgba(255,255,255,0.62)",
     fontSize: 11,
@@ -353,24 +459,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     minHeight: 76,
     textAlignVertical: "top",
-  },
-
-  photoButton: {
-    minHeight: 52,
-    borderRadius: 18,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.14)",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  photoButtonText: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "800",
-    marginLeft: 8,
   },
 
   privacyCard: {
