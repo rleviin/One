@@ -10,6 +10,9 @@ export type DaraForecast = {
   title: string;
   summary: string;
   risk: ForecastRiskLevel;
+  badge: string;
+  accent: string;
+  icon: "warning-outline" | "pulse-outline" | "checkmark-circle-outline";
   confidence: number;
   reasons: string[];
   changePoints: string[];
@@ -39,6 +42,9 @@ export function buildForecast({
       summary:
         "Dara needs more recent check-ins to build a forecast.",
       risk: "low",
+      badge: "Baseline",
+      accent: "#FF8A4C",
+      icon: "pulse-outline",
       confidence: 12,
       reasons: [
         "No recent check-in is available.",
@@ -114,6 +120,9 @@ export function buildForecast({
           ? "Internal and external pressure signals are combining into elevated overload risk."
           : "Recent signals suggest increasing overload probability in the next 48 hours.",
       risk: "high",
+      badge: "Rising risk",
+      accent: "#FF647C",
+      icon: "warning-outline",
       confidence,
       reasons: [
         ...baseReasons,
@@ -154,6 +163,9 @@ export function buildForecast({
       summary:
         "Current patterns remain manageable, but recovery consistency may weaken if pressure increases.",
       risk: "medium",
+      badge: "Watch zone",
+      accent: "#FF8A4C",
+      icon: "pulse-outline",
       confidence,
       reasons: [
         ...baseReasons,
@@ -190,6 +202,9 @@ export function buildForecast({
     summary:
       "Recent signals suggest balanced recovery and manageable pressure levels.",
     risk: "low",
+    badge: "Stable",
+    accent: "#4ADE80",
+    icon: "checkmark-circle-outline",
     confidence,
     reasons: [
       ...baseReasons,
