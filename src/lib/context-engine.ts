@@ -77,6 +77,39 @@ export function buildCheckInPressureScore(checkIn: DailyCheckInData | null) {
   );
 }
 
+export function buildActiveSignalFromCheckIn(checkIn: DailyCheckInData | null) {
+  const pressureScore = buildCheckInPressureScore(checkIn);
+
+  if (pressureScore === null) {
+    return null;
+  }
+
+  if (pressureScore >= 14) {
+    return {
+      badge: "High risk",
+      title: "Your balance is starting to slip.",
+      text: "Sleep, load and recovery are moving out of sync. Small shifts now can prevent a bigger dip later.",
+      accent: "red" as const,
+    };
+  }
+
+  if (pressureScore >= 8) {
+    return {
+      badge: "Watch",
+      title: "Pressure is starting to build.",
+      text: "Your check-in shows some load, but there is still room to correct the pattern today.",
+      accent: "orange" as const,
+    };
+  }
+
+  return {
+    badge: "Stable",
+    title: "Your balance looks stable today.",
+    text: "Your latest check-in shows enough energy and low pressure. Keep the rhythm steady.",
+    accent: "green" as const,
+  };
+}
+
 export function buildDailySummary({
   checkIn,
   contextEvents,

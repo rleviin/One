@@ -27,7 +27,7 @@ import {
 import type { DailyCheckInData } from "../storage";
 import { loadDailyCheckIn } from "../storage";
 import { buildSummaryPoints, mapCheckInToSignals } from "../daraModel";
-import { buildCheckInPressureScore } from "../lib/context-engine";
+import { buildActiveSignalFromCheckIn } from "../lib/context-engine";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -176,30 +176,8 @@ async function handleRefresh() {
 }
   const risk = calculateRisk(signals);
   const riskCopy = getRiskCopy(risk);
-  const checkInPressureScore = buildCheckInPressureScore(latestCheckIn);
-
-const activeSignalCopy = latestCheckIn
-  ? checkInPressureScore !== null && checkInPressureScore >= 14
-    ? {
-        badge: "High risk",
-        title: "Your balance is starting to slip.",
-        text: "Sleep, load and recovery are moving out of sync. Small shifts now can prevent a bigger dip later.",
-        accent: "red" as const,
-      }
-    : checkInPressureScore !== null && checkInPressureScore >= 8
-    ? {
-        badge: "Watch",
-        title: "Pressure is starting to build.",
-        text: "Your check-in shows some load, but there is still room to correct the pattern today.",
-        accent: "orange" as const,
-      }
-    : {
-        badge: "Stable",
-        title: "Your balance looks stable today.",
-        text: "Your latest check-in shows enough energy and low pressure. Keep the rhythm steady.",
-        accent: "green" as const,
-      }
-  : riskCopy;
+  const checkInActiveSignal = buildActiveSignalFromCheckIn(latestCheckIn);
+  const activeSignalCopy = checkInActiveSignal || riskCopy;
 
   const activeSignalContext = latestCheckIn
   ? `Today: energy ${latestCheckIn.energy}/10, stress ${latestCheckIn.stress}/10, workload ${latestCheckIn.workload}/10.`
