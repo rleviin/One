@@ -1,4 +1,4 @@
-import type { DailyCheckInData, DailyContextEvent, PersonalSetupData } from "../storage";
+import type { DailyCheckInData, DailyContextEvent, ExternalContextData, PersonalSetupData } from "../storage";
 
 export type DaraSignalTone = "green" | "orange" | "red" | "blue" | "purple";
 
@@ -114,10 +114,12 @@ export function buildDailySummary({
   checkIn,
   contextEvents,
   personalSetup,
+  externalContext,
 }: {
   checkIn: DailyCheckInData | null;
   contextEvents: DailyContextEvent[];
   personalSetup?: PersonalSetupData | null;
+  externalContext?: ExternalContextData | null;
 }) {
   const summaries: string[] = [];
   const nutritionScore = buildNutritionScore(contextEvents);
@@ -141,7 +143,23 @@ export function buildDailySummary({
     summaries.push("Dara has enough context to build a richer daily picture.");
   }
 
-  if (personalSetup?.country) {
+  if (externalContext?.economicPressure === "high") {
+    summaries.push("External economic pressure may increase background financial load.");
+  }
+
+  if (externalContext?.inflationTrend === "rising") {
+    summaries.push("Inflation trend suggests cost pressure may rise over time.");
+  }
+
+  if (externalContext?.costOfLivingPressure === "high") {
+    summaries.push("Cost of living pressure may reduce financial flexibility.");
+  }
+
+  if (externalContext?.politicalStability === "volatile") {
+    summaries.push("Political uncertainty may increase external context risk.");
+  }
+
+  if (!externalContext && personalSetup?.country) {
     summaries.push(`External context can later be adjusted for ${personalSetup.country}.`);
   }
 
