@@ -72,6 +72,7 @@ export default function ProfileTab({
 
   const [showHealthRecords, setShowHealthRecords] = useState(false);
   const [showAppleHealth, setShowAppleHealth] = useState(false);
+  const [showExternalContext, setShowExternalContext] = useState(false);
   const [showHistoryPreview, setShowHistoryPreview] = useState(false);
   const { data, isLoading, reload } = useDaraData(dataVersion);
   const [showContextSheet, setShowContextSheet] = useState(false);
@@ -211,6 +212,36 @@ return (
               size={22}
               color="rgba(255,255,255,0.86)"
             />
+          </View>
+        </AnimatedPressable>
+
+        <AnimatedPressable
+          style={styles.pressableFullWidth}
+          contentStyle={styles.externalContextCard}
+          pressedScale={0.975}
+          onPress={() => {
+            mediumTap();
+            setShowExternalContext(true);
+          }}
+        >
+          <View style={styles.externalContextIcon}>
+            <Ionicons name="earth-outline" size={25} color="#C96BFF" />
+          </View>
+
+          <View style={styles.setupTextBlock}>
+            <Text style={styles.setupTitle}>External context</Text>
+            <Text style={styles.setupText}>
+              Economy, inflation, cost of living, weather, calendar pressure and
+              probability markets will adjust Dara’s forecasts later.
+            </Text>
+
+            <View style={styles.baselineTags}>
+              <Text style={styles.baselineTag}>
+                {setupData?.country || "Country"}
+              </Text>
+              <Text style={styles.baselineTag}>Economy</Text>
+              <Text style={styles.baselineTag}>Probability</Text>
+            </View>
           </View>
         </AnimatedPressable>
 
@@ -524,6 +555,68 @@ return (
           onPress={() => {
             lightTap();
             setShowHealthRecords(false);
+          }}
+        >
+          <Text style={styles.sheetButtonText}>Got it</Text>
+        </AnimatedPressable>
+      </AnimatedBottomSheet>
+
+      <AnimatedBottomSheet
+        visible={showExternalContext}
+        onClose={() => {
+          lightTap();
+          setShowExternalContext(false);
+        }}
+      >
+        <View style={styles.externalSheetIcon}>
+          <Ionicons name="earth-outline" size={25} color="#C96BFF" />
+        </View>
+
+        <Text style={styles.sheetTitle}>External context</Text>
+
+        <Text style={styles.sheetSubtitle}>
+          Dara will later connect your country, economy, cost of living,
+          weather, calendar pressure and probability markets to adjust forecasts.
+        </Text>
+
+        <View style={styles.recordList}>
+          <View style={styles.recordItem}>
+            <Ionicons name="trending-up-outline" size={20} color="#C96BFF" />
+            <View style={styles.recordTextBlock}>
+              <Text style={styles.recordTitle}>Economy and inflation</Text>
+              <Text style={styles.recordText}>
+                Cost pressure, inflation trend and country-level economic signals.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.recordItem}>
+            <Ionicons name="cloud-outline" size={20} color="#58E7FF" />
+            <View style={styles.recordTextBlock}>
+              <Text style={styles.recordTitle}>Weather and calendar</Text>
+              <Text style={styles.recordText}>
+                Weather, daylight, meetings and schedule load can affect recovery and focus.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.recordItem}>
+            <Ionicons name="pulse-outline" size={20} color="#FF8A4C" />
+            <View style={styles.recordTextBlock}>
+              <Text style={styles.recordTitle}>Probability markets</Text>
+              <Text style={styles.recordText}>
+                Polymarket and Kalshi can act as probability context, not direct predictions.
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <AnimatedPressable
+          style={styles.sheetButton}
+          pressedScale={0.97}
+          onPress={() => {
+            lightTap();
+            setShowExternalContext(false);
           }}
         >
           <Text style={styles.sheetButtonText}>Got it</Text>
@@ -922,6 +1015,29 @@ const styles = StyleSheet.create({
     marginRight: 14,
   },
 
+  externalContextCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 28,
+    padding: 16,
+    backgroundColor: "rgba(201,107,255,0.10)",
+    borderWidth: 1,
+    borderColor: "rgba(201,107,255,0.24)",
+    marginBottom: 24,
+  },
+
+  externalContextIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "rgba(201,107,255,0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(201,107,255,0.30)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
+  },
+
   healthRecordsCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -943,6 +1059,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginRight: 14,
+  },
+
+  externalSheetIcon: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: "rgba(201,107,255,0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(201,107,255,0.34)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 24,
   },
 
   appleHealthCard: {
