@@ -396,7 +396,8 @@ return (
 
     <Text style={styles.checkInSummaryText}>
       Check-in loaded · Energy {latestCheckIn.energy}/10 · Stress{" "}
-      {latestCheckIn.stress}/10
+      {latestCheckIn.stress}/10 · Context {todayContextEvents.length} · Meals{" "}
+      {todayContextEvents.filter((event) => event.type === "meal").length}
     </Text>
   </View>
 )}
