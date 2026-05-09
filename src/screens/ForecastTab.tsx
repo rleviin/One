@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Pressable,
   RefreshControl,
@@ -11,8 +11,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import ScreenBackground from "../components/ScreenBackground";
 
-import type { DailyCheckInData } from "../storage";
-import { loadDailyCheckIn } from "../storage";
+import { useDaraData } from "../useDaraData";
+import { buildForecast } from "../lib/forecast-engine";
 import {
   buildForecastChangePoints,
   buildForecastWhyPoints,
@@ -25,34 +25,19 @@ type ForecastTabProps = {
 
 
 export default function ForecastTab({ dataVersion = 0 }: ForecastTabProps) {
-  const [refreshing, setRefreshing] = useState(false);
+  const { data, isLoading, reload } = useDaraData(dataVersion);
+  const checkIn = data.dailyCheckIn;
 
-async function handleRefresh() {
-  setRefreshing(true);
-
-  await new Promise((resolve) => setTimeout(resolve, 450));
-
-  setRefreshing(false);
-}
-  const [checkIn, setCheckIn] = useState<DailyCheckInData | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadData() {
-      const data = await loadDailyCheckIn();
-
-      if (mounted) {
-        setCheckIn(data);
-      }
-    }
-
-    loadData();
-
-    return () => {
-      mounted = false;
-    };
-  }, [dataVersion]);
+  const engineForecast = useMemo(
+    () =>
+      buildForecast({
+        latestCheckIn: data.dailyCheckIn,
+        checkInHistory: data.dailyCheckInHistory,
+        contextEvents: data.dailyContextEvents,
+        externalContext: data.externalContext,
+      }),
+    [data]
+  );
 
   const level = getForecastLevel(checkIn);
   const forecast = getForecastCopy(level);
@@ -95,8 +80,8 @@ return (
   contentContainerStyle={styles.content}
   refreshControl={
     <RefreshControl
-      refreshing={refreshing}
-      onRefresh={handleRefresh}
+      refreshing={isLoading}
+      onRefresh={reload}
       tintColor="#FFFFFF"
     />
   }
@@ -152,8 +137,12 @@ return (
             </View>
           </View>
 
-          <Text style={styles.heroTitle}>{forecast.title}</Text>
-          <Text style={styles.heroText}>{forecast.text}</Text>
+          <Text style={styles.heroTitle}>{engineForecast.title}</Text>
+          <Text style={styles.heroText}>{engineForecast.summary}</Text>
+
+          <Text style={styles.confidenceText}>
+            Confidence {engineForecast.confidence}% · Risk {engineForecast.risk}
+          </Text>
         </View>
 
         <Text style={styles.sectionTitle}>Forecast timeline</Text>
@@ -323,6 +312,16 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     letterSpacing: -0.4,
     marginBottom: 12,
+  },
+
+  confidenceText: {
+    color: "rgba(255,255,255,0.58)",
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "800",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    marginTop: 16,
   },
 
   timelineCard: {
