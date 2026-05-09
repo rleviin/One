@@ -3,9 +3,11 @@ import { useCallback, useEffect, useState } from "react";
 import type {
   DailyCheckInData,
   DailyContextEvent,
+  ExternalContextData,
   HealthRecordFile,
   PersonalSetupData,
 } from "./storage";
+import { buildMockExternalContext } from "./lib/external-context";
 
 import {
   loadDailyCheckIn,
@@ -20,6 +22,7 @@ export type DaraUserData = {
   dailyCheckIn: DailyCheckInData | null;
   dailyCheckInHistory: DailyCheckInData[];
   dailyContextEvents: DailyContextEvent[];
+  externalContext: ExternalContextData | null;
   healthRecord: HealthRecordFile | null;
 };
 
@@ -28,6 +31,7 @@ const EMPTY_DARA_DATA: DaraUserData = {
   dailyContextEvents: [],
   dailyCheckIn: null,
   dailyCheckInHistory: [],
+  externalContext: null,
   healthRecord: null,
 };
 
@@ -53,9 +57,12 @@ export function useDaraData(dataVersion = 0) {
   loadHealthRecord(),
 ]);
  
+      const externalContext = buildMockExternalContext(personalSetup);
+
       setData({
         personalSetup,
         dailyContextEvents,
+        externalContext,
         dailyCheckIn,
         dailyCheckInHistory,
         healthRecord,
