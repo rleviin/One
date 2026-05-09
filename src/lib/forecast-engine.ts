@@ -13,6 +13,11 @@ export type DaraForecast = {
   confidence: number;
   reasons: string[];
   changePoints: string[];
+  timeline: {
+    day: string;
+    title: string;
+    text: string;
+  }[];
 };
 
 type BuildForecastInput = {
@@ -44,6 +49,23 @@ export function buildForecast({
         "Complete a daily check-in.",
         "Add meals, notes or events during the day.",
         "Connect health and external context later.",
+      ],
+      timeline: [
+        {
+          day: "Today",
+          title: "Baseline forecast",
+          text: "Add a check-in to personalize the forecast.",
+        },
+        {
+          day: "2–3 days",
+          title: "Forecast confidence is low",
+          text: "Dara needs more recent signals before projecting short-term patterns.",
+        },
+        {
+          day: "5–7 days",
+          title: "Outcome depends on new data",
+          text: "Check-ins, context and connected sources will improve this view.",
+        },
       ],
     };
   }
@@ -103,6 +125,23 @@ export function buildForecast({
         "Protect sleep and avoid late high-intensity activity.",
         "Avoid major financial or schedule commitments today.",
       ],
+      timeline: [
+        {
+          day: "Today",
+          title: "Pressure pattern detected",
+          text: "Dara sees high pressure or low recovery in the latest check-in.",
+        },
+        {
+          day: "2–3 days",
+          title: "Recovery may start lagging",
+          text: "If stress and load remain high, overload probability can increase.",
+        },
+        {
+          day: "5–7 days",
+          title: "Fatigue risk may become visible",
+          text: "Sustained pressure can reduce focus, energy and decision quality.",
+        },
+      ],
     };
   }
 
@@ -126,6 +165,23 @@ export function buildForecast({
         "Keep workload from increasing further.",
         "Add meal or context signals to improve tomorrow’s forecast.",
       ],
+      timeline: [
+        {
+          day: "Today",
+          title: "Watch zone",
+          text: "Signals are manageable, but Dara sees enough pressure to monitor recovery.",
+        },
+        {
+          day: "2–3 days",
+          title: "Balance may shift",
+          text: "If load increases or sleep weakens, recovery may become less stable.",
+        },
+        {
+          day: "5–7 days",
+          title: "Outcome depends on recovery",
+          text: "Small actions today can keep the pattern from worsening.",
+        },
+      ],
     };
   }
 
@@ -144,6 +200,23 @@ export function buildForecast({
       "Keep sleep and workload rhythm consistent.",
       "Maintain meal consistency.",
       "Add context if something unusual happens today.",
+    ],
+    timeline: [
+      {
+        day: "Today",
+        title: "Stable pattern",
+        text: "Current signals suggest balanced recovery and manageable pressure.",
+      },
+      {
+        day: "2–3 days",
+        title: "Stable if rhythm holds",
+        text: "Recovery should remain sufficient if sleep, meals and load stay consistent.",
+      },
+      {
+        day: "5–7 days",
+        title: "Maintain baseline",
+        text: "Consistency is the main factor that keeps this forecast stable.",
+      },
     ],
   };
 }

@@ -42,34 +42,7 @@ export default function ForecastTab({ dataVersion = 0 }: ForecastTabProps) {
 
 const whyPoints = engineForecast.reasons;
 const changePoints = engineForecast.changePoints;
-  const timeline = [
-    {
-      day: "Today",
-      title: checkIn ? "Pressure pattern detected" : "Baseline forecast",
-      text: checkIn
-        ? "Dara combines today’s check-in with your current signal model."
-        : "Add a check-in to personalize the forecast.",
-    },
-    {
-      day: "2–3 days",
-      title: level === "stable" ? "Stable if rhythm holds" : "Balance may shift",
-      text:
-        level === "stable"
-          ? "Recovery should remain sufficient if sleep and load stay consistent."
-          : "If stress and load remain high, recovery may start lagging.",
-    },
-    {
-      day: "5–7 days",
-      title:
-        level === "risk"
-          ? "Fatigue risk may become visible"
-          : "Outcome depends on recovery",
-      text:
-        level === "risk"
-          ? "Low recovery plus high pressure can turn into fatigue or lower focus."
-          : "Small actions today can keep the pattern from worsening.",
-    },
-  ];
+  const timeline = engineForecast.timeline;
 
 return (
   <ScreenBackground>
