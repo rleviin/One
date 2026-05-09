@@ -12,7 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import ScreenBackground from "../components/ScreenBackground";
 
 import { useDaraData } from "../useDaraData";
-import { buildForecast } from "../lib/forecast-engine";
+import { buildDaraBrain } from "../lib/dara-brain";
 
 type ForecastTabProps = {
   dataVersion?: number;
@@ -21,21 +21,11 @@ type ForecastTabProps = {
 
 export default function ForecastTab({ dataVersion = 0 }: ForecastTabProps) {
   const { data, isLoading, reload } = useDaraData(dataVersion);
-  const checkIn = data.dailyCheckIn;
+  const daraBrain = useMemo(() => buildDaraBrain(data), [data]);
+  const engineForecast = daraBrain.forecast;
 
-  const engineForecast = useMemo(
-    () =>
-      buildForecast({
-        latestCheckIn: data.dailyCheckIn,
-        checkInHistory: data.dailyCheckInHistory,
-        contextEvents: data.dailyContextEvents,
-        externalContext: data.externalContext,
-      }),
-    [data]
-  );
-
-const whyPoints = engineForecast.reasons;
-const changePoints = engineForecast.changePoints;
+  const whyPoints = engineForecast.reasons;
+  const changePoints = engineForecast.changePoints;
   const timeline = engineForecast.timeline;
 
 return (
