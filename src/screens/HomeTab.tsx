@@ -33,13 +33,14 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 const IS_COMPACT_HOME = SCREEN_HEIGHT < 760;
 
 type DetailKind = "summary" | "signal" | "action";
+type Accent = "blue" | "purple" | "cyan" | "orange" | "green" | "red";
 
 type DetailState = {
   kind: DetailKind;
   title: string;
   subtitle: string;
   points: string[];
-  accent: "blue" | "purple" | "cyan" | "orange" | "green" | "red";
+  accent: Accent;
 } | null;
 
 type SignalCard = {
@@ -50,7 +51,7 @@ type SignalCard = {
   recommendation: string;
   status: string;
   icon: keyof typeof Ionicons.glyphMap;
-  accent: "blue" | "purple" | "cyan" | "orange" | "green" | "red";
+  accent: Accent;
 };
 
 type ActionCard = {
@@ -58,7 +59,7 @@ type ActionCard = {
   title: string;
   text: string;
   icon: keyof typeof Ionicons.glyphMap;
-  accent: "blue" | "purple" | "cyan" | "orange" | "green" | "red";
+  accent: Accent;
 };
 
 type HomeTabProps = {
@@ -69,7 +70,7 @@ type HomeTabProps = {
 function getRiskCopy(risk: RiskLevel) {
   if (risk === "high") {
     return {
-      label: "High risk",
+      badge: "High risk",
       title: "Your balance is starting to slip.",
       text: "Sleep, load and recovery are moving out of sync. Small shifts now can prevent a bigger dip later.",
       accent: "red" as const,
@@ -78,7 +79,7 @@ function getRiskCopy(risk: RiskLevel) {
 
   if (risk === "medium") {
     return {
-      label: "Watch",
+      badge: "Watch",
       title: "Your balance needs attention.",
       text: "Signals are becoming less stable. A small recovery action today can keep things under control.",
       accent: "orange" as const,
@@ -86,14 +87,14 @@ function getRiskCopy(risk: RiskLevel) {
   }
 
   return {
-    label: "Stable",
+    badge: "Stable",
     title: "You are in a stable zone.",
     text: "Your current pattern looks stable. Keep protecting sleep, recovery and daily load.",
     accent: "green" as const,
   };
 }
 
-function getAccentColor(accent: DetailState["accent"] | SignalCard["accent"]) {
+function getAccentColor(accent: Accent) {
   switch (accent) {
     case "purple":
       return "#C96BFF";
