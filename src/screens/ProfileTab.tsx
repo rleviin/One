@@ -165,7 +165,54 @@ return (
           </Text>
         </View>
 
-        
+        <AnimatedPressable
+          style={styles.pressableFullWidth}
+          contentStyle={styles.personalBaselineCard}
+          pressedScale={0.975}
+          onPress={() => {
+            mediumTap();
+            onOpenSetup?.();
+          }}
+        >
+          <View style={styles.personalBaselineIcon}>
+            <Ionicons name="person-outline" size={25} color="#B9C6FF" />
+          </View>
+
+          <View style={styles.setupTextBlock}>
+            <Text style={styles.setupTitle}>Personal baseline</Text>
+            <Text style={styles.setupText}>
+              {setupData
+                ? `${setupData.country || "Country not set"} · Age ${
+                    setupData.age || "--"
+                  } · ${setupData.height || "--"} cm · ${
+                    setupData.weight || "--"
+                  } kg`
+                : "Add your country, age, height, weight and lifestyle baseline."}
+            </Text>
+
+            {setupData ? (
+              <View style={styles.baselineTags}>
+                <Text style={styles.baselineTag}>
+                  {setupData.workType || "Work style"}
+                </Text>
+                <Text style={styles.baselineTag}>
+                  Income {setupData.incomeRange || "--"}
+                </Text>
+                <Text style={styles.baselineTag}>
+                  Spending {setupData.spendingRange || "--"}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+
+          <View style={styles.arrowCircle}>
+            <Ionicons
+              name="chevron-forward"
+              size={22}
+              color="rgba(255,255,255,0.86)"
+            />
+          </View>
+        </AnimatedPressable>
 
         <AnimatedPressable
           style={styles.pressableFullWidth}
@@ -850,6 +897,29 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.08)",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.12)",
+  },
+
+  personalBaselineCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 28,
+    padding: 16,
+    backgroundColor: "rgba(120,150,255,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(185,198,255,0.26)",
+    marginBottom: 24,
+  },
+
+  personalBaselineIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "rgba(185,198,255,0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(185,198,255,0.34)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
   },
 
   healthRecordsCard: {

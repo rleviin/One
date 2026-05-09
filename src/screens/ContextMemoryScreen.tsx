@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { DailyContextEvent, DailyContextEventType } from "../storage";
+import type { DailyContextEvent } from "../storage";
 import { useDaraData } from "../useDaraData";
 import AnimatedPressable from "../components/AnimatedPressable";
 import ScreenBackground from "../components/ScreenBackground";
@@ -19,104 +19,111 @@ type ContextMemoryScreenProps = {
   onDone: () => void;
 };
 
-type ContextFilter = "all" | DailyContextEventType;
-
-const filters: { key: ContextFilter; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "meal", label: "Meals" },
-  { key: "note", label: "Notes" },
-  { key: "event", label: "Events" },
-];
-
-function getDayKey(createdAt: string) {
-  return createdAt.slice(0, 10);
+function getDayKey(date: Date | string) {
+  const parsedDate = typeof date === "string" ? new Date(date) : date;
+  return parsedDate.toISOString().slice(0, 10);
 }
 
-function formatGroupTitle(dayKey: string) {
+function formatDayLabel(dayKey: string) {
   const date = new Date(`${dayKey}T12:00:00`);
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
-
-  const todayKey = today.toISOString().slice(0, 10);
-  const yesterdayKey = yesterday.toISOString().slice(0, 10);
+  const todayKey = getDayKey(new Date());
 
   if (dayKey === todayKey) {
     return "Today";
   }
 
-  if (dayKey === yesterdayKey) {
-    return "Yesterday";
-  }
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+  });
+}
+
+function formatFullDate(dayKey: string) {
+  const date = new Date(`${dayKey}T12:00:00`);
 
   return date.toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
-    year: "numeric",
   });
 }
 
-function formatTime(createdAt: string) {
-  return new Date(createdAt).toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
+function getLastSevenDays() {
+  return Array.from({ length: 7 }).map((_, index) => {
+    const date = new Date();
+    date.setDate(date.getDate() - index);
+    return getDayKey(date);
   });
 }
 
-function getEventMeta(type: DailyContextEventType) {
-  if (type === "meal") {
-    return {
-      label: "MEAL SIGNAL",
-      icon: "restaurant-outline" as const,
-      color: "#FF8A4C",
-    };
+function getNutritionScore(events: DailyContextEvent[]) {
+  const mealCount = events.filter((event) => event.type === "meal").length;
+
+  if (mealCount >= 3) {
+    return 82;
   }
 
-  if (type === "event") {
-    return {
-      label: "DAY EVENT",
-      icon: "calendar-outline" as const,
-      color: "#7DA2FF",
-    };
+  if (mealCount === 2) {
+    return 68;
   }
 
-  return {
-    label: "NOTE",
-    icon: "create-outline" as const,
-    color: "#B9C6FF",
-  };
+  if (mealCount === 1) {
+    return 52;
+  }
+
+  return 24;
 }
 
-function getEventText(event: DailyContextEvent) {
-  if (event.type === "meal") {
-    return (
-      event.text ||
-      "Meal photo added for future analysis. Dara will later connect meals with energy and recovery."
-    );
+function getContextScore(events: DailyContextEvent[]) {
+  return Math.min(100, events.length * 18);
+}
+
+function getScoreTone(score: number) {
+  if (score >= 75) {
+    return "#4FE18B";
   }
 
-  return event.text || event.title;
+  if (score >= 50) {
+    return "#FF8A4C";
+  }
+
+  return "#FF647C";
+}
+
+function buildDaySummary(events: DailyContextEvent[]) {
+  const mealCount = events.filter((event) => event.type === "meal").length;
+  const noteCount = events.filter((event) => event.type === "note").length;
+  const eventCount = events.filter((event) => event.type === "event").length;
+
+  if (events.length === 0) {
+    return "No context signals saved for this day yet.";
+  }
+
+  const parts: string[] = [];
+
+  if (mealCount > 0) {
+    parts.push(`${mealCount} meal signal${mealCount === 1 ? "" : "s"}`);
+  }
+
+  if (noteCount > 0) {
+    parts.push(`${noteCount} note${noteCount === 1 ? "" : "s"}`);
+  }
+
+  if (eventCount > 0) {
+    parts.push(`${eventCount} event${eventCount === 1 ? "" : "s"}`);
+  }
+
+  return `Dara compressed this day into ${parts.join(", ")}.`;
 }
 
 export default function ContextMemoryScreen({
   dataVersion = 0,
   onDone,
 }: ContextMemoryScreenProps) {
-  const [activeFilter, setActiveFilter] = useState<ContextFilter>("all");
   const { data, isLoading, reload } = useDaraData(dataVersion);
+  const days = useMemo(() => getLastSevenDays(), []);
+  const [selectedDayKey, setSelectedDayKey] = useState(days[0]);
 
-  const filteredEvents = useMemo(() => {
-    return data.dailyContextEvents.filter((event) => {
-      if (activeFilter === "all") {
-        return true;
-      }
-
-      return event.type === activeFilter;
-    });
-  }, [activeFilter, data.dailyContextEvents]);
-
-  const groupedEvents = useMemo(() => {
-    const groups = filteredEvents.reduce<Record<string, DailyContextEvent[]>>(
+  const eventsByDay = useMemo(() => {
+    return data.dailyContextEvents.reduce<Record<string, DailyContextEvent[]>>(
       (acc, event) => {
         const dayKey = getDayKey(event.createdAt);
 
@@ -129,12 +136,17 @@ export default function ContextMemoryScreen({
       },
       {}
     );
+  }, [data.dailyContextEvents]);
 
-    return Object.entries(groups).sort(
-      ([dayA], [dayB]) =>
-        new Date(dayB).getTime() - new Date(dayA).getTime()
-    );
-  }, [filteredEvents]);
+  const selectedEvents = eventsByDay[selectedDayKey] || [];
+  const mealEvents = selectedEvents.filter((event) => event.type === "meal");
+  const noteEvents = selectedEvents.filter((event) => event.type === "note");
+  const dayEvents = selectedEvents.filter((event) => event.type === "event");
+
+  const nutritionScore = getNutritionScore(selectedEvents);
+  const contextScore = getContextScore(selectedEvents);
+  const nutritionTone = getScoreTone(nutritionScore);
+  const contextTone = getScoreTone(contextScore);
 
   return (
     <ScreenBackground source={require("../../assets/onboarding-bg.png")}>
@@ -170,113 +182,183 @@ export default function ContextMemoryScreen({
             <Ionicons name="sparkles-outline" size={34} color="#B9C6FF" />
           </View>
 
-          <Text style={styles.heroTitle}>Context memory</Text>
+          <Text style={styles.heroTitle}>Context summary</Text>
           <Text style={styles.heroText}>
-            Dara keeps your notes, meals and daily events as signals for future
-            insights.
+            Dara compresses meals, notes and events into daily signals instead
+            of showing a long raw feed.
           </Text>
 
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
               <Text style={styles.statValue}>{data.dailyContextEvents.length}</Text>
-              <Text style={styles.statLabel}>saved</Text>
+              <Text style={styles.statLabel}>signals</Text>
             </View>
 
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>{filteredEvents.length}</Text>
-              <Text style={styles.statLabel}>shown</Text>
+              <Text style={styles.statValue}>{selectedEvents.length}</Text>
+              <Text style={styles.statLabel}>selected day</Text>
             </View>
           </View>
         </View>
 
+        <Text style={styles.sectionTitle}>Signal calendar</Text>
+
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterRow}
+          contentContainerStyle={styles.calendarRow}
         >
-          {filters.map((filter) => {
-            const isActive = activeFilter === filter.key;
+          {days.map((dayKey) => {
+            const events = eventsByDay[dayKey] || [];
+            const isActive = selectedDayKey === dayKey;
+            const score = getContextScore(events);
+            const tone = getScoreTone(score);
 
             return (
               <AnimatedPressable
-                key={filter.key}
+                key={dayKey}
                 contentStyle={[
-                  styles.filterPill,
-                  isActive && styles.filterPillActive,
+                  styles.dayPill,
+                  isActive && styles.dayPillActive,
                 ]}
                 pressedScale={0.96}
                 onPress={() => {
                   lightTap();
-                  setActiveFilter(filter.key);
+                  setSelectedDayKey(dayKey);
                 }}
               >
                 <Text
                   style={[
-                    styles.filterText,
-                    isActive && styles.filterTextActive,
+                    styles.dayPillLabel,
+                    isActive && styles.dayPillLabelActive,
                   ]}
                 >
-                  {filter.label}
+                  {formatDayLabel(dayKey)}
+                </Text>
+
+                <View
+                  style={[
+                    styles.daySignalDot,
+                    {
+                      backgroundColor:
+                        events.length > 0 ? tone : "rgba(255,255,255,0.18)",
+                    },
+                  ]}
+                />
+
+                <Text
+                  style={[
+                    styles.dayPillCount,
+                    isActive && styles.dayPillCountActive,
+                  ]}
+                >
+                  {events.length}
                 </Text>
               </AnimatedPressable>
             );
           })}
         </ScrollView>
 
-        <Text style={styles.sectionTitle}>Saved context</Text>
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryKicker}>{formatFullDate(selectedDayKey)}</Text>
+          <Text style={styles.summaryTitle}>Daily compressed memory</Text>
+          <Text style={styles.summaryText}>{buildDaySummary(selectedEvents)}</Text>
 
-        {groupedEvents.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Ionicons name="file-tray-outline" size={28} color="#B9C6FF" />
-            <Text style={styles.emptyTitle}>No context yet</Text>
-            <Text style={styles.emptyText}>
-              Add notes, meals or events during the day. They will appear here
-              as Dara’s memory grows.
+          <View style={styles.scoreGrid}>
+            <View style={styles.scoreCard}>
+              <View style={styles.scoreHeader}>
+                <Ionicons name="restaurant-outline" size={20} color={nutritionTone} />
+                <Text style={styles.scoreLabel}>Nutrition quality</Text>
+              </View>
+
+              <Text style={[styles.scoreValue, { color: nutritionTone }]}>
+                {nutritionScore}
+              </Text>
+
+              <View style={styles.scoreTrack}>
+                <View
+                  style={[
+                    styles.scoreFill,
+                    {
+                      width: `${nutritionScore}%`,
+                      backgroundColor: nutritionTone,
+                    },
+                  ]}
+                />
+              </View>
+            </View>
+
+            <View style={styles.scoreCard}>
+              <View style={styles.scoreHeader}>
+                <Ionicons name="pulse-outline" size={20} color={contextTone} />
+                <Text style={styles.scoreLabel}>Context density</Text>
+              </View>
+
+              <Text style={[styles.scoreValue, { color: contextTone }]}>
+                {contextScore}
+              </Text>
+
+              <View style={styles.scoreTrack}>
+                <View
+                  style={[
+                    styles.scoreFill,
+                    {
+                      width: `${contextScore}%`,
+                      backgroundColor: contextTone,
+                    },
+                  ]}
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <Text style={styles.sectionTitle}>Signal breakdown</Text>
+
+        <View style={styles.compactGrid}>
+          <View style={styles.compactCard}>
+            <Ionicons name="restaurant-outline" size={22} color="#FF8A4C" />
+            <Text style={styles.compactValue}>{mealEvents.length}</Text>
+            <Text style={styles.compactLabel}>Meal signals</Text>
+            <Text style={styles.compactText}>
+              {mealEvents.length > 0
+                ? "Meal photo input saved for future nutrition analysis."
+                : "No meal signal saved for this day."}
             </Text>
           </View>
-        ) : (
-          groupedEvents.map(([dayKey, events]) => (
-            <View key={dayKey} style={styles.dayGroup}>
-              <Text style={styles.dayTitle}>{formatGroupTitle(dayKey)}</Text>
 
-              {events.map((event) => {
-                const meta = getEventMeta(event.type);
+          <View style={styles.compactCard}>
+            <Ionicons name="create-outline" size={22} color="#B9C6FF" />
+            <Text style={styles.compactValue}>{noteEvents.length}</Text>
+            <Text style={styles.compactLabel}>Notes</Text>
+            <Text style={styles.compactText}>
+              {noteEvents.length > 0
+                ? "Notes compressed into context memory."
+                : "No notes saved for this day."}
+            </Text>
+          </View>
 
-                return (
-                  <View key={event.id} style={styles.eventCard}>
-                    <View
-                      style={[
-                        styles.eventIcon,
-                        {
-                          borderColor: `${meta.color}66`,
-                          backgroundColor: `${meta.color}18`,
-                        },
-                      ]}
-                    >
-                      <Ionicons name={meta.icon} size={22} color={meta.color} />
-                    </View>
+          <View style={styles.compactCard}>
+            <Ionicons name="calendar-outline" size={22} color="#7DA2FF" />
+            <Text style={styles.compactValue}>{dayEvents.length}</Text>
+            <Text style={styles.compactLabel}>Events</Text>
+            <Text style={styles.compactText}>
+              {dayEvents.length > 0
+                ? "Events saved as daily pressure signals."
+                : "No events saved for this day."}
+            </Text>
+          </View>
+        </View>
 
-                    <View style={styles.eventTextBlock}>
-                      <Text style={[styles.eventLabel, { color: meta.color }]}>
-                        {meta.label} · {formatTime(event.createdAt)}
-                      </Text>
-
-                      <Text style={styles.eventTitle}>{event.title}</Text>
-                      <Text style={styles.eventText}>{getEventText(event)}</Text>
-                    </View>
-                  </View>
-                );
-              })}
-            </View>
-          ))
-        )}
-
-        <View style={styles.footerCard}>
-          <Ionicons name="lock-open-outline" size={20} color="#4FE18B" />
-          <Text style={styles.footerText}>
-            Premium memory is ready for context calendar, deeper analysis and PDF
-            reports later.
-          </Text>
+        <View style={styles.reportCard}>
+          <Ionicons name="document-text-outline" size={22} color="#4FE18B" />
+          <View style={styles.reportTextBlock}>
+            <Text style={styles.reportTitle}>PDF summary coming next</Text>
+            <Text style={styles.reportText}>
+              Later Dara will export weekly or monthly context reports with
+              nutrition quality, key events and compressed recommendations.
+            </Text>
+          </View>
         </View>
       </ScrollView>
     </ScreenBackground>
@@ -375,110 +457,152 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginTop: 2,
   },
-  filterRow: {
-    gap: 10,
-    paddingBottom: 10,
-  },
-  filterPill: {
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)",
-  },
-  filterPillActive: {
-    backgroundColor: "rgba(255,255,255,0.92)",
-  },
-  filterText: {
-    color: "rgba(255,255,255,0.70)",
-    fontSize: 15,
-    fontWeight: "900",
-  },
-  filterTextActive: {
-    color: "#07101F",
-  },
   sectionTitle: {
     color: "#FFFFFF",
     fontSize: 28,
     lineHeight: 34,
     fontWeight: "900",
     letterSpacing: -0.7,
-    marginTop: 22,
+    marginTop: 18,
     marginBottom: 14,
   },
-  emptyCard: {
-    borderRadius: 28,
-    padding: 24,
+  calendarRow: {
+    gap: 10,
+    paddingBottom: 12,
+  },
+  dayPill: {
+    width: 76,
+    minHeight: 96,
+    borderRadius: 26,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(8,16,38,0.54)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+  },
+  dayPillActive: {
+    backgroundColor: "rgba(255,255,255,0.92)",
+  },
+  dayPillLabel: {
+    color: "rgba(255,255,255,0.66)",
+    fontSize: 13,
+    fontWeight: "900",
+    marginBottom: 10,
+  },
+  dayPillLabelActive: {
+    color: "#07101F",
+  },
+  daySignalDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    marginBottom: 9,
+  },
+  dayPillCount: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "900",
+  },
+  dayPillCountActive: {
+    color: "#07101F",
+  },
+  summaryCard: {
+    borderRadius: 32,
+    padding: 22,
     backgroundColor: "rgba(8,16,38,0.58)",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.14)",
+    marginTop: 6,
   },
-  emptyTitle: {
-    color: "#FFFFFF",
-    fontSize: 24,
+  summaryKicker: {
+    color: "#B9C6FF",
+    fontSize: 12,
     fontWeight: "900",
-    marginTop: 14,
-  },
-  emptyText: {
-    color: "rgba(255,255,255,0.62)",
-    fontSize: 17,
-    lineHeight: 25,
-    fontWeight: "600",
-    marginTop: 8,
-  },
-  dayGroup: {
-    marginBottom: 22,
-  },
-  dayTitle: {
-    color: "rgba(255,255,255,0.72)",
-    fontSize: 14,
-    fontWeight: "900",
-    letterSpacing: 3,
+    letterSpacing: 2.4,
     textTransform: "uppercase",
     marginBottom: 10,
   },
-  eventCard: {
+  summaryTitle: {
+    color: "#FFFFFF",
+    fontSize: 27,
+    lineHeight: 32,
+    fontWeight: "900",
+    letterSpacing: -0.7,
+  },
+  summaryText: {
+    color: "rgba(255,255,255,0.64)",
+    fontSize: 17,
+    lineHeight: 25,
+    fontWeight: "600",
+    marginTop: 10,
+  },
+  scoreGrid: {
+    gap: 12,
+    marginTop: 18,
+  },
+  scoreCard: {
+    borderRadius: 24,
+    padding: 16,
+    backgroundColor: "rgba(255,255,255,0.07)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+  },
+  scoreHeader: {
     flexDirection: "row",
-    gap: 16,
+    alignItems: "center",
+    gap: 8,
+  },
+  scoreLabel: {
+    color: "rgba(255,255,255,0.68)",
+    fontSize: 14,
+    fontWeight: "900",
+  },
+  scoreValue: {
+    fontSize: 34,
+    fontWeight: "900",
+    marginTop: 8,
+  },
+  scoreTrack: {
+    height: 7,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.10)",
+    overflow: "hidden",
+    marginTop: 10,
+  },
+  scoreFill: {
+    height: 7,
+    borderRadius: 999,
+  },
+  compactGrid: {
+    gap: 12,
+  },
+  compactCard: {
     borderRadius: 28,
     padding: 18,
     backgroundColor: "rgba(8,16,38,0.58)",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.14)",
-    marginBottom: 12,
   },
-  eventIcon: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-  },
-  eventTextBlock: {
-    flex: 1,
-  },
-  eventLabel: {
-    fontSize: 12,
-    fontWeight: "900",
-    letterSpacing: 2.4,
-    marginBottom: 7,
-  },
-  eventTitle: {
+  compactValue: {
     color: "#FFFFFF",
-    fontSize: 22,
-    lineHeight: 26,
+    fontSize: 30,
     fontWeight: "900",
+    marginTop: 12,
   },
-  eventText: {
+  compactLabel: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "900",
+    marginTop: 2,
+  },
+  compactText: {
     color: "rgba(255,255,255,0.62)",
-    fontSize: 16,
-    lineHeight: 23,
+    fontSize: 15,
+    lineHeight: 22,
     fontWeight: "600",
-    marginTop: 7,
+    marginTop: 8,
   },
-  footerCard: {
+  reportCard: {
     flexDirection: "row",
     gap: 12,
     borderRadius: 24,
@@ -486,9 +610,18 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(79,225,139,0.10)",
     borderWidth: 1,
     borderColor: "rgba(79,225,139,0.22)",
+    marginTop: 18,
   },
-  footerText: {
+  reportTextBlock: {
     flex: 1,
+  },
+  reportTitle: {
+    color: "#FFFFFF",
+    fontSize: 17,
+    fontWeight: "900",
+    marginBottom: 4,
+  },
+  reportText: {
     color: "rgba(255,255,255,0.66)",
     fontSize: 15,
     lineHeight: 22,
