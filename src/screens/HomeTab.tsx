@@ -29,6 +29,7 @@ import {
   buildHomeActionCards,
   buildHomeSignalCards,
   buildHomeSignalDetailPoints,
+  buildHomeActionDetailPoints,
 } from "../lib/context-engine";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -246,31 +247,12 @@ function openSummary() {
   }
 
   function openAction(card: ActionCard) {
-    const points =
-      card.key === "recovery"
-        ? [
-            "Why: recovery is low while load is elevated.",
-            "Do today: avoid hard training, add a walk or mobility session.",
-            "Expected effect: reduce overload risk tomorrow.",
-          ]
-        : card.key === "finance"
-        ? [
-            "Why: external pressure is contributing to overall load.",
-            "Do today: avoid major purchases or new commitments.",
-            "Expected effect: lower background stress.",
-          ]
-        : [
-            "Why: a short reset can interrupt the overload pattern.",
-            "Do today: 10 minutes breathing, stretching or quiet walk.",
-            "Expected effect: bring your system closer to baseline.",
-          ];
-
     setDetail({
       kind: "action",
       title: card.title,
       subtitle: card.text,
       accent: card.accent,
-      points,
+      points: buildHomeActionDetailPoints(card),
     });
   }
 

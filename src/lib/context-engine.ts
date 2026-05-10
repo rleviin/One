@@ -172,6 +172,30 @@ export function buildHomeSignalDetailPoints(card: DaraHomeSignalCard) {
   return [card.recommendation, ...extra];
 }
 
+export function buildHomeActionDetailPoints(card: DaraHomeActionCard) {
+  if (card.key === "recovery") {
+    return [
+      "Why: recovery is low while load is elevated.",
+      "Do today: avoid hard training, add a walk or mobility session.",
+      "Expected effect: reduce overload risk tomorrow.",
+    ];
+  }
+
+  if (card.key === "finance") {
+    return [
+      "Why: external pressure is contributing to overall load.",
+      "Do today: avoid major purchases or new commitments.",
+      "Expected effect: lower background stress.",
+    ];
+  }
+
+  return [
+    "Why: a short reset can interrupt the overload pattern.",
+    "Do today: 10 minutes breathing, stretching or quiet walk.",
+    "Expected effect: bring your system closer to baseline.",
+  ];
+}
+
 export function buildStressScore(checkIn: DailyCheckInData | null) {
   if (!checkIn) {
     return 40;
