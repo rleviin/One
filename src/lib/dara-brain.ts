@@ -40,16 +40,17 @@ export function buildDaraBrain(data: DaraUserData) {
     contextEvents: data.dailyContextEvents,
   });
 
+  const patterns = buildPatternAnalysis({
+    checkInHistory: data.dailyCheckInHistory,
+    contextEvents: data.dailyContextEvents,
+  });
+
   const forecast = buildForecast({
     latestCheckIn: data.dailyCheckIn,
     checkInHistory: data.dailyCheckInHistory,
     contextEvents: data.dailyContextEvents,
     externalContext: data.externalContext,
-  });
-
-  const patterns = buildPatternAnalysis({
-    checkInHistory: data.dailyCheckInHistory,
-    contextEvents: data.dailyContextEvents,
+    patterns,
   });
 
   const insightsView = {

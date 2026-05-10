@@ -3,6 +3,7 @@ import type {
   DailyContextEvent,
   ExternalContextData,
 } from "../storage";
+import type { DaraPatternInsight } from "./pattern-engine";
 
 export type ForecastRiskLevel = "low" | "medium" | "high";
 
@@ -28,6 +29,7 @@ type BuildForecastInput = {
   checkInHistory: DailyCheckInData[];
   contextEvents: DailyContextEvent[];
   externalContext?: ExternalContextData | null;
+  patterns?: DaraPatternInsight[];
 };
 
 export function buildForecast({
@@ -35,6 +37,7 @@ export function buildForecast({
   checkInHistory,
   contextEvents,
   externalContext,
+  patterns = [],
 }: BuildForecastInput): DaraForecast {
   if (!latestCheckIn) {
     return {
@@ -96,10 +99,19 @@ export function buildForecast({
       contextDepth * 4
   );
 
+  const highPatternCount = patterns.filter(
+    (pattern) => pattern.severity === "high"
+  ).length;
+
+  const patternRiskBoost = highPatternCount > 0;
+
   const baseReasons = [
     `Energy ${latestCheckIn.energy}/10 and stress ${latestCheckIn.stress}/10 are driving the short-term forecast.`,
     `${historyDepth} historical check-in${historyDepth === 1 ? "" : "s"} available for trend confidence.`,
     `${contextDepth} context signal${contextDepth === 1 ? "" : "s"} included in today’s model.`,
+    patternRiskBoost
+      ? `${highPatternCount} high-priority pattern${highPatternCount === 1 ? "" : "s"} are increasing short-term forecast risk.`
+      : "No high-priority pattern is currently increasing the forecast.",
   ];
 
   const externalReason =
@@ -111,7 +123,8 @@ export function buildForecast({
 
   if (
     pressureScore >= 7 ||
-    recoveryScore <= 4
+    recoveryScore <= 4 ||
+    patternRiskBoost
   ) {
     return {
       title: "Pressure accumulation detected",
