@@ -247,6 +247,41 @@ return (
 
         <AnimatedPressable
           style={styles.pressableFullWidth}
+          contentStyle={styles.summaryReportCard}
+          pressedScale={0.975}
+          onPress={() => {
+            mediumTap();
+          }}
+        >
+          <View style={styles.summaryReportIcon}>
+            <Ionicons name="document-text-outline" size={25} color="#4ADE80" />
+          </View>
+
+          <View style={styles.setupTextBlock}>
+            <Text style={styles.setupTitle}>Summary report</Text>
+            <Text style={styles.setupText}>
+              Generate a thesis-style Dara summary with scores, patterns and
+              recommendations for a selected period.
+            </Text>
+
+            <View style={styles.baselineTags}>
+              <Text style={styles.baselineTag}>PDF later</Text>
+              <Text style={styles.baselineTag}>Scores</Text>
+              <Text style={styles.baselineTag}>Patterns</Text>
+            </View>
+          </View>
+
+          <View style={styles.arrowCircle}>
+            <Ionicons
+              name="chevron-forward"
+              size={22}
+              color="rgba(255,255,255,0.86)"
+            />
+          </View>
+        </AnimatedPressable>
+
+        <AnimatedPressable
+          style={styles.pressableFullWidth}
           contentStyle={styles.healthRecordsCard}
           pressedScale={0.975}
           onPress={() => {
@@ -990,6 +1025,29 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.08)",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.12)",
+  },
+
+  summaryReportCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 28,
+    padding: 16,
+    backgroundColor: "rgba(74,222,128,0.10)",
+    borderWidth: 1,
+    borderColor: "rgba(74,222,128,0.24)",
+    marginBottom: 24,
+  },
+
+  summaryReportIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "rgba(74,222,128,0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(74,222,128,0.30)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
   },
 
   personalBaselineCard: {
