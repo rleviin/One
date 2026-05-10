@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -21,15 +21,18 @@ import {
   
 } from "../logic";
 
-import type { DailyCheckInData, DailyContextEvent } from "../storage";
-import { loadDailyCheckIn, loadDailyContextEvents } from "../storage";
 import { buildSummaryPoints, mapCheckInToSignals } from "../daraModel";
+import { useDaraData } from "../useDaraData";
 import { buildDaraBrain } from "../lib/dara-brain";
 import {
   buildHomeActionCards,
   buildHomeSignalCards,
   buildHomeSignalDetailPoints,
   buildHomeActionDetailPoints,
+} from "../lib/context-engine";
+import type {
+  DaraHomeActionCard,
+  DaraHomeSignalCard,
 } from "../lib/context-engine";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -47,24 +50,8 @@ type DetailState = {
   accent: Accent;
 } | null;
 
-type SignalCard = {
-  key: "sleep" | "workload" | "recovery" | "finance";
-  label: string;
-  value: string;
-  note: string;
-  recommendation: string;
-  status: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  accent: Accent;
-};
-
-type ActionCard = {
-  key: "recovery" | "finance" | "reset";
-  title: string;
-  text: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  accent: Accent;
-};
+type SignalCard = DaraHomeSignalCard;
+type ActionCard = DaraHomeActionCard;
 
 type HomeTabProps = {
   dataVersion?: number;
@@ -151,24 +138,13 @@ export default function HomeTab({
   });
   
   const [detail, setDetail] = useState<DetailState>(null);
-  const [latestCheckIn, setLatestCheckIn] = useState<DailyCheckInData | null>(
-    null
-  );
-  const [todayContextEvents, setTodayContextEvents] = useState<
-    DailyContextEvent[]
-  >([]);
+  const { data, isLoading, reload } = useDaraData(dataVersion);
+  const latestCheckIn = data.dailyCheckIn;
 
-  const [refreshing, setRefreshing] = useState(false);
-
-  const loadHomeData = useCallback(async () => {
-    const [checkIn, contextEvents] = await Promise.all([
-      loadDailyCheckIn(),
-      loadDailyContextEvents(),
-    ]);
-
+  const todayContextEvents = useMemo(() => {
     const today = new Date();
 
-    const todaysEvents = contextEvents.filter((event) => {
+    return data.dailyContextEvents.filter((event) => {
       const eventDate = new Date(event.createdAt);
 
       return (
@@ -177,36 +153,18 @@ export default function HomeTab({
         eventDate.getDate() === today.getDate()
       );
     });
+  }, [data.dailyContextEvents]);
 
-    setTodayContextEvents(todaysEvents);
-
-    if (!checkIn) {
-      setLatestCheckIn(null);
-      return;
+  useEffect(() => {
+    if (latestCheckIn) {
+      setSignals((current) => mapCheckInToSignals(current, latestCheckIn));
     }
-
-    setLatestCheckIn(checkIn);
-    setSignals((current) => mapCheckInToSignals(current, checkIn));
-  }, []);
-
-useEffect(() => {
-  loadHomeData();
-}, [loadHomeData, dataVersion]);
-
-async function handleRefresh() {
-  setRefreshing(true);
-  await loadHomeData();
-  setRefreshing(false);
-}
+  }, [latestCheckIn]);
   const risk = calculateRisk(signals);
   const riskCopy = getRiskCopy(risk);
   const daraBrain = buildDaraBrain({
-    personalSetup: null,
-    dailyCheckIn: latestCheckIn,
-    dailyCheckInHistory: latestCheckIn ? [latestCheckIn] : [],
+    ...data,
     dailyContextEvents: todayContextEvents,
-    externalContext: null,
-    healthRecord: null,
   });
 
   const activeSignalCopy = daraBrain.home.activeSignal || riskCopy;
@@ -265,8 +223,8 @@ return (
  contentContainerStyle={styles.content}
   refreshControl={
     <RefreshControl
-      refreshing={refreshing}
-      onRefresh={handleRefresh}
+      refreshing={isLoading}
+      onRefresh={reload}
       tintColor="#FFFFFF"
     />
   }
