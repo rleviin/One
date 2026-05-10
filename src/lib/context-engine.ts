@@ -143,6 +143,35 @@ export function buildHomeActionCards(): DaraHomeActionCard[] {
   ];
 }
 
+export function buildHomeSignalDetailPoints(card: DaraHomeSignalCard) {
+  const extra =
+    card.key === "sleep"
+      ? [
+          "Goal: aim for 7.5h tonight.",
+          "Watch for 2–3 short nights in a row.",
+          "Earlier wind-down has the highest impact today.",
+        ]
+      : card.key === "workload"
+      ? [
+          "High workload increases overload risk.",
+          "Remove or postpone one non-critical task.",
+          "Recovery becomes more important when load rises.",
+        ]
+      : card.key === "recovery"
+      ? [
+          "Low recovery means the body is compensating poorly.",
+          "Keep intensity low today.",
+          "Prioritize sleep, hydration and a calm evening.",
+        ]
+      : [
+          "Financial pressure can increase cognitive load.",
+          "Avoid major commitments today.",
+          "Reduce unnecessary spending to lower background stress.",
+        ];
+
+  return [card.recommendation, ...extra];
+}
+
 export function buildStressScore(checkIn: DailyCheckInData | null) {
   if (!checkIn) {
     return 40;

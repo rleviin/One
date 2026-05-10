@@ -25,7 +25,11 @@ import type { DailyCheckInData, DailyContextEvent } from "../storage";
 import { loadDailyCheckIn, loadDailyContextEvents } from "../storage";
 import { buildSummaryPoints, mapCheckInToSignals } from "../daraModel";
 import { buildDaraBrain } from "../lib/dara-brain";
-import { buildHomeActionCards, buildHomeSignalCards } from "../lib/context-engine";
+import {
+  buildHomeActionCards,
+  buildHomeSignalCards,
+  buildHomeSignalDetailPoints,
+} from "../lib/context-engine";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -232,37 +236,12 @@ function openSummary() {
   });
 }
   function openSignal(card: SignalCard) {
-    const extra =
-      card.key === "sleep"
-        ? [
-            "Goal: aim for 7.5h tonight.",
-            "Watch for 2–3 short nights in a row.",
-            "Earlier wind-down has the highest impact today.",
-          ]
-        : card.key === "workload"
-        ? [
-            "High workload increases overload risk.",
-            "Remove or postpone one non-critical task.",
-            "Recovery becomes more important when load rises.",
-          ]
-        : card.key === "recovery"
-        ? [
-            "Low recovery means the body is compensating poorly.",
-            "Keep intensity low today.",
-            "Prioritize sleep, hydration and a calm evening.",
-          ]
-        : [
-            "Financial pressure can increase cognitive load.",
-            "Avoid major commitments today.",
-            "Reduce unnecessary spending to lower background stress.",
-          ];
-
     setDetail({
       kind: "signal",
       title: card.label,
       subtitle: `${card.value} · ${card.status}`,
       accent: card.accent,
-      points: [card.recommendation, ...extra],
+      points: buildHomeSignalDetailPoints(card),
     });
   }
 
