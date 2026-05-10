@@ -72,6 +72,15 @@ export function buildPatternAnalysis({
     .slice(0, 3)
     .every((item) => item.workload >= 7 || item.stress >= 7);
 
+  const latest = recentCheckIns[0];
+  const previous = recentCheckIns[1];
+
+  const recoveryRebound =
+    latest &&
+    previous &&
+    latest.energy >= previous.energy + 2 &&
+    latest.stress <= previous.stress - 2;
+
   const insights: DaraPatternInsight[] = [
     {
       id: "recovery-pattern",
@@ -119,6 +128,24 @@ export function buildPatternAnalysis({
       ],
     },
   ];
+
+  if (recoveryRebound) {
+    insights.push({
+      id: "recovery-rebound",
+      title: "Recovery rebound detected",
+      summary:
+        "Energy improved while stress dropped compared with the previous check-in. Dara sees early recovery momentum.",
+      severity: "low",
+      label: "REBOUND",
+      accent: "#4ADE80",
+      icon: "leaf-outline",
+      points: [
+        "Energy improved compared with the previous check-in.",
+        "Stress also moved down, which supports recovery momentum.",
+        "Maintaining the same rhythm can help stabilise this rebound.",
+      ],
+    });
+  }
 
   if (lowEnergyStreak && recentCheckIns.length >= 3) {
     insights.push({
