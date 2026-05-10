@@ -412,12 +412,6 @@ return (
           pressedScale={0.975}
           onPress={() => {
             lightTap();
-
-            if (isPremium) {
-              onOpenContextMemory?.();
-              return;
-            }
-
             setShowContextSheet(true);
           }}
         >
