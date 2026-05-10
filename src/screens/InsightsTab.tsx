@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Pressable,
   RefreshControl,
@@ -14,36 +14,21 @@ import AnimatedPressable from "../components/AnimatedPressable";
 import AnimatedBottomSheet from "../components/AnimatedBottomSheet";
 import ScreenBackground from "../components/ScreenBackground";
 
-import type { DailyCheckInData } from "../storage";
-import { loadDailyCheckIn } from "../storage";
-import type { DaraInsight } from "../daraModel";
-import { buildInsights } from "../daraModel";
+import { useDaraData } from "../useDaraData";
+import { buildDaraBrain } from "../lib/dara-brain";
+import type { DaraPatternInsight } from "../lib/pattern-engine";
 
 type InsightsTabProps = {
   dataVersion?: number;
 };
 
 export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
-  const [checkIn, setCheckIn] = useState<DailyCheckInData | null>(null);
-  const [selectedInsight, setSelectedInsight] = useState<DaraInsight | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const loadInsightsData = useCallback(async () => {
-    const data = await loadDailyCheckIn();
-    setCheckIn(data);
-  }, []);
-
-  useEffect(() => {
-    loadInsightsData();
-  }, [loadInsightsData, dataVersion]);
-
-  async function handleRefresh() {
-    setRefreshing(true);
-    await loadInsightsData();
-    setRefreshing(false);
-  }
-
-  const insights = useMemo(() => buildInsights(checkIn), [checkIn]);
+  const { data, isLoading, reload } = useDaraData(dataVersion);
+  const checkIn = data.dailyCheckIn;
+  const daraBrain = useMemo(() => buildDaraBrain(data), [data]);
+  const insights = daraBrain.insightsView.patterns;
+  const [selectedInsight, setSelectedInsight] =
+    useState<DaraPatternInsight | null>(null);
 
   return (
     <ScreenBackground>
@@ -52,8 +37,8 @@ export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
+            refreshing={isLoading}
+            onRefresh={reload}
             tintColor="#FFFFFF"
           />
         }
@@ -120,7 +105,7 @@ export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
 >
               <LinearGradient
                 colors={[
-                  `${insight.accent}22`,
+                  "rgba(185,198,255,0.18)",
                   "rgba(255,255,255,0.055)",
                   "rgba(255,255,255,0.035)",
                 ]}
@@ -133,20 +118,20 @@ export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
                 style={[
                   styles.insightIcon,
                   {
-                    borderColor: `${insight.accent}77`,
-                    backgroundColor: `${insight.accent}18`,
+                    borderColor: "rgba(185,198,255,0.38)",
+                    backgroundColor: "rgba(185,198,255,0.14)",
                   },
                 ]}
               >
-                <Ionicons name={insight.icon} size={23} color={insight.accent} />
+                <Ionicons name="git-branch-outline" size={23} color="#B9C6FF" />
               </View>
 
               <View style={styles.insightTextBlock}>
-                <Text style={[styles.insightLabel, { color: insight.accent }]}>
-                  {insight.label}
+                <Text style={[styles.insightLabel, { color: "#B9C6FF" }]}>
+                  {insight.severity.toUpperCase()}
                 </Text>
                 <Text style={styles.insightTitle}>{insight.title}</Text>
-                <Text style={styles.insightText}>{insight.text}</Text>
+                <Text style={styles.insightText}>{insight.summary}</Text>
               </View>
 
               <View style={styles.arrowCircle}>
@@ -182,28 +167,28 @@ export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
         style={[
           styles.sheetIcon,
           {
-            borderColor: `${selectedInsight.accent}77`,
-            backgroundColor: `${selectedInsight.accent}18`,
+            borderColor: "rgba(185,198,255,0.38)",
+            backgroundColor: "rgba(185,198,255,0.14)",
           },
         ]}
       >
         <Ionicons
-          name={selectedInsight.icon}
+          name="git-branch-outline"
           size={25}
-          color={selectedInsight.accent}
+          color="#B9C6FF"
         />
       </View>
 
       <Text style={styles.sheetTitle}>{selectedInsight.title}</Text>
-      <Text style={styles.sheetSubtitle}>{selectedInsight.text}</Text>
+      <Text style={styles.sheetSubtitle}>{selectedInsight.summary}</Text>
 
       <View style={styles.sheetPoints}>
-        {selectedInsight.points.map((point, index) => (
+        {[selectedInsight.summary].map((point, index) => (
           <View key={index} style={styles.sheetPoint}>
             <View
               style={[
                 styles.sheetPointDot,
-                { backgroundColor: selectedInsight.accent },
+                { backgroundColor: "#B9C6FF" },
               ]}
             />
             <Text style={styles.sheetPointText}>{point}</Text>
