@@ -206,7 +206,7 @@ async function handleRefresh() {
     healthRecord: null,
   });
 
-  const activeSignalCopy = daraBrain.activeSignal || riskCopy;
+  const activeSignalCopy = daraBrain.home.activeSignal || riskCopy;
   const todayMealCount = todayContextEvents.filter(
     (event) => event.type === "meal"
   ).length;

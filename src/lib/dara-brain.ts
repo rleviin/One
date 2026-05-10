@@ -36,5 +36,10 @@ export function buildDaraBrain(data: DaraUserData) {
     summary,
     homeSignals,
     forecast,
+    home: {
+      activeSignal,
+      signals: homeSignals,
+      summary,
+    },
   };
 }
