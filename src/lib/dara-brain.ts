@@ -1,14 +1,29 @@
 import type { DaraUserData } from "../useDaraData";
+import type { UserSignals } from "../types";
+import { mapCheckInToSignals } from "../daraModel";
 
 import {
   buildActiveSignalFromCheckIn,
   buildDailySummary,
+  buildHomeActionCards,
+  buildHomeSignalCards,
   buildHomeSignals,
 } from "./context-engine";
 
 import { buildForecast } from "./forecast-engine";
 
+const DEFAULT_USER_SIGNALS: UserSignals = {
+  sleepHours: 6.2,
+  workload: 7,
+  recovery: 4,
+  spendingPressure: 5,
+};
+
 export function buildDaraBrain(data: DaraUserData) {
+  const userSignals = data.dailyCheckIn
+    ? mapCheckInToSignals(DEFAULT_USER_SIGNALS, data.dailyCheckIn)
+    : DEFAULT_USER_SIGNALS;
+
   const activeSignal =
     buildActiveSignalFromCheckIn(data.dailyCheckIn);
 
@@ -39,6 +54,9 @@ export function buildDaraBrain(data: DaraUserData) {
     home: {
       activeSignal,
       signals: homeSignals,
+      userSignals,
+      signalCards: buildHomeSignalCards(userSignals),
+      actions: buildHomeActionCards(),
       summary,
     },
   };

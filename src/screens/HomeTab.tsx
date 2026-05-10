@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -15,18 +15,16 @@ import AnimatedPressable from "../components/AnimatedPressable";
 import AnimatedBottomSheet from "../components/AnimatedBottomSheet";
 import ScreenBackground from "../components/ScreenBackground";
 
-import type { RiskLevel, UserSignals } from "../types";
+import type { RiskLevel } from "../types";
 import {
   calculateRisk,
   
 } from "../logic";
 
-import { buildSummaryPoints, mapCheckInToSignals } from "../daraModel";
+import { buildSummaryPoints } from "../daraModel";
 import { useDaraData } from "../useDaraData";
 import { buildDaraBrain } from "../lib/dara-brain";
 import {
-  buildHomeActionCards,
-  buildHomeSignalCards,
   buildHomeSignalDetailPoints,
   buildHomeActionDetailPoints,
 } from "../lib/context-engine";
@@ -130,13 +128,6 @@ export default function HomeTab({
   dataVersion = 0,
   onOpenCheckIn,
 }: HomeTabProps) {
-  const [signals, setSignals] = useState<UserSignals>({
-    sleepHours: 6.2,
-    workload: 7,
-    recovery: 4,
-    spendingPressure: 5,
-  });
-  
   const [detail, setDetail] = useState<DetailState>(null);
   const { data, isLoading, reload } = useDaraData(dataVersion);
   const latestCheckIn = data.dailyCheckIn;
@@ -155,18 +146,14 @@ export default function HomeTab({
     });
   }, [data.dailyContextEvents]);
 
-  useEffect(() => {
-    if (latestCheckIn) {
-      setSignals((current) => mapCheckInToSignals(current, latestCheckIn));
-    }
-  }, [latestCheckIn]);
-  const risk = calculateRisk(signals);
-  const riskCopy = getRiskCopy(risk);
   const daraBrain = buildDaraBrain({
     ...data,
     dailyContextEvents: todayContextEvents,
   });
 
+  const userSignals = daraBrain.home.userSignals;
+  const risk = calculateRisk(userSignals);
+  const riskCopy = getRiskCopy(risk);
   const activeSignalCopy = daraBrain.home.activeSignal || riskCopy;
   const todayMealCount = todayContextEvents.filter(
     (event) => event.type === "meal"
@@ -175,15 +162,8 @@ export default function HomeTab({
   const activeSignalContext = latestCheckIn
   ? `Today: energy ${latestCheckIn.energy}/10, stress ${latestCheckIn.stress}/10, workload ${latestCheckIn.workload}/10.`
   : "Add a daily check-in to make this signal more personal.";
-  const signalCards = useMemo<SignalCard[]>(
-    () => buildHomeSignalCards(signals),
-    [signals]
-  );
-
-  const actions = useMemo<ActionCard[]>(
-    () => buildHomeActionCards(),
-    []
-  );
+  const signalCards = daraBrain.home.signalCards;
+  const actions = daraBrain.home.actions;
 
 function openSummary() {
   setDetail({
@@ -191,7 +171,7 @@ function openSummary() {
     title: activeSignalCopy.title,
     subtitle: activeSignalCopy.text,
     accent: activeSignalCopy.accent,
-    points: buildSummaryPoints(signals, latestCheckIn),
+    points: buildSummaryPoints(userSignals, latestCheckIn),
   });
 }
   function openSignal(card: SignalCard) {
