@@ -97,7 +97,7 @@ return (
           <Text style={styles.heroText}>{forecastHero.summary}</Text>
 
           <Text style={styles.confidenceText}>
-            Confidence {forecastHero.confidence}% · Risk {forecastHero.risk}
+            Confidence {forecastHero.confidence}% · {forecastHero.likelihood}
           </Text>
         </View>
 

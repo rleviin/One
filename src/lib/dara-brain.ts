@@ -66,6 +66,7 @@ export function buildDaraBrain(data: DaraUserData) {
       icon: forecast.icon,
       confidence: forecast.confidence,
       risk: forecast.risk,
+      likelihood: forecast.likelihood,
     },
     timeline: forecast.timeline,
     reasons: forecast.reasons,
