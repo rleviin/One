@@ -260,15 +260,8 @@ return (
           <View style={styles.setupTextBlock}>
             <Text style={styles.setupTitle}>Summary report</Text>
             <Text style={styles.setupText}>
-              Generate a thesis-style Dara summary with scores, patterns and
-              recommendations for a selected period.
+              View scores, patterns and recommendations for your latest period.
             </Text>
-
-            <View style={styles.baselineTags}>
-              <Text style={styles.baselineTag}>PDF later</Text>
-              <Text style={styles.baselineTag}>Scores</Text>
-              <Text style={styles.baselineTag}>Patterns</Text>
-            </View>
           </View>
 
           <View style={styles.arrowCircle}>
@@ -1030,24 +1023,24 @@ const styles = StyleSheet.create({
   summaryReportCard: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 28,
-    padding: 16,
-    backgroundColor: "rgba(74,222,128,0.10)",
+    borderRadius: 24,
+    padding: 14,
+    backgroundColor: "rgba(74,222,128,0.08)",
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.24)",
-    marginBottom: 24,
+    borderColor: "rgba(74,222,128,0.20)",
+    marginBottom: 18,
   },
 
   summaryReportIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: "rgba(74,222,128,0.14)",
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: "rgba(74,222,128,0.12)",
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.30)",
+    borderColor: "rgba(74,222,128,0.26)",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 14,
+    marginRight: 12,
   },
 
   personalBaselineCard: {
