@@ -27,7 +27,7 @@ import {
 import type { DailyCheckInData, DailyContextEvent } from "../storage";
 import { loadDailyCheckIn, loadDailyContextEvents } from "../storage";
 import { buildSummaryPoints, mapCheckInToSignals } from "../daraModel";
-import { buildActiveSignalFromCheckIn } from "../lib/context-engine";
+import { buildDaraBrain } from "../lib/dara-brain";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -197,8 +197,16 @@ async function handleRefresh() {
 }
   const risk = calculateRisk(signals);
   const riskCopy = getRiskCopy(risk);
-  const checkInActiveSignal = buildActiveSignalFromCheckIn(latestCheckIn);
-  const activeSignalCopy = checkInActiveSignal || riskCopy;
+  const daraBrain = buildDaraBrain({
+    personalSetup: null,
+    dailyCheckIn: latestCheckIn,
+    dailyCheckInHistory: latestCheckIn ? [latestCheckIn] : [],
+    dailyContextEvents: todayContextEvents,
+    externalContext: null,
+    healthRecord: null,
+  });
+
+  const activeSignalCopy = daraBrain.activeSignal || riskCopy;
   const todayMealCount = todayContextEvents.filter(
     (event) => event.type === "meal"
   ).length;
