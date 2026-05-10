@@ -12,7 +12,6 @@ import * as DocumentPicker from "expo-document-picker";
 import type { HealthRecordFile } from "../storage";
 import { saveHealthRecord } from "../storage";
 import { useDaraData } from "../useDaraData";
-import { buildDaraReport } from "../lib/report-engine";
 import { lightTap, mediumTap, successTap } from "../haptics";
 import AnimatedPressable from "../components/AnimatedPressable";
 import AnimatedBottomSheet from "../components/AnimatedBottomSheet";
@@ -74,7 +73,6 @@ export default function ProfileTab({
   const [showHealthRecords, setShowHealthRecords] = useState(false);
   const [showAppleHealth, setShowAppleHealth] = useState(false);
   const [showExternalContext, setShowExternalContext] = useState(false);
-  const [showSummaryReport, setShowSummaryReport] = useState(false);
   const [showHistoryPreview, setShowHistoryPreview] = useState(false);
   const { data, isLoading, reload } = useDaraData(dataVersion);
   const [showContextSheet, setShowContextSheet] = useState(false);
@@ -82,7 +80,6 @@ export default function ProfileTab({
   const healthRecord = data.healthRecord;
   const latestCheckIn = data.dailyCheckIn;
   const recentCheckIns = data.dailyCheckInHistory.slice(0, 5);
-  const summaryReport = buildDaraReport(data);
   const todayContextEvents = data.dailyContextEvents.filter((item) => {
   const eventDate = new Date(item.createdAt);
   const today = new Date();
@@ -245,35 +242,6 @@ return (
               <Text style={styles.baselineTag}>Economy</Text>
               <Text style={styles.baselineTag}>Probability</Text>
             </View>
-          </View>
-        </AnimatedPressable>
-
-        <AnimatedPressable
-          style={styles.pressableFullWidth}
-          contentStyle={styles.summaryReportCard}
-          pressedScale={0.975}
-          onPress={() => {
-            mediumTap();
-            setShowSummaryReport(true);
-          }}
-        >
-          <View style={styles.summaryReportIcon}>
-            <Ionicons name="document-text-outline" size={25} color="#4ADE80" />
-          </View>
-
-          <View style={styles.setupTextBlock}>
-            <Text style={styles.setupTitle}>Summary report</Text>
-            <Text style={styles.setupText}>
-              View scores, patterns and recommendations for your latest period.
-            </Text>
-          </View>
-
-          <View style={styles.arrowCircle}>
-            <Ionicons
-              name="chevron-forward"
-              size={22}
-              color="rgba(255,255,255,0.86)"
-            />
           </View>
         </AnimatedPressable>
 
@@ -488,70 +456,6 @@ return (
           </View>
         </View>
       </ScrollView>
-
-      <AnimatedBottomSheet
-        visible={showSummaryReport}
-        onClose={() => {
-          lightTap();
-          setShowSummaryReport(false);
-        }}
-      >
-        <View style={styles.summarySheetIcon}>
-          <Ionicons name="document-text-outline" size={25} color="#4ADE80" />
-        </View>
-
-        <Text style={styles.sheetTitle}>Summary report</Text>
-
-        <Text style={styles.sheetSubtitle}>
-          {summaryReport.periodLabel}. Dara combines check-ins, context, patterns
-          and forecast signals into a compact report.
-        </Text>
-
-        <View style={styles.scoreGrid}>
-          <View style={styles.scoreBox}>
-            <Text style={styles.scoreValue}>{summaryReport.scores.recovery}</Text>
-            <Text style={styles.scoreLabel}>Recovery</Text>
-          </View>
-
-          <View style={styles.scoreBox}>
-            <Text style={styles.scoreValue}>{summaryReport.scores.stress}</Text>
-            <Text style={styles.scoreLabel}>Stress</Text>
-          </View>
-
-          <View style={styles.scoreBox}>
-            <Text style={styles.scoreValue}>{summaryReport.scores.nutrition}</Text>
-            <Text style={styles.scoreLabel}>Nutrition</Text>
-          </View>
-
-          <View style={styles.scoreBox}>
-            <Text style={styles.scoreValue}>{summaryReport.scores.context}</Text>
-            <Text style={styles.scoreLabel}>Context</Text>
-          </View>
-        </View>
-
-        <View style={styles.recordList}>
-          {summaryReport.summaryBullets.slice(0, 4).map((point, index) => (
-            <View key={index} style={styles.recordItem}>
-              <Ionicons name="sparkles-outline" size={20} color="#4ADE80" />
-              <View style={styles.recordTextBlock}>
-                <Text style={styles.recordTitle}>Report point {index + 1}</Text>
-                <Text style={styles.recordText}>{point}</Text>
-              </View>
-            </View>
-          ))}
-        </View>
-
-        <AnimatedPressable
-          style={styles.sheetButton}
-          pressedScale={0.97}
-          onPress={() => {
-            lightTap();
-            setShowSummaryReport(false);
-          }}
-        >
-          <Text style={styles.sheetButtonText}>PDF export later</Text>
-        </AnimatedPressable>
-      </AnimatedBottomSheet>
 
       <AnimatedBottomSheet
         visible={showHealthRecords}
@@ -1082,69 +986,12 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.12)",
   },
 
-  summaryReportCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 24,
-    padding: 14,
-    backgroundColor: "rgba(74,222,128,0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.20)",
-    marginBottom: 18,
-  },
 
-  summarySheetIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "rgba(74,222,128,0.14)",
-    borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.30)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 22,
-  },
 
-  scoreGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-    marginBottom: 18,
-  },
 
-  scoreBox: {
-    width: "48%",
-    borderRadius: 20,
-    padding: 14,
-    backgroundColor: "rgba(255,255,255,0.07)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)",
-  },
 
-  scoreValue: {
-    color: "#FFFFFF",
-    fontSize: 28,
-    fontWeight: "900",
-  },
 
-  scoreLabel: {
-    color: "rgba(255,255,255,0.60)",
-    fontSize: 13,
-    fontWeight: "800",
-    marginTop: 2,
-  },
 
-  summaryReportIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: "rgba(74,222,128,0.12)",
-    borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.26)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
 
   personalBaselineCard: {
     flexDirection: "row",
