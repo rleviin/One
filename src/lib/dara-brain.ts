@@ -11,6 +11,7 @@ import {
 } from "./context-engine";
 
 import { buildForecast } from "./forecast-engine";
+import { buildPatternAnalysis } from "./pattern-engine";
 
 const DEFAULT_USER_SIGNALS: UserSignals = {
   sleepHours: 6.2,
@@ -46,6 +47,15 @@ export function buildDaraBrain(data: DaraUserData) {
     externalContext: data.externalContext,
   });
 
+  const patterns = buildPatternAnalysis({
+    checkInHistory: data.dailyCheckInHistory,
+    contextEvents: data.dailyContextEvents,
+  });
+
+  const insightsView = {
+    patterns,
+  };
+
   const forecastView = {
     hero: {
       title: forecast.title,
@@ -66,6 +76,8 @@ export function buildDaraBrain(data: DaraUserData) {
     summary,
     homeSignals,
     forecast,
+    patterns,
+    insightsView,
     forecastView,
     home: {
       activeSignal,
