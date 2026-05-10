@@ -25,7 +25,7 @@ import type { DailyCheckInData, DailyContextEvent } from "../storage";
 import { loadDailyCheckIn, loadDailyContextEvents } from "../storage";
 import { buildSummaryPoints, mapCheckInToSignals } from "../daraModel";
 import { buildDaraBrain } from "../lib/dara-brain";
-import { buildHomeSignalCards } from "../lib/context-engine";
+import { buildHomeActionCards, buildHomeSignalCards } from "../lib/context-engine";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -218,29 +218,7 @@ async function handleRefresh() {
   );
 
   const actions = useMemo<ActionCard[]>(
-    () => [
-      {
-        key: "recovery",
-        title: "Recovery",
-        text: "Prioritize recovery today.",
-        icon: "leaf-outline",
-        accent: "green",
-      },
-      {
-        key: "finance",
-        title: "Finance",
-        text: "Reduce external pressure.",
-        icon: "cash-outline",
-        accent: "cyan",
-      },
-      {
-        key: "reset",
-        title: "Reset",
-        text: "A 10 min reset can help you recalibrate.",
-        icon: "refresh-outline",
-        accent: "orange",
-      },
-    ],
+    () => buildHomeActionCards(),
     []
   );
 

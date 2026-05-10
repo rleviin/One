@@ -30,6 +30,14 @@ export type DaraHomeSignalCard = {
   accent: DaraHomeAccent;
 };
 
+export type DaraHomeActionCard = {
+  key: "recovery" | "finance" | "reset";
+  title: string;
+  text: string;
+  icon: "leaf-outline" | "cash-outline" | "refresh-outline";
+  accent: DaraHomeAccent;
+};
+
 export function getScoreTone(score: number): DaraSignalTone {
   if (score >= 75) {
     return "green";
@@ -105,6 +113,32 @@ export function buildHomeSignalCards(signals: UserSignals): DaraHomeSignalCard[]
       status: signals.spendingPressure >= 5 ? "Pressure up" : "Stable",
       icon: "card-outline",
       accent: "cyan",
+    },
+  ];
+}
+
+export function buildHomeActionCards(): DaraHomeActionCard[] {
+  return [
+    {
+      key: "recovery",
+      title: "Recovery",
+      text: "Prioritize recovery today.",
+      icon: "leaf-outline",
+      accent: "green",
+    },
+    {
+      key: "finance",
+      title: "Finance",
+      text: "Reduce external pressure.",
+      icon: "cash-outline",
+      accent: "cyan",
+    },
+    {
+      key: "reset",
+      title: "Reset",
+      text: "A 10 min reset can help you recalibrate.",
+      icon: "refresh-outline",
+      accent: "orange",
     },
   ];
 }
