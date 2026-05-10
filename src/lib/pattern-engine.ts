@@ -64,6 +64,10 @@ export function buildPatternAnalysis({
   const avgWorkload = average(recentCheckIns.map((item) => item.workload));
   const mealSignals = contextEvents.filter((event) => event.type === "meal").length;
 
+  const avgMoneyPressure = average(
+    recentCheckIns.map((item) => item.spendingPressure)
+  );
+
   const lowEnergyStreak = recentCheckIns
     .slice(0, 3)
     .every((item) => item.energy <= 5);
@@ -179,6 +183,24 @@ export function buildPatternAnalysis({
         "Stress or workload stayed high across recent check-ins.",
         "This can become more important than a single bad day.",
         "Reducing non-critical load may lower short-term fatigue risk.",
+      ],
+    });
+  }
+
+  if (avgStress >= 6 && avgMoneyPressure >= 6) {
+    insights.push({
+      id: "money-stress-correlation",
+      title: "Money pressure may be affecting stress",
+      summary:
+        "Recent check-ins suggest financial pressure and stress are moving together.",
+      severity: "medium",
+      label: "MONEY + STRESS",
+      accent: "#58E7FF",
+      icon: "card-outline",
+      points: [
+        "Money pressure and stress are both elevated.",
+        "This can increase background cognitive load.",
+        "External economy and cost-of-living data will improve this pattern later.",
       ],
     });
   }
