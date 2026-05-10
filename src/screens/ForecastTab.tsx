@@ -22,11 +22,12 @@ type ForecastTabProps = {
 export default function ForecastTab({ dataVersion = 0 }: ForecastTabProps) {
   const { data, isLoading, reload } = useDaraData(dataVersion);
   const daraBrain = useMemo(() => buildDaraBrain(data), [data]);
-  const engineForecast = daraBrain.forecast;
+  const forecastView = daraBrain.forecastView;
+  const forecastHero = forecastView.hero;
 
-  const whyPoints = engineForecast.reasons;
-  const changePoints = engineForecast.changePoints;
-  const timeline = engineForecast.timeline;
+  const whyPoints = forecastView.reasons;
+  const changePoints = forecastView.actions;
+  const timeline = forecastView.timeline;
 
 return (
   <ScreenBackground>
@@ -55,7 +56,7 @@ return (
         <View style={styles.heroCard}>
           <LinearGradient
             colors={[
-              `${engineForecast.accent}28`,
+              `${forecastHero.accent}28`,
               "rgba(255,255,255,0.07)",
               "rgba(255,255,255,0.035)",
             ]}
@@ -69,34 +70,34 @@ return (
               style={[
                 styles.heroIcon,
                 {
-                  borderColor: `${engineForecast.accent}77`,
-                  backgroundColor: `${engineForecast.accent}18`,
+                  borderColor: `${forecastHero.accent}77`,
+                  backgroundColor: `${forecastHero.accent}18`,
                 },
               ]}
             >
-              <Ionicons name={engineForecast.icon} size={25} color={engineForecast.accent} />
+              <Ionicons name={forecastHero.icon} size={25} color={forecastHero.accent} />
             </View>
 
             <View
               style={[
                 styles.badge,
                 {
-                  borderColor: `${engineForecast.accent}66`,
-                  backgroundColor: `${engineForecast.accent}18`,
+                  borderColor: `${forecastHero.accent}66`,
+                  backgroundColor: `${forecastHero.accent}18`,
                 },
               ]}
             >
-              <Text style={[styles.badgeText, { color: engineForecast.accent }]}>
-                {engineForecast.badge}
+              <Text style={[styles.badgeText, { color: forecastHero.accent }]}>
+                {forecastHero.badge}
               </Text>
             </View>
           </View>
 
-          <Text style={styles.heroTitle}>{engineForecast.title}</Text>
-          <Text style={styles.heroText}>{engineForecast.summary}</Text>
+          <Text style={styles.heroTitle}>{forecastHero.title}</Text>
+          <Text style={styles.heroText}>{forecastHero.summary}</Text>
 
           <Text style={styles.confidenceText}>
-            Confidence {engineForecast.confidence}% · Risk {engineForecast.risk}
+            Confidence {forecastHero.confidence}% · Risk {forecastHero.risk}
           </Text>
         </View>
 
@@ -109,7 +110,7 @@ return (
                 <View
                   style={[
                     styles.timelineDot,
-                    index === 0 && { backgroundColor: engineForecast.accent },
+                    index === 0 && { backgroundColor: forecastHero.accent },
                   ]}
                 />
                 {index < timeline.length - 1 && <View style={styles.timelineLine} />}
@@ -129,7 +130,7 @@ return (
         <View style={styles.infoCard}>
           {whyPoints.map((point, index) => (
             <View key={index} style={styles.infoRow}>
-              <View style={[styles.infoDot, { backgroundColor: engineForecast.accent }]} />
+              <View style={[styles.infoDot, { backgroundColor: forecastHero.accent }]} />
               <Text style={styles.infoText}>{point}</Text>
             </View>
           ))}

@@ -46,11 +46,27 @@ export function buildDaraBrain(data: DaraUserData) {
     externalContext: data.externalContext,
   });
 
+  const forecastView = {
+    hero: {
+      title: forecast.title,
+      summary: forecast.summary,
+      badge: forecast.badge,
+      accent: forecast.accent,
+      icon: forecast.icon,
+      confidence: forecast.confidence,
+      risk: forecast.risk,
+    },
+    timeline: forecast.timeline,
+    reasons: forecast.reasons,
+    actions: forecast.changePoints,
+  };
+
   return {
     activeSignal,
     summary,
     homeSignals,
     forecast,
+    forecastView,
     home: {
       activeSignal,
       signals: homeSignals,
