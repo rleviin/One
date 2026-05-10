@@ -369,6 +369,27 @@ export default function CheckInHistoryScreen({
               </Text>
             )}
           </View>
+
+          <AnimatedPressable
+            style={styles.pdfButton}
+            pressedScale={0.975}
+            onPress={() => {
+              lightTap();
+            }}
+          >
+            <View style={styles.pdfButtonIcon}>
+              <Ionicons name="document-text-outline" size={22} color="#07101F" />
+            </View>
+
+            <View style={styles.pdfButtonTextBlock}>
+              <Text style={styles.pdfButtonTitle}>Export PDF snapshot</Text>
+              <Text style={styles.pdfButtonText}>
+                Short report with scores, patterns and recommendations.
+              </Text>
+            </View>
+
+            <Ionicons name="chevron-forward" size={20} color="#07101F" />
+          </AnimatedPressable>
         </ScrollView>
       </SafeAreaView>
     </ScreenBackground>
@@ -644,6 +665,44 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.58)",
     fontSize: 12,
     fontWeight: "900",
+  },
+
+  pdfButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 26,
+    padding: 15,
+    backgroundColor: "rgba(255,255,255,0.92)",
+    marginTop: 4,
+    marginBottom: 22,
+  },
+
+  pdfButtonIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: "rgba(7,16,31,0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+
+  pdfButtonTextBlock: {
+    flex: 1,
+  },
+
+  pdfButtonTitle: {
+    color: "#07101F",
+    fontSize: 17,
+    fontWeight: "900",
+    marginBottom: 3,
+  },
+
+  pdfButtonText: {
+    color: "rgba(7,16,31,0.62)",
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "700",
   },
 
   selectedCard: {
