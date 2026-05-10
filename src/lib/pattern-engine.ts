@@ -64,6 +64,14 @@ export function buildPatternAnalysis({
   const avgWorkload = average(recentCheckIns.map((item) => item.workload));
   const mealSignals = contextEvents.filter((event) => event.type === "meal").length;
 
+  const lowEnergyStreak = recentCheckIns
+    .slice(0, 3)
+    .every((item) => item.energy <= 5);
+
+  const overloadStreak = recentCheckIns
+    .slice(0, 3)
+    .every((item) => item.workload >= 7 || item.stress >= 7);
+
   const insights: DaraPatternInsight[] = [
     {
       id: "recovery-pattern",
@@ -111,6 +119,42 @@ export function buildPatternAnalysis({
       ],
     },
   ];
+
+  if (lowEnergyStreak && recentCheckIns.length >= 3) {
+    insights.push({
+      id: "sleep-debt-proxy",
+      title: "Possible sleep debt pattern",
+      summary:
+        "Energy has stayed low across recent check-ins. Dara will treat this as possible sleep debt until sleep data is connected.",
+      severity: "medium",
+      label: "SLEEP DEBT",
+      accent: "#C96BFF",
+      icon: "battery-dead-outline",
+      points: [
+        "Energy stayed low for several recent check-ins.",
+        "Without sleep data, Dara treats this as a possible sleep debt signal.",
+        "Apple Health sleep connection will make this pattern more accurate.",
+      ],
+    });
+  }
+
+  if (overloadStreak && recentCheckIns.length >= 3) {
+    insights.push({
+      id: "overload-streak",
+      title: "Overload streak detected",
+      summary:
+        "Stress or workload has stayed elevated for several check-ins, which can increase fatigue risk.",
+      severity: "high",
+      label: "OVERLOAD",
+      accent: "#FF647C",
+      icon: "pulse-outline",
+      points: [
+        "Stress or workload stayed high across recent check-ins.",
+        "This can become more important than a single bad day.",
+        "Reducing non-critical load may lower short-term fatigue risk.",
+      ],
+    });
+  }
 
   if (avgStress >= 7) {
     insights.push({
