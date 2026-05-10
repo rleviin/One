@@ -105,7 +105,7 @@ export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
 >
               <LinearGradient
                 colors={[
-                  "rgba(185,198,255,0.18)",
+                  `${insight.accent}22`,
                   "rgba(255,255,255,0.055)",
                   "rgba(255,255,255,0.035)",
                 ]}
@@ -118,17 +118,17 @@ export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
                 style={[
                   styles.insightIcon,
                   {
-                    borderColor: "rgba(185,198,255,0.38)",
-                    backgroundColor: "rgba(185,198,255,0.14)",
+                    borderColor: `${insight.accent}77`,
+                    backgroundColor: `${insight.accent}18`,
                   },
                 ]}
               >
-                <Ionicons name="git-branch-outline" size={23} color="#B9C6FF" />
+                <Ionicons name={insight.icon} size={23} color={insight.accent} />
               </View>
 
               <View style={styles.insightTextBlock}>
-                <Text style={[styles.insightLabel, { color: "#B9C6FF" }]}>
-                  {insight.severity.toUpperCase()}
+                <Text style={[styles.insightLabel, { color: insight.accent }]}>
+                  {insight.label}
                 </Text>
                 <Text style={styles.insightTitle}>{insight.title}</Text>
                 <Text style={styles.insightText}>{insight.summary}</Text>
@@ -167,15 +167,15 @@ export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
         style={[
           styles.sheetIcon,
           {
-            borderColor: "rgba(185,198,255,0.38)",
-            backgroundColor: "rgba(185,198,255,0.14)",
+            borderColor: `${selectedInsight.accent}77`,
+            backgroundColor: `${selectedInsight.accent}18`,
           },
         ]}
       >
         <Ionicons
-          name="git-branch-outline"
+          name={selectedInsight.icon}
           size={25}
-          color="#B9C6FF"
+          color={selectedInsight.accent}
         />
       </View>
 
@@ -183,12 +183,12 @@ export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
       <Text style={styles.sheetSubtitle}>{selectedInsight.summary}</Text>
 
       <View style={styles.sheetPoints}>
-        {[selectedInsight.summary].map((point, index) => (
+        {selectedInsight.points.map((point, index) => (
           <View key={index} style={styles.sheetPoint}>
             <View
               style={[
                 styles.sheetPointDot,
-                { backgroundColor: "#B9C6FF" },
+                { backgroundColor: selectedInsight.accent },
               ]}
             />
             <Text style={styles.sheetPointText}>{point}</Text>
