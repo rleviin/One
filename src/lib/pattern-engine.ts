@@ -202,5 +202,13 @@ export function buildPatternAnalysis({
     });
   }
 
-  return insights;
+  const severityRank = {
+    high: 0,
+    medium: 1,
+    low: 2,
+  };
+
+  return insights.sort(
+    (a, b) => severityRank[a.severity] - severityRank[b.severity]
+  );
 }
