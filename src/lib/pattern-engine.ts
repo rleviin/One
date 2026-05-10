@@ -11,6 +11,9 @@ export type DaraPatternInsight = {
   accent: string;
   icon:
     | "git-branch-outline"
+    | "leaf-outline"
+    | "card-outline"
+    | "bulb-outline"
     | "pulse-outline"
     | "battery-dead-outline"
     | "fitness-outline"
@@ -61,7 +64,53 @@ export function buildPatternAnalysis({
   const avgWorkload = average(recentCheckIns.map((item) => item.workload));
   const mealSignals = contextEvents.filter((event) => event.type === "meal").length;
 
-  const insights: DaraPatternInsight[] = [];
+  const insights: DaraPatternInsight[] = [
+    {
+      id: "recovery-pattern",
+      title: "Recovery pattern",
+      summary:
+        "Dara checks how energy, stress and workload are interacting today.",
+      severity: "low",
+      label: "RECOVERY PATTERN",
+      accent: "#4ADE80",
+      icon: "leaf-outline",
+      points: [
+        "Energy, stress and workload are checked together.",
+        "This helps Dara understand whether recovery is keeping up.",
+        "More history will make this pattern more personal.",
+      ],
+    },
+    {
+      id: "money-stress-pattern",
+      title: "Money and stress pattern",
+      summary:
+        "Dara watches whether financial pressure is adding background load.",
+      severity: "low",
+      label: "PRESSURE PATTERN",
+      accent: "#58E7FF",
+      icon: "card-outline",
+      points: [
+        "Financial pressure can affect focus and stress.",
+        "Dara compares money pressure with energy and workload.",
+        "External economic context will improve this later.",
+      ],
+    },
+    {
+      id: "focus-stability-pattern",
+      title: "Focus stability pattern",
+      summary:
+        "Dara checks whether workload and energy support deep work today.",
+      severity: "low",
+      label: "FOCUS PATTERN",
+      accent: "#C96BFF",
+      icon: "bulb-outline",
+      points: [
+        "Focus depends on energy, recovery and current load.",
+        "High workload with low energy can reduce deep work quality.",
+        "Calendar and sleep data will improve this signal later.",
+      ],
+    },
+  ];
 
   if (avgStress >= 7) {
     insights.push({
@@ -135,7 +184,7 @@ export function buildPatternAnalysis({
     });
   }
 
-  if (insights.length === 0) {
+  if (insights.length === 3) {
     insights.push({
       id: "patterns-stable",
       title: "No strong negative pattern detected",
