@@ -18,16 +18,14 @@ import ScreenBackground from "../components/ScreenBackground";
 import type { RiskLevel, UserSignals } from "../types";
 import {
   calculateRisk,
-  getFinanceRecommendation,
-  getRecoveryRecommendation,
-  getSleepRecommendation,
-  getWorkloadRecommendation,
+  
 } from "../logic";
 
 import type { DailyCheckInData, DailyContextEvent } from "../storage";
 import { loadDailyCheckIn, loadDailyContextEvents } from "../storage";
 import { buildSummaryPoints, mapCheckInToSignals } from "../daraModel";
 import { buildDaraBrain } from "../lib/dara-brain";
+import { buildHomeSignalCards } from "../lib/context-engine";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -215,48 +213,7 @@ async function handleRefresh() {
   ? `Today: energy ${latestCheckIn.energy}/10, stress ${latestCheckIn.stress}/10, workload ${latestCheckIn.workload}/10.`
   : "Add a daily check-in to make this signal more personal.";
   const signalCards = useMemo<SignalCard[]>(
-    () => [
-      {
-        key: "sleep",
-        label: "Sleep",
-        value: `${signals.sleepHours.toFixed(1)}h`,
-        note: "Last night",
-        recommendation: getSleepRecommendation(signals.sleepHours),
-        status: signals.sleepHours < 6.8 ? "Below goal" : "Good range",
-        icon: "moon-outline",
-        accent: "purple",
-      },
-      {
-        key: "workload",
-        label: "Load",
-        value: `${signals.workload}/10`,
-        note: "Current load",
-        recommendation: getWorkloadRecommendation(signals.workload),
-        status: signals.workload >= 7 ? "Trending up" : "Controlled",
-        icon: "trending-up-outline",
-        accent: "orange",
-      },
-      {
-        key: "recovery",
-        label: "Recovery",
-        value: `${signals.recovery}/10`,
-        note: "Recovery state",
-        recommendation: getRecoveryRecommendation(signals.recovery),
-        status: signals.recovery <= 4 ? "Needs care" : "Compensating",
-        icon: "leaf-outline",
-        accent: "green",
-      },
-      {
-        key: "finance",
-        label: "Finance",
-        value: `${signals.spendingPressure}/10`,
-        note: "External pressure",
-        recommendation: getFinanceRecommendation(signals.spendingPressure),
-        status: signals.spendingPressure >= 5 ? "Pressure up" : "Stable",
-        icon: "card-outline",
-        accent: "cyan",
-      },
-    ],
+    () => buildHomeSignalCards(signals),
     [signals]
   );
 

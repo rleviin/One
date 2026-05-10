@@ -1,4 +1,11 @@
 import type { DailyCheckInData, DailyContextEvent, ExternalContextData, PersonalSetupData } from "../storage";
+import type { UserSignals } from "../types";
+import {
+  getFinanceRecommendation,
+  getRecoveryRecommendation,
+  getSleepRecommendation,
+  getWorkloadRecommendation,
+} from "../logic";
 
 export type DaraSignalTone = "green" | "orange" | "red" | "blue" | "purple";
 
@@ -8,6 +15,19 @@ export type DaraSignal = {
   summary: string;
   score: number;
   tone: DaraSignalTone;
+};
+
+export type DaraHomeAccent = "blue" | "purple" | "cyan" | "orange" | "green" | "red";
+
+export type DaraHomeSignalCard = {
+  key: "sleep" | "workload" | "recovery" | "finance";
+  label: string;
+  value: string;
+  note: string;
+  recommendation: string;
+  status: string;
+  icon: "moon-outline" | "trending-up-outline" | "leaf-outline" | "card-outline";
+  accent: DaraHomeAccent;
 };
 
 export function getScoreTone(score: number): DaraSignalTone {
@@ -42,6 +62,51 @@ export function buildNutritionScore(contextEvents: DailyContextEvent[]) {
 
 export function buildContextDensityScore(contextEvents: DailyContextEvent[]) {
   return Math.min(100, contextEvents.length * 18);
+}
+
+export function buildHomeSignalCards(signals: UserSignals): DaraHomeSignalCard[] {
+  return [
+    {
+      key: "sleep",
+      label: "Sleep",
+      value: `${signals.sleepHours.toFixed(1)}h`,
+      note: "Last night",
+      recommendation: getSleepRecommendation(signals.sleepHours),
+      status: signals.sleepHours < 6.8 ? "Below goal" : "Good range",
+      icon: "moon-outline",
+      accent: "purple",
+    },
+    {
+      key: "workload",
+      label: "Load",
+      value: `${signals.workload}/10`,
+      note: "Current load",
+      recommendation: getWorkloadRecommendation(signals.workload),
+      status: signals.workload >= 7 ? "Trending up" : "Controlled",
+      icon: "trending-up-outline",
+      accent: "orange",
+    },
+    {
+      key: "recovery",
+      label: "Recovery",
+      value: `${signals.recovery}/10`,
+      note: "Recovery state",
+      recommendation: getRecoveryRecommendation(signals.recovery),
+      status: signals.recovery <= 4 ? "Needs care" : "Compensating",
+      icon: "leaf-outline",
+      accent: "green",
+    },
+    {
+      key: "finance",
+      label: "Finance",
+      value: `${signals.spendingPressure}/10`,
+      note: "External pressure",
+      recommendation: getFinanceRecommendation(signals.spendingPressure),
+      status: signals.spendingPressure >= 5 ? "Pressure up" : "Stable",
+      icon: "card-outline",
+      accent: "cyan",
+    },
+  ];
 }
 
 export function buildStressScore(checkIn: DailyCheckInData | null) {
