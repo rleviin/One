@@ -410,40 +410,6 @@ export default function CheckInHistoryScreen({
             </View>
           </View>
 
-          <View style={styles.trendCard}>
-            <Text style={styles.sectionTitle}>Month trend</Text>
-
-            <View style={styles.trendBars}>
-              {visibleMonthItems.slice(0, 14).reverse().map((item) => (
-                <View key={item.createdAt} style={styles.trendBarColumn}>
-                  <View
-                    style={[
-                      styles.trendBarEnergy,
-                      { height: Math.max(8, item.energy * 8) },
-                    ]}
-                  />
-                  <View
-                    style={[
-                      styles.trendBarStress,
-                      { height: Math.max(8, item.stress * 8) },
-                    ]}
-                  />
-                </View>
-              ))}
-
-              {visibleMonthItems.length === 0 && (
-                <Text style={styles.emptyText}>
-                  Save check-ins to see energy and stress trends.
-                </Text>
-              )}
-            </View>
-
-            <View style={styles.trendLegend}>
-              <Text style={styles.trendLegendText}>Energy</Text>
-              <Text style={styles.trendLegendText}>Stress</Text>
-            </View>
-          </View>
-
           <View style={styles.selectedCard}>
             <Text style={styles.sectionTitle}>
               {formatFullDate(selectedDate)}
@@ -519,6 +485,40 @@ export default function CheckInHistoryScreen({
                 No check-in saved for this date.
               </Text>
             )}
+          </View>
+
+          <View style={styles.trendCard}>
+            <Text style={styles.sectionTitle}>Month trend</Text>
+
+            <View style={styles.trendBars}>
+              {visibleMonthItems.slice(0, 14).reverse().map((item) => (
+                <View key={item.createdAt} style={styles.trendBarColumn}>
+                  <View
+                    style={[
+                      styles.trendBarEnergy,
+                      { height: Math.max(8, item.energy * 8) },
+                    ]}
+                  />
+                  <View
+                    style={[
+                      styles.trendBarStress,
+                      { height: Math.max(8, item.stress * 8) },
+                    ]}
+                  />
+                </View>
+              ))}
+
+              {visibleMonthItems.length === 0 && (
+                <Text style={styles.emptyText}>
+                  Save check-ins to see energy and stress trends.
+                </Text>
+              )}
+            </View>
+
+            <View style={styles.trendLegend}>
+              <Text style={styles.trendLegendText}>Energy</Text>
+              <Text style={styles.trendLegendText}>Stress</Text>
+            </View>
           </View>
 
           <AnimatedPressable
