@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import ScreenBackground from "../components/ScreenBackground";
 import AnimatedPressable from "../components/AnimatedPressable";
+import AnimatedBottomSheet from "../components/AnimatedBottomSheet";
 import { useDaraData } from "../useDaraData";
 import type { DailyCheckInData } from "../storage";
 import { lightTap } from "../haptics";
@@ -94,6 +95,7 @@ export default function CheckInHistoryScreen({
 
   const [visibleMonth, setVisibleMonth] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const [showPdfOptions, setShowPdfOptions] = useState(false);
 
   const monthDays = useMemo(() => buildMonthDays(visibleMonth), [visibleMonth]);
 
@@ -375,6 +377,7 @@ export default function CheckInHistoryScreen({
             pressedScale={0.975}
             onPress={() => {
               lightTap();
+              setShowPdfOptions(true);
             }}
           >
             <View style={styles.pdfButtonIcon}>
@@ -391,6 +394,64 @@ export default function CheckInHistoryScreen({
             <Ionicons name="chevron-forward" size={20} color="#07101F" />
           </AnimatedPressable>
         </ScrollView>
+
+        <AnimatedBottomSheet
+          visible={showPdfOptions}
+          onClose={() => {
+            lightTap();
+            setShowPdfOptions(false);
+          }}
+        >
+          <View style={styles.pdfSheetIcon}>
+            <Ionicons name="document-text-outline" size={25} color="#4ADE80" />
+          </View>
+
+          <Text style={styles.pdfSheetTitle}>Choose report period</Text>
+
+          <Text style={styles.pdfSheetText}>
+            Dara will compress patterns, recovery, stress, context and forecast
+            signals into a compact PDF snapshot.
+          </Text>
+
+          <View style={styles.periodList}>
+            {["Last 7 days", "Last 30 days", "Last 90 days", "Custom range later"].map(
+              (label, index) => (
+                <AnimatedPressable
+                  key={label}
+                  style={styles.periodOption}
+                  pressedScale={0.97}
+                  onPress={() => {
+                    lightTap();
+                    setShowPdfOptions(false);
+                  }}
+                >
+                  <View style={styles.periodOptionIcon}>
+                    <Ionicons
+                      name={index === 3 ? "calendar-outline" : "time-outline"}
+                      size={20}
+                      color="#4ADE80"
+                    />
+                  </View>
+
+                  <View style={styles.periodOptionTextBlock}>
+                    <Text style={styles.periodOptionTitle}>{label}</Text>
+                    <Text style={styles.periodOptionText}>
+                      {index === 3
+                        ? "Select exact dates in a future update."
+                        : "Generate a short intelligence snapshot."}
+                    </Text>
+                  </View>
+
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color="rgba(255,255,255,0.72)"
+                  />
+                </AnimatedPressable>
+              )
+            )}
+          </View>
+        </AnimatedBottomSheet>
       </SafeAreaView>
     </ScreenBackground>
   );
@@ -665,6 +726,79 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.58)",
     fontSize: 12,
     fontWeight: "900",
+  },
+
+  pdfSheetIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "rgba(74,222,128,0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(74,222,128,0.30)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 18,
+  },
+
+  pdfSheetTitle: {
+    color: "#FFFFFF",
+    fontSize: 28,
+    lineHeight: 33,
+    fontWeight: "900",
+    letterSpacing: -0.7,
+    marginBottom: 10,
+  },
+
+  pdfSheetText: {
+    color: "rgba(255,255,255,0.64)",
+    fontSize: 16,
+    lineHeight: 23,
+    fontWeight: "600",
+    marginBottom: 18,
+  },
+
+  periodList: {
+    gap: 10,
+  },
+
+  periodOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 22,
+    padding: 14,
+    backgroundColor: "rgba(255,255,255,0.07)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+  },
+
+  periodOptionIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(74,222,128,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(74,222,128,0.24)",
+    marginRight: 12,
+  },
+
+  periodOptionTextBlock: {
+    flex: 1,
+  },
+
+  periodOptionTitle: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "900",
+    marginBottom: 3,
+  },
+
+  periodOptionText: {
+    color: "rgba(255,255,255,0.58)",
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "700",
   },
 
   pdfButton: {
