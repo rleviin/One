@@ -14,6 +14,7 @@ import {
 } from "./probability-provider";
 
 export type ExternalProviderBundleInput = {
+  country?: string | null;
   healthRecord?: HealthRecordFile | null;
 };
 
@@ -25,12 +26,13 @@ export type ExternalProviderBundle = {
 };
 
 export async function loadExternalProviderBundle({
+  country = null,
   healthRecord = null,
 }: ExternalProviderBundleInput = {}): Promise<ExternalProviderBundle> {
   const [health, weather, probability] = await Promise.all([
     loadHealthProviderData(healthRecord),
     loadWeatherProviderData(),
-    loadProbabilityProviderData(),
+    loadProbabilityProviderData({ country }),
   ]);
 
   return {

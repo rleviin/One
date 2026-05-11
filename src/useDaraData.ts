@@ -65,6 +65,7 @@ export function useDaraData(dataVersion = 0) {
  
       const externalContext = buildMockExternalContext(personalSetup);
       const externalProviders = await loadExternalProviderBundle({
+        country: personalSetup?.country ?? null,
         healthRecord,
       });
 
