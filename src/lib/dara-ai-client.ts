@@ -1,3 +1,4 @@
+import { DARA_API_URL } from "./config";
 import type { DaraAIResponse } from "./dara-ai-engine";
 
 export type DaraAIClientRequest = {
@@ -5,10 +6,19 @@ export type DaraAIClientRequest = {
 };
 
 export async function requestDaraAIResponse(
-  _request: DaraAIClientRequest
+  request: DaraAIClientRequest
 ): Promise<DaraAIResponse | null> {
-  // Later this will call our secure backend:
-  // POST /api/dara/think
-  // The mobile app must not contain OpenAI API keys.
-  return null;
+  const response = await fetch(`${DARA_API_URL}/api/dara/think`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return (await response.json()) as DaraAIResponse;
 }
