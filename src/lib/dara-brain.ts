@@ -53,8 +53,16 @@ export function buildDaraBrain(data: DaraUserData) {
     patterns,
   });
 
+  const externalSignalsView = {
+    health: data.externalProviders?.health ?? null,
+    weather: data.externalProviders?.weather ?? null,
+    healthRecordStatus:
+      data.externalProviders?.health.healthRecord.status ?? "not_uploaded",
+  };
+
   const insightsView = {
     patterns,
+    externalSignals: externalSignalsView,
   };
 
   const forecastView = {
@@ -79,6 +87,7 @@ export function buildDaraBrain(data: DaraUserData) {
     homeSignals,
     forecast,
     patterns,
+    externalSignalsView,
     insightsView,
     forecastView,
     home: {
