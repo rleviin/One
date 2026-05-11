@@ -126,6 +126,11 @@ export function buildForecast({
       externalProviders?.weather.daylightHours !== undefined &&
       externalProviders.weather.daylightHours < 7;
 
+  const elevatedProbabilitySignals =
+    externalProviders?.probability.signals.filter(
+      (signal) => signal.probability >= 0.6
+    ) ?? [];
+
   const baseReasons = [
     `Energy ${latestCheckIn.energy}/10 and stress ${latestCheckIn.stress}/10 are driving the short-term forecast.`,
     `${historyDepth} historical check-in${historyDepth === 1 ? "" : "s"} available for trend confidence.`,
@@ -139,6 +144,9 @@ export function buildForecast({
     externalProviders?.weather
       ? `Weather context: ${externalProviders.weather.condition}, daylight ${externalProviders.weather.daylightHours ?? "unknown"}h.`
       : "Weather provider is not connected yet.",
+    elevatedProbabilitySignals.length > 0
+      ? `Probability context: ${elevatedProbabilitySignals.length} external market signal${elevatedProbabilitySignals.length === 1 ? "" : "s"} are elevated.`
+      : "No elevated probability-market context is affecting this forecast.",
   ];
 
   const externalReason =
