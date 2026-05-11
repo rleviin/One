@@ -56,6 +56,7 @@ export function buildDaraBrain(data: DaraUserData) {
 
   const externalSignalsView = {
     health: data.externalProviders?.health ?? null,
+    location: data.externalProviders?.location ?? null,
     weather: data.externalProviders?.weather ?? null,
     probability: data.externalProviders?.probability ?? null,
     healthRecordStatus:
