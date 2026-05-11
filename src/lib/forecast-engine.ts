@@ -4,6 +4,7 @@ import type {
   ExternalContextData,
 } from "../storage";
 import type { DaraPatternInsight } from "./pattern-engine";
+import type { ExternalProviderBundle } from "./providers/external-providers";
 
 export type ForecastRiskLevel = "low" | "medium" | "high";
 
@@ -30,6 +31,7 @@ type BuildForecastInput = {
   checkInHistory: DailyCheckInData[];
   contextEvents: DailyContextEvent[];
   externalContext?: ExternalContextData | null;
+  externalProviders?: ExternalProviderBundle | null;
   patterns?: DaraPatternInsight[];
 };
 
@@ -38,6 +40,7 @@ export function buildForecast({
   checkInHistory,
   contextEvents,
   externalContext,
+  externalProviders,
   patterns = [],
 }: BuildForecastInput): DaraForecast {
   if (!latestCheckIn) {
@@ -107,6 +110,22 @@ export function buildForecast({
 
   const patternRiskBoost = highPatternCount > 0;
 
+  const sleepRiskBoost =
+    externalProviders?.health.sleepHours !== null &&
+    externalProviders?.health.sleepHours !== undefined &&
+    externalProviders.health.sleepHours < 6.5;
+
+  const hrvRiskBoost =
+    externalProviders?.health.hrv !== null &&
+    externalProviders?.health.hrv !== undefined &&
+    externalProviders.health.hrv < 35;
+
+  const weatherRecoveryDrag =
+    externalProviders?.weather.condition === "storm" ||
+    externalProviders?.weather.daylightHours !== null &&
+      externalProviders?.weather.daylightHours !== undefined &&
+      externalProviders.weather.daylightHours < 7;
+
   const baseReasons = [
     `Energy ${latestCheckIn.energy}/10 and stress ${latestCheckIn.stress}/10 are driving the short-term forecast.`,
     `${historyDepth} historical check-in${historyDepth === 1 ? "" : "s"} available for trend confidence.`,
@@ -114,6 +133,12 @@ export function buildForecast({
     patternRiskBoost
       ? `${highPatternCount} high-priority pattern${highPatternCount === 1 ? "" : "s"} are increasing short-term forecast risk.`
       : "No high-priority pattern is currently increasing the forecast.",
+    externalProviders?.health
+      ? `Health provider: sleep ${externalProviders.health.sleepHours ?? "unknown"}h, HRV ${externalProviders.health.hrv ?? "unknown"}.`
+      : "Health provider is not connected yet.",
+    externalProviders?.weather
+      ? `Weather context: ${externalProviders.weather.condition}, daylight ${externalProviders.weather.daylightHours ?? "unknown"}h.`
+      : "Weather provider is not connected yet.",
   ];
 
   const externalReason =
@@ -126,7 +151,9 @@ export function buildForecast({
   if (
     pressureScore >= 7 ||
     recoveryScore <= 4 ||
-    patternRiskBoost
+    patternRiskBoost ||
+    sleepRiskBoost ||
+    hrvRiskBoost
   ) {
     return {
       title: "Pressure accumulation detected",

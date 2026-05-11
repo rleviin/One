@@ -50,6 +50,7 @@ export function buildDaraBrain(data: DaraUserData) {
     checkInHistory: data.dailyCheckInHistory,
     contextEvents: data.dailyContextEvents,
     externalContext: data.externalContext,
+    externalProviders: data.externalProviders,
     patterns,
   });
 
