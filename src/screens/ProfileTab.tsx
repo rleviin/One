@@ -23,7 +23,6 @@ type ProfileTabProps = {
   isPremium?: boolean;
   onOpenHistory?: () => void;
   onOpenPremium?: () => void;
-  onOpenContextMemory?: () => void;
 };
 
 
@@ -66,7 +65,6 @@ export default function ProfileTab({
   isPremium = false,
   onOpenHistory,
   onOpenPremium,
-  onOpenContextMemory,
 }: ProfileTabProps) {
 
 
