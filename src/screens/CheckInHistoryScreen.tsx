@@ -13,7 +13,7 @@ import ScreenBackground from "../components/ScreenBackground";
 import AnimatedPressable from "../components/AnimatedPressable";
 import AnimatedBottomSheet from "../components/AnimatedBottomSheet";
 import { useDaraData } from "../useDaraData";
-import type { DailyCheckInData } from "../storage";
+import type { DailyCheckInData, DailyContextEvent } from "../storage";
 import { lightTap } from "../haptics";
 
 type CheckInHistoryScreenProps = {
@@ -46,6 +46,10 @@ function getItemDayKey(item: DailyCheckInData) {
   return item.createdAt.slice(0, 10);
 }
 
+function getContextDayKey(item: DailyContextEvent) {
+  return item.createdAt.slice(0, 10);
+}
+
 function formatMonthTitle(date: Date) {
   return date.toLocaleDateString("en-US", {
     month: "long",
@@ -59,6 +63,32 @@ function formatFullDate(date: Date) {
     day: "numeric",
     year: "numeric",
   });
+}
+
+function buildDayInsight(item: DailyCheckInData, contextCount: number) {
+  const pressure =
+    item.stress * 1.2 +
+    item.workload * 1.1 +
+    item.spendingPressure * 0.8 -
+    item.energy * 0.9;
+
+  if (pressure >= 14) {
+    return "Dara reads this as a high-strain day. Lower load and stronger recovery would likely matter most.";
+  }
+
+  if (pressure >= 8) {
+    return "Dara sees a watch-zone day: pressure was present, but still adjustable with recovery actions.";
+  }
+
+  if (contextCount > 0 && item.energy >= 7 && item.stress <= 4) {
+    return "This looks like a well-contextualized stable day: good energy, lower stress and useful daily context.";
+  }
+
+  if (item.energy >= 7) {
+    return "Recovery looked stable on this day. Dara would treat this as a useful baseline signal.";
+  }
+
+  return "Dara reads this as a lower-signal day. More context or repeated check-ins would improve interpretation.";
 }
 
 function buildMonthDays(monthDate: Date) {
@@ -111,8 +141,30 @@ export default function CheckInHistoryScreen({
     return map;
   }, [history]);
 
+  const contextByDay = useMemo(() => {
+    const map = new Map<string, DailyContextEvent[]>();
+
+    data.dailyContextEvents.forEach((item) => {
+      const key = getContextDayKey(item);
+      const existing = map.get(key) ?? [];
+      map.set(key, [...existing, item]);
+    });
+
+    return map;
+  }, [data.dailyContextEvents]);
+
   const selectedKey = getDayKey(selectedDate);
   const selectedItems = historyByDay.get(selectedKey) ?? [];
+  const selectedContextItems = contextByDay.get(selectedKey) ?? [];
+  const selectedMealCount = selectedContextItems.filter(
+    (item) => item.type === "meal"
+  ).length;
+  const selectedEventCount = selectedContextItems.filter(
+    (item) => item.type === "event"
+  ).length;
+  const selectedNoteCount = selectedContextItems.filter(
+    (item) => item.type === "note"
+  ).length;
 
   const visibleMonthItems = history.filter((item) => {
     const date = new Date(item.createdAt);
@@ -301,7 +353,9 @@ export default function CheckInHistoryScreen({
 
                 const key = getDayKey(date);
                 const dayItems = historyByDay.get(key) ?? [];
+                const dayContextItems = contextByDay.get(key) ?? [];
                 const hasCheckIn = dayItems.length > 0;
+                const hasContext = dayContextItems.length > 0;
                 const isSelected = key === selectedKey;
                 const color = hasCheckIn ? getRiskColor(dayItems[0]) : "transparent";
 
@@ -326,9 +380,13 @@ export default function CheckInHistoryScreen({
                       {date.getDate()}
                     </Text>
 
-                    {hasCheckIn && (
-                      <View style={[styles.dayDot, { backgroundColor: color }]} />
-                    )}
+                    <View style={styles.dayIndicators}>
+                      {hasCheckIn && (
+                        <View style={[styles.dayDot, { backgroundColor: color }]} />
+                      )}
+
+                      {hasContext && <View style={styles.contextDot} />}
+                    </View>
                   </Pressable>
                 );
               })}
@@ -391,6 +449,31 @@ export default function CheckInHistoryScreen({
               {formatFullDate(selectedDate)}
             </Text>
 
+            {selectedContextItems.length > 0 ? (
+              <View style={styles.selectedContextSummary}>
+                <View style={styles.contextSummaryItem}>
+                  <Ionicons name="restaurant-outline" size={16} color="#58E7FF" />
+                  <Text style={styles.contextSummaryText}>
+                    Meals {selectedMealCount}
+                  </Text>
+                </View>
+
+                <View style={styles.contextSummaryItem}>
+                  <Ionicons name="flash-outline" size={16} color="#FF8A4C" />
+                  <Text style={styles.contextSummaryText}>
+                    Events {selectedEventCount}
+                  </Text>
+                </View>
+
+                <View style={styles.contextSummaryItem}>
+                  <Ionicons name="document-text-outline" size={16} color="#B9C6FF" />
+                  <Text style={styles.contextSummaryText}>
+                    Notes {selectedNoteCount}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
+
             {selectedItems.length > 0 ? (
               selectedItems.map((item) => (
                 <View key={item.createdAt} style={styles.selectedItem}>
@@ -418,6 +501,13 @@ export default function CheckInHistoryScreen({
                     Stress {item.stress}/10 · Workload {item.workload}/10 · Money{" "}
                     {item.spendingPressure}/10
                   </Text>
+
+                  <View style={styles.dayInsightBox}>
+                    <Ionicons name="sparkles-outline" size={17} color="#B9C6FF" />
+                    <Text style={styles.dayInsightText}>
+                      {buildDayInsight(item, selectedContextItems.length)}
+                    </Text>
+                  </View>
 
                   {item.note ? (
                     <Text style={styles.selectedNote}>{item.note}</Text>
@@ -769,6 +859,20 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
 
+  dayIndicators: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    marginTop: 3,
+  },
+
+  contextDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: "#58E7FF",
+  },
+
   dayDot: {
     width: 6,
     height: 6,
@@ -973,6 +1077,31 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.14)",
   },
 
+  selectedContextSummary: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 14,
+  },
+
+  contextSummaryItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    backgroundColor: "rgba(255,255,255,0.07)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+  },
+
+  contextSummaryText: {
+    color: "rgba(255,255,255,0.72)",
+    fontSize: 12,
+    fontWeight: "800",
+    marginLeft: 5,
+  },
+
   selectedItem: {
     borderRadius: 22,
     padding: 14,
@@ -999,6 +1128,26 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.66)",
     fontSize: 14,
     lineHeight: 20,
+  },
+
+  dayInsightBox: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    borderRadius: 18,
+    padding: 12,
+    backgroundColor: "rgba(185,198,255,0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(185,198,255,0.16)",
+    marginTop: 12,
+  },
+
+  dayInsightText: {
+    flex: 1,
+    color: "rgba(255,255,255,0.70)",
+    fontSize: 13,
+    lineHeight: 19,
+    fontWeight: "700",
+    marginLeft: 8,
   },
 
   selectedNote: {
