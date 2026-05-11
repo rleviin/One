@@ -84,6 +84,14 @@ export function buildDaraBrain(data: DaraUserData) {
     actions: forecast.changePoints,
   };
 
+  const aiContext = {
+    latestCheckIn: data.dailyCheckIn,
+    contextCount: data.dailyContextEvents.length,
+    forecast: forecastView.hero,
+    patterns: patterns.slice(0, 5),
+    externalSignals: externalSignalsView,
+  };
+
   return {
     activeSignal,
     summary,
@@ -93,6 +101,7 @@ export function buildDaraBrain(data: DaraUserData) {
     externalSignalsView,
     insightsView,
     forecastView,
+    aiContext,
     home: {
       activeSignal,
       signals: homeSignals,
