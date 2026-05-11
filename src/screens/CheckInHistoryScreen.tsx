@@ -134,6 +134,43 @@ export default function CheckInHistoryScreen({
         visibleMonthItems.length
       : 0;
 
+  const recentWeekItems = history.slice(0, 7);
+
+  const weeklyPatternSummary = useMemo(() => {
+    if (recentWeekItems.length === 0) {
+      return [
+        "Save check-ins to unlock weekly pattern summaries.",
+        "Dara will compare energy, stress and workload over time.",
+      ];
+    }
+
+    const avgRecentEnergy =
+      recentWeekItems.reduce((sum, item) => sum + item.energy, 0) /
+      recentWeekItems.length;
+
+    const avgRecentStress =
+      recentWeekItems.reduce((sum, item) => sum + item.stress, 0) /
+      recentWeekItems.length;
+
+    const highLoadDays = recentWeekItems.filter(
+      (item) => item.workload >= 7 || item.stress >= 7
+    ).length;
+
+    const points = [
+      avgRecentEnergy >= 7
+        ? "Recovery trend looks stable across recent check-ins."
+        : "Recovery may need more support across recent check-ins.",
+      avgRecentStress >= 6
+        ? "Stress accumulation is visible in the recent pattern."
+        : "Stress appears manageable in the recent pattern.",
+      highLoadDays >= 3
+        ? `${highLoadDays} high-load days detected recently.`
+        : "No strong overload streak detected recently.",
+    ];
+
+    return points;
+  }, [recentWeekItems]);
+
   function moveMonth(direction: -1 | 1) {
     lightTap();
     setVisibleMonth((current) => {
@@ -202,6 +239,28 @@ export default function CheckInHistoryScreen({
                 </Text>
                 <Text style={styles.summaryStatLabel}>avg stress</Text>
               </View>
+            </View>
+          </View>
+
+          <View style={styles.weeklyPatternCard}>
+            <View style={styles.weeklyPatternHeader}>
+              <View style={styles.weeklyPatternIcon}>
+                <Ionicons name="analytics-outline" size={21} color="#C96BFF" />
+              </View>
+
+              <View>
+                <Text style={styles.weeklyPatternEyebrow}>AI SUMMARY</Text>
+                <Text style={styles.weeklyPatternTitle}>Weekly pattern summary</Text>
+              </View>
+            </View>
+
+            <View style={styles.weeklyPatternList}>
+              {weeklyPatternSummary.map((point, index) => (
+                <View key={index} style={styles.weeklyPatternItem}>
+                  <View style={styles.weeklyPatternDot} />
+                  <Text style={styles.weeklyPatternText}>{point}</Text>
+                </View>
+              ))}
             </View>
           </View>
 
@@ -568,6 +627,73 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.55)",
     fontSize: 11,
     fontWeight: "800",
+  },
+
+  weeklyPatternCard: {
+    borderRadius: 30,
+    padding: 18,
+    backgroundColor: "rgba(8, 16, 38, 0.58)",
+    borderWidth: 1,
+    borderColor: "rgba(201,107,255,0.22)",
+    marginBottom: 16,
+  },
+
+  weeklyPatternHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+
+  weeklyPatternIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: "rgba(201,107,255,0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(201,107,255,0.30)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+
+  weeklyPatternEyebrow: {
+    color: "rgba(255,255,255,0.50)",
+    fontSize: 11,
+    fontWeight: "900",
+    letterSpacing: 2.2,
+    marginBottom: 3,
+  },
+
+  weeklyPatternTitle: {
+    color: "#FFFFFF",
+    fontSize: 19,
+    fontWeight: "900",
+  },
+
+  weeklyPatternList: {
+    gap: 10,
+  },
+
+  weeklyPatternItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+
+  weeklyPatternDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: "#C96BFF",
+    marginTop: 7,
+    marginRight: 10,
+  },
+
+  weeklyPatternText: {
+    flex: 1,
+    color: "rgba(255,255,255,0.68)",
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: "600",
   },
 
   calendarCard: {
