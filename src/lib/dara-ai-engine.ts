@@ -11,21 +11,14 @@ export type DaraAIResponse = {
 };
 
 export function buildDaraAIContext(data: DaraUserData) {
-  const brain = buildDaraBrain(data);
-
-  return {
-    latestCheckIn: data.dailyCheckIn,
-    contextCount: data.dailyContextEvents.length,
-    forecast: brain.forecastView.hero,
-    patterns: brain.insightsView.patterns.slice(0, 5),
-    externalSignals: brain.externalSignalsView,
-  };
+  return buildDaraBrain(data).aiContext;
 }
 
 export async function generateDaraAIResponse(
   data: DaraUserData
 ): Promise<DaraAIResponse> {
-  const context = buildDaraAIContext(data);
+  const brain = buildDaraBrain(data);
+  const context = brain.aiContext;
 
   return {
     headline: context.forecast.title,
@@ -34,9 +27,7 @@ export async function generateDaraAIResponse(
       ...context.patterns.slice(0, 3).map((pattern) => pattern.summary),
       `Context signals available: ${context.contextCount}.`,
     ],
-    recommendations: [
-      ...buildDaraBrain(data).forecastView.actions.slice(0, 3),
-    ],
+    recommendations: brain.forecastView.actions.slice(0, 3),
     confidence: context.forecast.confidence,
     mode: "fallback",
   };
