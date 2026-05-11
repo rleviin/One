@@ -1,5 +1,6 @@
 import type { DaraUserData } from "../useDaraData";
 import { buildDaraBrain } from "./dara-brain";
+import { requestDaraAIResponse } from "./dara-ai-client";
 
 export type DaraAIResponse = {
   headline: string;
@@ -14,9 +15,7 @@ export function buildDaraAIContext(data: DaraUserData) {
   return buildDaraBrain(data).aiContext;
 }
 
-export async function generateDaraAIResponse(
-  data: DaraUserData
-): Promise<DaraAIResponse> {
+function buildFallbackResponse(data: DaraUserData): DaraAIResponse {
   const brain = buildDaraBrain(data);
   const context = brain.aiContext;
 
@@ -31,4 +30,27 @@ export async function generateDaraAIResponse(
     confidence: context.forecast.confidence,
     mode: "fallback",
   };
+}
+
+export async function generateDaraAIResponse(
+  data: DaraUserData
+): Promise<DaraAIResponse> {
+  const aiContext = buildDaraAIContext(data);
+
+  try {
+    const response = await requestDaraAIResponse({
+      aiContext,
+    });
+
+    if (response) {
+      return {
+        ...response,
+        mode: "ai",
+      };
+    }
+  } catch {
+    // fallback below
+  }
+
+  return buildFallbackResponse(data);
 }
