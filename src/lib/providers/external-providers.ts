@@ -9,6 +9,10 @@ import {
   type WeatherProviderData,
 } from "./weather-provider";
 import {
+  loadLocationProviderData,
+  type LocationProviderData,
+} from "./location-provider";
+import {
   loadProbabilityProviderData,
   type ProbabilityProviderData,
 } from "./probability-provider";
@@ -20,6 +24,7 @@ export type ExternalProviderBundleInput = {
 
 export type ExternalProviderBundle = {
   health: HealthProviderData;
+  location: LocationProviderData;
   weather: WeatherProviderData;
   probability: ProbabilityProviderData;
   updatedAt: string;
@@ -29,14 +34,20 @@ export async function loadExternalProviderBundle({
   country = null,
   healthRecord = null,
 }: ExternalProviderBundleInput = {}): Promise<ExternalProviderBundle> {
+  const location = await loadLocationProviderData();
+
   const [health, weather, probability] = await Promise.all([
     loadHealthProviderData(healthRecord),
-    loadWeatherProviderData(),
+    loadWeatherProviderData({
+      latitude: location.latitude,
+      longitude: location.longitude,
+    }),
     loadProbabilityProviderData({ country }),
   ]);
 
   return {
     health,
+    location,
     weather,
     probability,
     updatedAt: new Date().toISOString(),

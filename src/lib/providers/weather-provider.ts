@@ -32,10 +32,16 @@ function mapWeatherCodeToCondition(
   return "unknown";
 }
 
-export async function loadWeatherProviderData(): Promise<WeatherProviderData> {
+export type WeatherProviderInput = {
+  latitude?: number | null;
+  longitude?: number | null;
+};
+
+export async function loadWeatherProviderData({
+  latitude = 53.4808,
+  longitude = -2.2426,
+}: WeatherProviderInput = {}): Promise<WeatherProviderData> {
   try {
-    const latitude = 53.4808;
-    const longitude = -2.2426;
 
     const url =
       "https://api.open-meteo.com/v1/forecast" +
