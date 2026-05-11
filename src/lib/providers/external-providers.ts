@@ -1,3 +1,5 @@
+import type { HealthRecordFile } from "../../storage";
+
 import {
   loadHealthProviderData,
   type HealthProviderData,
@@ -7,15 +9,21 @@ import {
   type WeatherProviderData,
 } from "./weather-provider";
 
+export type ExternalProviderBundleInput = {
+  healthRecord?: HealthRecordFile | null;
+};
+
 export type ExternalProviderBundle = {
   health: HealthProviderData;
   weather: WeatherProviderData;
   updatedAt: string;
 };
 
-export async function loadExternalProviderBundle(): Promise<ExternalProviderBundle> {
+export async function loadExternalProviderBundle({
+  healthRecord = null,
+}: ExternalProviderBundleInput = {}): Promise<ExternalProviderBundle> {
   const [health, weather] = await Promise.all([
-    loadHealthProviderData(),
+    loadHealthProviderData(healthRecord),
     loadWeatherProviderData(),
   ]);
 
