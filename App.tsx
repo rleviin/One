@@ -11,7 +11,6 @@ import DailyCheckInScreen from "./src/screens/DailyCheckInScreen";
 import CheckInHistoryScreen from "./src/screens/CheckInHistoryScreen";
 import AddContextScreen from "./src/screens/AddContextScreen";
 import PremiumScreen from "./src/screens/PremiumScreen";
-import ContextMemoryScreen from "./src/screens/ContextMemoryScreen";
 import { lightTap } from "./src/haptics";
 import { Asset } from "expo-asset";
 import {
@@ -162,15 +161,6 @@ if (showPremium) {
     />
   );
 }
-
-if (showContextMemory) {
-  return (
-    <ContextMemoryScreen
-      dataVersion={dataVersion}
-      onDone={() => setShowContextMemory(false)}
-    />
-  );
-}
   return (
     <SafeAreaView style={styles.mainAppContainer}>
       <View style={styles.mainContent}>
@@ -195,7 +185,6 @@ if (showContextMemory) {
   isPremium={IS_PREMIUM_USER}
   onOpenHistory={() => setShowHistory(true)}
   onOpenPremium={() => setShowPremium(true)}
-  onOpenContextMemory={() => setShowContextMemory(true)}
 />
 
 )}
