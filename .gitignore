@@ -47,3 +47,7 @@ dara-server/data/
 # Dara server local secrets/data
 dara-server/.env
 dara-server/data/
+
+# Dara server local secrets/data
+dara-server/.env
+dara-server/data/
