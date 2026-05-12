@@ -2,6 +2,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import OpenAI from "openai";
+import { loginUser, signupUser, verifyToken } from "./auth/auth-store";
 
 dotenv.config();
 
@@ -18,6 +19,72 @@ app.use(express.json({ limit: "1mb" }));
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
+
+
+app.post("/api/auth/signup", async (req, res) => {
+  try {
+    const { email, password, name } = req.body ?? {};
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    if (String(password).length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
+
+    const result = await signupUser({
+      email: String(email),
+      password: String(password),
+      name: String(name ?? ""),
+    });
+
+    return res.json(result);
+  } catch (error) {
+    return res.status(400).json({
+      error: error instanceof Error ? error.message : "Signup failed",
+    });
+  }
+});
+
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { email, password } = req.body ?? {};
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    const result = await loginUser({
+      email: String(email),
+      password: String(password),
+    });
+
+    return res.json(result);
+  } catch (error) {
+    return res.status(401).json({
+      error: error instanceof Error ? error.message : "Login failed",
+    });
+  }
+});
+
+app.get("/api/auth/me", (req, res) => {
+  try {
+    const authHeader = req.headers.authorization ?? "";
+    const token = authHeader.replace("Bearer ", "");
+
+    if (!token) {
+      return res.status(401).json({ error: "Missing token" });
+    }
+
+    const payload = verifyToken(token);
+
+    return res.json({ user: payload });
+  } catch {
+    return res.status(401).json({ error: "Invalid token" });
+  }
+});
+
 
 app.post("/api/dara/think", async (req, res) => {
   try {

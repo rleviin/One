@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
   View,
   Text,
   Pressable,
   StyleSheet,
   ImageBackground,
+  Animated,
+  PanResponder,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 type OnboardingScreenProps = {
@@ -12,6 +14,50 @@ type OnboardingScreenProps = {
 };
 
 export default function OnboardingScreen({ onDone }: OnboardingScreenProps) {
+  const entrance = useRef(new Animated.Value(0)).current;
+  const dragY = useRef(new Animated.Value(0)).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_event, gesture) =>
+        Math.abs(gesture.dy) > 6,
+      onPanResponderMove: (_event, gesture) => {
+        dragY.setValue(Math.max(-18, Math.min(36, gesture.dy * 0.35)));
+      },
+      onPanResponderRelease: () => {
+        Animated.spring(dragY, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 80,
+          friction: 9,
+        }).start();
+      },
+    })
+  ).current;
+
+  useEffect(() => {
+    Animated.timing(entrance, {
+      toValue: 1,
+      duration: 700,
+      useNativeDriver: true,
+    }).start();
+  }, [entrance]);
+
+  const animatedContentStyle = {
+    opacity: entrance,
+    transform: [
+      {
+        translateY: entrance.interpolate({
+          inputRange: [0, 1],
+          outputRange: [18, 0],
+        }),
+      },
+      {
+        translateY: dragY,
+      },
+    ],
+  };
+
   return (
     <ImageBackground
       source={require("../../assets/onboarding-bg_0.png")}
@@ -21,8 +67,8 @@ export default function OnboardingScreen({ onDone }: OnboardingScreenProps) {
     >
       <View style={styles.darkImageOverlay} />
 
-      <SafeAreaView style={styles.welcomeContainer}>
-        <View style={styles.welcomeContent}>
+      <SafeAreaView style={styles.welcomeContainer} {...panResponder.panHandlers}>
+        <Animated.View style={[styles.welcomeContent, animatedContentStyle]}>
           <Text style={styles.welcomeBrand}>DARA AI</Text>
 
           <Text style={styles.welcomeTitle}>
@@ -51,9 +97,9 @@ export default function OnboardingScreen({ onDone }: OnboardingScreenProps) {
               Dara explains why, what may happen, and what to do today.
             </Text>
           </View>
-        </View>
+        </Animated.View>
 
-        <View style={styles.welcomeFooter}>
+        <Animated.View style={[styles.welcomeFooter, animatedContentStyle]}>
           <Pressable style={styles.welcomeButton} onPress={onDone}>
             <Text style={styles.welcomeButtonText}>Continue</Text>
           </Pressable>
@@ -61,7 +107,7 @@ export default function OnboardingScreen({ onDone }: OnboardingScreenProps) {
           <Text style={styles.welcomeFootnote}>
             Built to turn scattered signals into clear guidance.
           </Text>
-        </View>
+        </Animated.View>
       </SafeAreaView>
     </ImageBackground>
   );

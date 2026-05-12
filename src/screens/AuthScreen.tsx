@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { loginDaraUser, signupDaraUser } from "../lib/auth-client";
 
 type AuthScreenProps = {
   onDone: () => void;
@@ -19,6 +20,31 @@ export default function AuthScreen({ onDone }: AuthScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  async function handleAuthSubmit() {
+    if (isSubmitting) return;
+
+    setErrorMessage(null);
+    setIsSubmitting(true);
+
+    try {
+      if (mode === "login") {
+        await loginDaraUser({ email, password });
+      } else {
+        await signupDaraUser({ email, password, name });
+      }
+
+      onDone();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Authentication failed"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <ImageBackground
@@ -151,9 +177,24 @@ export default function AuthScreen({ onDone }: AuthScreenProps) {
             </Pressable>
           )}
 
-          <Pressable style={styles.authPrimaryButton} onPress={onDone}>
+          {errorMessage ? (
+            <Text style={styles.authErrorText}>{errorMessage}</Text>
+          ) : null}
+
+          <Pressable
+            style={[
+              styles.authPrimaryButton,
+              isSubmitting && styles.authPrimaryButtonDisabled,
+            ]}
+            onPress={handleAuthSubmit}
+            disabled={isSubmitting}
+          >
             <Text style={styles.authPrimaryButtonText}>
-              {mode === "login" ? "Continue" : "Create account"}
+              {isSubmitting
+                ? "Please wait..."
+                : mode === "login"
+                  ? "Continue"
+                  : "Create account"}
             </Text>
           </Pressable>
 
@@ -193,13 +234,13 @@ const styles = StyleSheet.create({
   authContainer: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 24,
+    paddingHorizontal: 34,
     backgroundColor: "transparent",
   },
 
   authTopBrand: {
     alignItems: "center",
-    marginBottom: 26,
+    marginBottom: 18,
   },
 
   authTopBrandText: {
@@ -210,13 +251,13 @@ const styles = StyleSheet.create({
   },
 
   authCard: {
-    backgroundColor: "rgba(10, 18, 44, 0.58)",
-    borderRadius: 30,
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 22,
+    backgroundColor: "rgba(10, 18, 44, 0.54)",
+    borderRadius: 28,
+    paddingHorizontal: 18,
+    paddingTop: 20,
+    paddingBottom: 18,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.22)",
+    borderColor: "rgba(255,255,255,0.24)",
     shadowColor: "#000",
     shadowOpacity: 0.22,
     shadowRadius: 24,
@@ -225,17 +266,17 @@ const styles = StyleSheet.create({
 
   authTitle: {
     color: "#FFFFFF",
-    fontSize: 31,
+    fontSize: 28,
     fontWeight: "800",
-    lineHeight: 37,
+    lineHeight: 33,
   },
 
   authSubtitle: {
-    color: "rgba(255,255,255,0.72)",
-    fontSize: 16,
-    lineHeight: 24,
-    marginTop: 10,
-    marginBottom: 24,
+    color: "rgba(255,255,255,0.68)",
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 8,
+    marginBottom: 18,
   },
 
   authSwitch: {
@@ -245,13 +286,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.12)",
     padding: 4,
-    marginBottom: 24,
+    marginBottom: 18,
   },
 
   authSwitchTab: {
     flex: 1,
     borderRadius: 14,
-    paddingVertical: 14,
+    paddingVertical: 11,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -273,47 +314,59 @@ const styles = StyleSheet.create({
   },
 
   authFieldBlock: {
-    marginBottom: 20,
+    marginBottom: 14,
   },
 
   authFieldLabel: {
-    color: "rgba(255,255,255,0.64)",
-    fontSize: 13,
+    color: "rgba(255,255,255,0.62)",
+    fontSize: 11,
     fontWeight: "700",
     letterSpacing: 2.2,
-    marginBottom: 10,
+    marginBottom: 7,
   },
 
   authInputWrap: {
-    minHeight: 56,
-    borderRadius: 18,
+    minHeight: 48,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.20)",
     backgroundColor: "rgba(255,255,255,0.05)",
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
   },
 
   authInput: {
     flex: 1,
     color: "#FFFFFF",
-    fontSize: 18,
-    marginLeft: 12,
+    fontSize: 15,
+    marginLeft: 10,
   },
 
   authForgot: {
     color: "#B98DFF",
-    fontSize: 15,
+    fontSize: 13,
     textAlign: "right",
     marginTop: -2,
-    marginBottom: 24,
+    marginBottom: 16,
+  },
+
+  authErrorText: {
+    color: "#FF9AA8",
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "700",
+    marginBottom: 10,
+  },
+
+  authPrimaryButtonDisabled: {
+    opacity: 0.64,
   },
 
   authPrimaryButton: {
-    marginTop: 6,
+    marginTop: 4,
     backgroundColor: "#FFFFFF",
-    minHeight: 60,
+    minHeight: 52,
     borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",

@@ -39,3 +39,11 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Dara server local secrets/data
+dara-server/.env
+dara-server/data/
+
+# Dara server local secrets/data
+dara-server/.env
+dara-server/data/
