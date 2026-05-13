@@ -4,6 +4,7 @@ import { DARA_API_URL } from "./config";
 const AUTH_TOKEN_KEY = "dara_auth_token";
 const AUTH_USER_ID_KEY = "dara_auth_user_id";
 const AUTH_USER_KEY = "dara_auth_user";
+const SETUP_DONE_PREFIX = "dara_setup_done";
 
 export type DaraAuthUser = {
   id: string;
@@ -79,6 +80,20 @@ export async function getDaraAuthUserId() {
 export async function getDaraAuthUser(): Promise<DaraAuthUser | null> {
   const raw = await SecureStore.getItemAsync(AUTH_USER_KEY);
   return raw ? JSON.parse(raw) : null;
+}
+
+export async function markDaraSetupCompleted() {
+  const userId = await getDaraAuthUserId();
+  if (!userId) return;
+
+  await SecureStore.setItemAsync(`${SETUP_DONE_PREFIX}_${userId}`, "true");
+}
+
+export async function hasDaraSetupCompleted() {
+  const userId = await getDaraAuthUserId();
+  if (!userId) return false;
+
+  return (await SecureStore.getItemAsync(`${SETUP_DONE_PREFIX}_${userId}`)) === "true";
 }
 
 export async function logoutDaraUser() {

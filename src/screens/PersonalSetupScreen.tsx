@@ -11,6 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { loadPersonalSetup, savePersonalSetup } from "../storage";
 import ScreenBackground from "../components/ScreenBackground";
+import { markDaraSetupCompleted } from "../lib/auth-client";
 
 type PersonalSetupScreenProps = {
   onDone: () => void;
@@ -117,6 +118,8 @@ await savePersonalSetup({
     spendingRange,
     dailyContext,
   });
+
+  await markDaraSetupCompleted();
 
   onDone();
 }

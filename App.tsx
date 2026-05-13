@@ -12,7 +12,10 @@ import CheckInHistoryScreen from "./src/screens/CheckInHistoryScreen";
 import AddContextScreen from "./src/screens/AddContextScreen";
 import PremiumScreen from "./src/screens/PremiumScreen";
 import { lightTap } from "./src/haptics";
-import { getDaraAuthToken } from "./src/lib/auth-client";
+import {
+  getDaraAuthToken,
+  hasDaraSetupCompleted,
+} from "./src/lib/auth-client";
 import { Asset } from "expo-asset";
 import {
   View,
@@ -274,7 +277,8 @@ export default function App() {
         ]);
 
         if (mounted && token) {
-          setScreen("app");
+          const setupDone = await hasDaraSetupCompleted();
+          setScreen(setupDone ? "app" : "setup");
         }
       } finally {
         if (mounted) {
