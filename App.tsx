@@ -12,6 +12,7 @@ import CheckInHistoryScreen from "./src/screens/CheckInHistoryScreen";
 import AddContextScreen from "./src/screens/AddContextScreen";
 import PremiumScreen from "./src/screens/PremiumScreen";
 import { lightTap } from "./src/haptics";
+import { getDaraAuthToken } from "./src/lib/auth-client";
 import { Asset } from "expo-asset";
 import {
   View,
@@ -53,13 +54,6 @@ import {
   getWorkloadRecommendation,
 } from "./src/logic";
 
-type UserSignals = {
-  sleepHours: number;
-  workload: number;
-  recovery: number;
-  spendingPressure: number;
-};
-
 function MetricCard({ label, value, hint, tone }: MetricCardProps) {
   return (
     <View style={[styles.metricCard, styles[`metricCard_${tone}`]]}>
@@ -90,7 +84,7 @@ const HOME_CARD_WIDTH = SCREEN_WIDTH - 88;
 
 const IS_PREMIUM_USER = true;
 
-function MainApp() {
+function MainApp({ onLogout }: { onLogout?: () => void }) {
   const [tab, setTab] = useState<Tab>("home");
   const [showSetup, setShowSetup] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
@@ -185,6 +179,7 @@ if (showPremium) {
   isPremium={IS_PREMIUM_USER}
   onOpenHistory={() => setShowHistory(true)}
   onOpenPremium={() => setShowPremium(true)}
+  onLogout={onLogout}
 />
 
 )}
@@ -266,28 +261,37 @@ if (showPremium) {
 export default function App() {
   const [screen, setScreen] = useState<Screen>("onboarding");
   const [assetsReady, setAssetsReady] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     let mounted = true;
 
-    async function loadAssets() {
+    async function prepareApp() {
       try {
-        await Asset.loadAsync(APP_ASSETS);
+        const [token] = await Promise.all([
+          getDaraAuthToken(),
+          Asset.loadAsync(APP_ASSETS),
+        ]);
+
+        if (mounted && token) {
+          setScreen("app");
+        }
       } finally {
         if (mounted) {
           setAssetsReady(true);
+          setAuthChecked(true);
         }
       }
     }
 
-    loadAssets();
+    prepareApp();
 
     return () => {
       mounted = false;
     };
   }, []);
 
-  if (!assetsReady) {
+  if (!assetsReady || !authChecked) {
     return (
       <View style={styles.appLoadingScreen}>
         <View style={styles.appLoadingOrb} />
@@ -313,7 +317,7 @@ export default function App() {
     return <PersonalSetupScreen onDone={() => setScreen("app")} />;
   }
 
-  return <MainApp />;
+  return <MainApp onLogout={() => setScreen("auth")} />;
 }
 
 const styles = StyleSheet.create({

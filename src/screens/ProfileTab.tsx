@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   RefreshControl,
   ScrollView,
@@ -16,6 +16,11 @@ import { lightTap, mediumTap, successTap } from "../haptics";
 import AnimatedPressable from "../components/AnimatedPressable";
 import AnimatedBottomSheet from "../components/AnimatedBottomSheet";
 import ScreenBackground from "../components/ScreenBackground";
+import {
+  getDaraAuthUser,
+  logoutDaraUser,
+  type DaraAuthUser,
+} from "../lib/auth-client";
 
 type ProfileTabProps = {
   dataVersion?: number;
@@ -23,6 +28,7 @@ type ProfileTabProps = {
   isPremium?: boolean;
   onOpenHistory?: () => void;
   onOpenPremium?: () => void;
+  onLogout?: () => void;
 };
 
 
@@ -65,6 +71,7 @@ export default function ProfileTab({
   isPremium = false,
   onOpenHistory,
   onOpenPremium,
+  onLogout,
 }: ProfileTabProps) {
 
 
@@ -74,6 +81,14 @@ export default function ProfileTab({
   const [showHistoryPreview, setShowHistoryPreview] = useState(false);
   const { data, isLoading, reload } = useDaraData(dataVersion);
   const [showContextSheet, setShowContextSheet] = useState(false);
+  const [authUser, setAuthUser] = useState<DaraAuthUser | null>(null);
+  useEffect(() => {
+    getDaraAuthUser().then(setAuthUser);
+  }, [dataVersion]);
+
+  const profileName = authUser?.name || "Dara user";
+  const profileInitial = profileName.trim().charAt(0).toUpperCase() || "D";
+
   const setupData = data.personalSetup;
   const healthRecord = data.healthRecord;
   const latestCheckIn = data.dailyCheckIn;
@@ -144,11 +159,11 @@ return (
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.eyebrow}>PROFILE</Text>
-            <Text style={styles.title}>Roman</Text>
+            <Text style={styles.title}>{profileName}</Text>
           </View>
 
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>R</Text>
+            <Text style={styles.avatarText}>{profileInitial}</Text>
           </View>
         </View>
 
@@ -453,6 +468,19 @@ return (
             </Text>
           </View>
         </View>
+
+        <AnimatedPressable
+          style={styles.logoutButton}
+          pressedScale={0.975}
+          onPress={async () => {
+            await lightTap();
+            await logoutDaraUser();
+            onLogout?.();
+          }}
+        >
+          <Ionicons name="log-out-outline" size={18} color="#FF9AA8" />
+          <Text style={styles.logoutButtonText}>Log out</Text>
+        </AnimatedPressable>
       </ScrollView>
 
       <AnimatedBottomSheet
@@ -1278,6 +1306,28 @@ const styles = StyleSheet.create({
     borderRadius: 99,
     backgroundColor: "#B9C6FF",
     marginRight: 10,
+  },
+
+  logoutButton: {
+    marginHorizontal: 24,
+    marginTop: 8,
+    marginBottom: 28,
+    borderRadius: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    backgroundColor: "rgba(255,100,124,0.075)",
+    borderWidth: 1,
+    borderColor: "rgba(255,100,124,0.22)",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+
+  logoutButtonText: {
+    color: "#FF9AA8",
+    fontSize: 14,
+    fontWeight: "900",
   },
 
   preferenceText: {

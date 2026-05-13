@@ -3,6 +3,7 @@ import { DARA_API_URL } from "./config";
 
 const AUTH_TOKEN_KEY = "dara_auth_token";
 const AUTH_USER_ID_KEY = "dara_auth_user_id";
+const AUTH_USER_KEY = "dara_auth_user";
 
 export type DaraAuthUser = {
   id: string;
@@ -38,6 +39,7 @@ export async function signupDaraUser({
 
   await SecureStore.setItemAsync(AUTH_TOKEN_KEY, json.token);
   await SecureStore.setItemAsync(AUTH_USER_ID_KEY, json.user.id);
+  await SecureStore.setItemAsync(AUTH_USER_KEY, JSON.stringify(json.user));
   return json as DaraAuthResponse;
 }
 
@@ -62,6 +64,7 @@ export async function loginDaraUser({
 
   await SecureStore.setItemAsync(AUTH_TOKEN_KEY, json.token);
   await SecureStore.setItemAsync(AUTH_USER_ID_KEY, json.user.id);
+  await SecureStore.setItemAsync(AUTH_USER_KEY, JSON.stringify(json.user));
   return json as DaraAuthResponse;
 }
 
@@ -73,7 +76,13 @@ export async function getDaraAuthUserId() {
   return SecureStore.getItemAsync(AUTH_USER_ID_KEY);
 }
 
+export async function getDaraAuthUser(): Promise<DaraAuthUser | null> {
+  const raw = await SecureStore.getItemAsync(AUTH_USER_KEY);
+  return raw ? JSON.parse(raw) : null;
+}
+
 export async function logoutDaraUser() {
   await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
   await SecureStore.deleteItemAsync(AUTH_USER_ID_KEY);
+  await SecureStore.deleteItemAsync(AUTH_USER_KEY);
 }
