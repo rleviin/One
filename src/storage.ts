@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getDaraAuthUserId } from "./lib/auth-client";
 
 export type PersonalSetupData = {
   country: string;
@@ -50,33 +51,39 @@ const MAX_DAILY_CONTEXT_EVENTS = 200;
 const EXTERNAL_CONTEXT_KEY = "dara.externalContext.latest";
 
 
+async function getUserScopedKey(baseKey: string) {
+  const userId = await getDaraAuthUserId();
+  return userId ? `${baseKey}.${userId}` : baseKey;
+}
+
+
 export async function savePersonalSetup(data: PersonalSetupData) {
-  await AsyncStorage.setItem(PERSONAL_SETUP_KEY, JSON.stringify(data));
+  await AsyncStorage.setItem(await getUserScopedKey(PERSONAL_SETUP_KEY), JSON.stringify(data));
 }
 
 export async function loadPersonalSetup(): Promise<PersonalSetupData | null> {
-  const raw = await AsyncStorage.getItem(PERSONAL_SETUP_KEY);
+  const raw = await AsyncStorage.getItem(await getUserScopedKey(PERSONAL_SETUP_KEY));
   return raw ? JSON.parse(raw) : null;
 }
 
 export async function saveExternalContext(data: ExternalContextData) {
-  await AsyncStorage.setItem(EXTERNAL_CONTEXT_KEY, JSON.stringify(data));
+  await AsyncStorage.setItem(await getUserScopedKey(EXTERNAL_CONTEXT_KEY), JSON.stringify(data));
 }
 
 export async function loadExternalContext(): Promise<ExternalContextData | null> {
-  const raw = await AsyncStorage.getItem(EXTERNAL_CONTEXT_KEY);
+  const raw = await AsyncStorage.getItem(await getUserScopedKey(EXTERNAL_CONTEXT_KEY));
   return raw ? JSON.parse(raw) : null;
 }
 
 
 
 export async function loadDailyCheckIn(): Promise<DailyCheckInData | null> {
-  const raw = await AsyncStorage.getItem(DAILY_CHECK_IN_KEY);
+  const raw = await AsyncStorage.getItem(await getUserScopedKey(DAILY_CHECK_IN_KEY));
   return raw ? JSON.parse(raw) : null;
 }
 
 export async function loadDailyCheckInHistory(): Promise<DailyCheckInData[]> {
-  const raw = await AsyncStorage.getItem(DAILY_CHECK_IN_HISTORY_KEY);
+  const raw = await AsyncStorage.getItem(await getUserScopedKey(DAILY_CHECK_IN_HISTORY_KEY));
   return raw ? JSON.parse(raw) : [];
 }
 
@@ -93,11 +100,11 @@ export type HealthRecordFile = {
 const HEALTH_RECORD_KEY = "dara.healthRecord.latest";
 
 export async function saveHealthRecord(data: HealthRecordFile) {
-  await AsyncStorage.setItem(HEALTH_RECORD_KEY, JSON.stringify(data));
+  await AsyncStorage.setItem(await getUserScopedKey(HEALTH_RECORD_KEY), JSON.stringify(data));
 }
 
 export async function loadHealthRecord(): Promise<HealthRecordFile | null> {
-  const raw = await AsyncStorage.getItem(HEALTH_RECORD_KEY);
+  const raw = await AsyncStorage.getItem(await getUserScopedKey(HEALTH_RECORD_KEY));
   return raw ? JSON.parse(raw) : null;
 }
 
@@ -106,7 +113,7 @@ function getCheckInDayKey(createdAt: string) {
 }
 
 export async function saveDailyCheckInWithHistory(data: DailyCheckInData) {
-  await AsyncStorage.setItem(DAILY_CHECK_IN_KEY, JSON.stringify(data));
+  await AsyncStorage.setItem(await getUserScopedKey(DAILY_CHECK_IN_KEY), JSON.stringify(data));
 
   const history = await loadDailyCheckInHistory();
   const incomingDayKey = getCheckInDayKey(data.createdAt);
@@ -124,13 +131,13 @@ export async function saveDailyCheckInWithHistory(data: DailyCheckInData) {
     .slice(0, MAX_DAILY_CHECK_INS);
 
   await AsyncStorage.setItem(
-    DAILY_CHECK_IN_HISTORY_KEY,
+    await getUserScopedKey(DAILY_CHECK_IN_HISTORY_KEY),
     JSON.stringify(nextHistory)
   );
 }
 
 export async function loadDailyContextEvents(): Promise<DailyContextEvent[]> {
-  const raw = await AsyncStorage.getItem(DAILY_CONTEXT_EVENTS_KEY);
+  const raw = await AsyncStorage.getItem(await getUserScopedKey(DAILY_CONTEXT_EVENTS_KEY));
   return raw ? JSON.parse(raw) : [];
 }
 
@@ -145,7 +152,7 @@ export async function saveDailyContextEvent(event: DailyContextEvent) {
     .slice(0, MAX_DAILY_CONTEXT_EVENTS);
 
   await AsyncStorage.setItem(
-    DAILY_CONTEXT_EVENTS_KEY,
+    await getUserScopedKey(DAILY_CONTEXT_EVENTS_KEY),
     JSON.stringify(nextEvents)
   );
 }
@@ -165,7 +172,7 @@ export async function saveDailyContextEvents(eventsToSave: DailyContextEvent[]) 
     .slice(0, MAX_DAILY_CONTEXT_EVENTS);
 
   await AsyncStorage.setItem(
-    DAILY_CONTEXT_EVENTS_KEY,
+    await getUserScopedKey(DAILY_CONTEXT_EVENTS_KEY),
     JSON.stringify(nextEvents)
   );
 }

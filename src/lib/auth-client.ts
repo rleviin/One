@@ -2,6 +2,7 @@ import * as SecureStore from "expo-secure-store";
 import { DARA_API_URL } from "./config";
 
 const AUTH_TOKEN_KEY = "dara_auth_token";
+const AUTH_USER_ID_KEY = "dara_auth_user_id";
 
 export type DaraAuthUser = {
   id: string;
@@ -36,6 +37,7 @@ export async function signupDaraUser({
   }
 
   await SecureStore.setItemAsync(AUTH_TOKEN_KEY, json.token);
+  await SecureStore.setItemAsync(AUTH_USER_ID_KEY, json.user.id);
   return json as DaraAuthResponse;
 }
 
@@ -59,6 +61,7 @@ export async function loginDaraUser({
   }
 
   await SecureStore.setItemAsync(AUTH_TOKEN_KEY, json.token);
+  await SecureStore.setItemAsync(AUTH_USER_ID_KEY, json.user.id);
   return json as DaraAuthResponse;
 }
 
@@ -66,6 +69,11 @@ export async function getDaraAuthToken() {
   return SecureStore.getItemAsync(AUTH_TOKEN_KEY);
 }
 
+export async function getDaraAuthUserId() {
+  return SecureStore.getItemAsync(AUTH_USER_ID_KEY);
+}
+
 export async function logoutDaraUser() {
   await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
+  await SecureStore.deleteItemAsync(AUTH_USER_ID_KEY);
 }
