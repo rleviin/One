@@ -28,6 +28,7 @@ import {
   Modal,
   Dimensions,
   ImageBackground,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -271,9 +272,13 @@ export default function App() {
 
     async function prepareApp() {
       try {
+        lightTap();
+        setTimeout(lightTap, 420);
+        setTimeout(lightTap, 980);
         const [token] = await Promise.all([
           getDaraAuthToken(),
-          Asset.loadAsync(APP_ASSETS),
+          Asset.loadAsync([...APP_ASSETS, require("./assets/pre.png")]),
+          new Promise((resolve) => setTimeout(resolve, 2600)),
         ]);
 
         if (mounted && token) {
@@ -297,11 +302,20 @@ export default function App() {
 
   if (!assetsReady || !authChecked) {
     return (
-      <View style={styles.appLoadingScreen}>
-        <View style={styles.appLoadingOrb} />
-        <Text style={styles.appLoadingBrand}>DARA AI</Text>
-        <Text style={styles.appLoadingText}>Preparing your signal space...</Text>
-      </View>
+      <ImageBackground
+        source={require("./assets/pre.png")}
+        style={styles.appLoadingScreen}
+        imageStyle={styles.appLoadingBackgroundImage}
+        resizeMode="cover"
+      >
+        <View style={styles.appLoadingOverlay} />
+
+        <View style={styles.appLoadingTextBlock}>
+          <Text style={styles.appLoadingBrand}>DARA AI</Text>
+          <Text style={styles.appLoadingTagline}>Predict. Guide. Evolve.</Text>
+          <Text style={styles.appLoadingText}>Preparing your signal space...</Text>
+        </View>
+      </ImageBackground>
     );
   }
 
@@ -1672,34 +1686,51 @@ sheetCloseText: {
 
 appLoadingScreen: {
   flex: 1,
-  backgroundColor: "#050A14",
+  backgroundColor: "#050814",
+  alignItems: "center",
+  justifyContent: "center",
+  paddingHorizontal: 28,
+  overflow: "hidden",
+},
+
+appLoadingBackgroundImage: {
+  opacity: 0.94,
+},
+
+appLoadingOverlay: {
+  ...StyleSheet.absoluteFillObject,
+  backgroundColor: "rgba(2, 6, 18, 0.18)",
+},
+
+appLoadingTextBlock: {
   alignItems: "center",
   justifyContent: "center",
   paddingHorizontal: 28,
 },
 
-appLoadingOrb: {
-  width: 92,
-  height: 92,
-  borderRadius: 46,
-  backgroundColor: "rgba(120,150,255,0.20)",
-  borderWidth: 1,
-  borderColor: "rgba(185,198,255,0.30)",
-  marginBottom: 24,
-},
-
 appLoadingBrand: {
   color: "#FFFFFF",
-  fontSize: 18,
+  fontSize: 22,
   fontWeight: "900",
-  letterSpacing: 7,
+  letterSpacing: 8,
+  marginBottom: 10,
+  textShadowColor: "rgba(100,160,255,0.45)",
+  textShadowOffset: { width: 0, height: 0 },
+  textShadowRadius: 18,
+},
+
+appLoadingTagline: {
+  color: "rgba(255,255,255,0.78)",
+  fontSize: 15,
+  fontWeight: "700",
+  letterSpacing: 0.3,
   marginBottom: 10,
 },
 
 appLoadingText: {
-  color: "rgba(255,255,255,0.58)",
-  fontSize: 15,
-  lineHeight: 21,
+  color: "rgba(255,255,255,0.48)",
+  fontSize: 13,
+  lineHeight: 19,
   textAlign: "center",
 },
 });
