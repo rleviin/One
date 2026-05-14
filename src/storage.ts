@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getDaraAuthUserId } from "./lib/auth-client";
+import { getDaraAuthToken, getDaraAuthUserId } from "./lib/auth-client";
+import { DARA_API_URL } from "./lib/config";
 
 export type PersonalSetupData = {
   country: string;
@@ -56,12 +57,82 @@ async function getUserScopedKey(baseKey: string) {
   return userId ? `${baseKey}.${userId}` : baseKey;
 }
 
+async function getAuthHeaders() {
+  const token = await getDaraAuthToken();
+
+  if (!token) {
+    return null;
+  }
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+async function savePersonalSetupToCloud(data: PersonalSetupData) {
+  const headers = await getAuthHeaders();
+
+  if (!headers) {
+    return;
+  }
+
+  await fetch(`${DARA_API_URL}/api/user/personal-setup`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(data),
+  });
+}
+
+async function loadPersonalSetupFromCloud(): Promise<PersonalSetupData | null> {
+  const headers = await getAuthHeaders();
+
+  if (!headers) {
+    return null;
+  }
+
+  const response = await fetch(`${DARA_API_URL}/api/user/personal-setup`, {
+    headers,
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const json = await response.json();
+  return json.personalSetup ?? null;
+}
+
 
 export async function savePersonalSetup(data: PersonalSetupData) {
-  await AsyncStorage.setItem(await getUserScopedKey(PERSONAL_SETUP_KEY), JSON.stringify(data));
+  await AsyncStorage.setItem(
+    await getUserScopedKey(PERSONAL_SETUP_KEY),
+    JSON.stringify(data)
+  );
+
+  try {
+    await savePersonalSetupToCloud(data);
+  } catch {
+    // Keep local setup even if cloud sync fails.
+  }
 }
 
 export async function loadPersonalSetup(): Promise<PersonalSetupData | null> {
+  try {
+    const cloudSetup = await loadPersonalSetupFromCloud();
+
+    if (cloudSetup) {
+      await AsyncStorage.setItem(
+        await getUserScopedKey(PERSONAL_SETUP_KEY),
+        JSON.stringify(cloudSetup)
+      );
+
+      return cloudSetup;
+    }
+  } catch {
+    // Fall back to local setup if cloud sync fails.
+  }
+
   const raw = await AsyncStorage.getItem(await getUserScopedKey(PERSONAL_SETUP_KEY));
   return raw ? JSON.parse(raw) : null;
 }

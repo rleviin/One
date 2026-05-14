@@ -3,6 +3,11 @@ import dotenv from "dotenv";
 import express from "express";
 import OpenAI from "openai";
 import { loginUser, signupUser, verifyToken } from "./auth/auth-store";
+import { requireAuth, type AuthenticatedRequest } from "./auth/auth-middleware";
+import {
+  getUserCloudData,
+  savePersonalSetup,
+} from "./data/user-data-store";
 
 dotenv.config();
 
@@ -84,6 +89,54 @@ app.get("/api/auth/me", (req, res) => {
     return res.status(401).json({ error: "Invalid token" });
   }
 });
+
+
+app.get("/api/user/personal-setup", requireAuth, (req: AuthenticatedRequest, res) => {
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    return res.status(401).json({ error: "Missing user" });
+  }
+
+  const data = getUserCloudData(userId);
+
+  return res.json({
+    personalSetup: data.personalSetup ?? null,
+  });
+});
+
+app.post("/api/user/personal-setup", requireAuth, (req: AuthenticatedRequest, res) => {
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    return res.status(401).json({ error: "Missing user" });
+  }
+
+  const {
+    country = "",
+    age = "",
+    height = "",
+    weight = "",
+    workType = "",
+    incomeRange = "",
+    spendingRange = "",
+    dailyContext = "",
+  } = req.body ?? {};
+
+  const personalSetup = savePersonalSetup(userId, {
+    country: String(country),
+    age: String(age),
+    height: String(height),
+    weight: String(weight),
+    workType: String(workType),
+    incomeRange: String(incomeRange),
+    spendingRange: String(spendingRange),
+    dailyContext: String(dailyContext),
+  });
+
+  return res.json({ personalSetup });
+});
+
 
 
 app.post("/api/dara/think", async (req, res) => {
