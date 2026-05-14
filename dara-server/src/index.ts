@@ -7,6 +7,8 @@ import { requireAuth, type AuthenticatedRequest } from "./auth/auth-middleware";
 import {
   getUserCloudData,
   savePersonalSetup,
+  saveDailyCheckIn,
+  getDailyCheckIns,
 } from "./data/user-data-store";
 
 dotenv.config();
@@ -138,6 +140,48 @@ app.post("/api/user/personal-setup", requireAuth, (req: AuthenticatedRequest, re
 });
 
 
+
+
+
+app.post("/api/user/check-ins", requireAuth, (req: AuthenticatedRequest, res) => {
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    return res.status(401).json({ error: "Missing user" });
+  }
+
+  const {
+    energy = 0,
+    stress = 0,
+    workload = 0,
+    spendingPressure = 0,
+    note = "",
+    mealPhotoUri = null,
+    createdAt = new Date().toISOString(),
+  } = req.body ?? {};
+
+  const checkIns = saveDailyCheckIn(userId, {
+    energy: Number(energy),
+    stress: Number(stress),
+    workload: Number(workload),
+    spendingPressure: Number(spendingPressure),
+    note: String(note),
+    mealPhotoUri: mealPhotoUri ? String(mealPhotoUri) : null,
+    createdAt: String(createdAt),
+  });
+
+  return res.json({ checkIns });
+});
+
+app.get("/api/user/check-ins", requireAuth, (req: AuthenticatedRequest, res) => {
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    return res.status(401).json({ error: "Missing user" });
+  }
+
+  return res.json({ checkIns: getDailyCheckIns(userId) });
+});
 
 app.post("/api/dara/think", async (req, res) => {
   try {

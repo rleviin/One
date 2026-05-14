@@ -148,12 +148,68 @@ export async function loadExternalContext(): Promise<ExternalContextData | null>
 
 
 
+
+async function saveDailyCheckInToCloud(data: DailyCheckInData) {
+  const headers = await getAuthHeaders();
+
+  if (!headers) {
+    return;
+  }
+
+  await fetch(`${DARA_API_URL}/api/user/check-ins`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(data),
+  });
+}
+
+async function loadDailyCheckInsFromCloud(): Promise<DailyCheckInData[] | null> {
+  const headers = await getAuthHeaders();
+
+  if (!headers) {
+    return null;
+  }
+
+  const response = await fetch(`${DARA_API_URL}/api/user/check-ins`, {
+    headers,
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const json = await response.json();
+  return Array.isArray(json.checkIns) ? json.checkIns : null;
+}
+
 export async function loadDailyCheckIn(): Promise<DailyCheckInData | null> {
   const raw = await AsyncStorage.getItem(await getUserScopedKey(DAILY_CHECK_IN_KEY));
   return raw ? JSON.parse(raw) : null;
 }
 
 export async function loadDailyCheckInHistory(): Promise<DailyCheckInData[]> {
+  try {
+    const cloudCheckIns = await loadDailyCheckInsFromCloud();
+
+    if (cloudCheckIns) {
+      await AsyncStorage.setItem(
+        await getUserScopedKey(DAILY_CHECK_IN_HISTORY_KEY),
+        JSON.stringify(cloudCheckIns)
+      );
+
+      if (cloudCheckIns[0]) {
+        await AsyncStorage.setItem(
+          await getUserScopedKey(DAILY_CHECK_IN_KEY),
+          JSON.stringify(cloudCheckIns[0])
+        );
+      }
+
+      return cloudCheckIns;
+    }
+  } catch {
+    // Fall back to local check-ins if cloud sync fails.
+  }
+
   const raw = await AsyncStorage.getItem(await getUserScopedKey(DAILY_CHECK_IN_HISTORY_KEY));
   return raw ? JSON.parse(raw) : [];
 }
@@ -205,6 +261,12 @@ export async function saveDailyCheckInWithHistory(data: DailyCheckInData) {
     await getUserScopedKey(DAILY_CHECK_IN_HISTORY_KEY),
     JSON.stringify(nextHistory)
   );
+
+  try {
+    await saveDailyCheckInToCloud(data);
+  } catch {
+    // Keep local check-in even if cloud sync fails.
+  }
 }
 
 export async function loadDailyContextEvents(): Promise<DailyContextEvent[]> {

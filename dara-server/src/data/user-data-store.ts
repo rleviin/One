@@ -1,6 +1,18 @@
 import fs from "fs";
 import path from "path";
 
+
+
+export type CloudDailyCheckInData = {
+  energy: number;
+  stress: number;
+  workload: number;
+  spendingPressure: number;
+  note: string;
+  mealPhotoUri: string | null;
+  createdAt: string;
+};
+
 export type CloudPersonalSetupData = {
   country: string;
   age: string;
@@ -15,6 +27,7 @@ export type CloudPersonalSetupData = {
 
 type UserCloudData = {
   personalSetup?: CloudPersonalSetupData;
+  dailyCheckIns?: CloudDailyCheckInData[];
 };
 
 const dbPath = path.join(process.cwd(), "data", "user-cloud-data.json");
@@ -54,4 +67,36 @@ export function savePersonalSetup(
   writeDb(db);
 
   return db[userId].personalSetup;
+}
+
+
+export function saveDailyCheckIn(
+  userId: string,
+  checkIn: CloudDailyCheckInData
+) {
+  const db = readDb();
+
+  const existing = db[userId]?.dailyCheckIns ?? [];
+
+  const next = [checkIn, ...existing]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() -
+        new Date(a.createdAt).getTime()
+    )
+    .slice(0, 30);
+
+  db[userId] = {
+    ...(db[userId] ?? {}),
+    dailyCheckIns: next,
+  };
+
+  writeDb(db);
+
+  return next;
+}
+
+export function getDailyCheckIns(userId: string) {
+  const db = readDb();
+  return db[userId]?.dailyCheckIns ?? [];
 }
