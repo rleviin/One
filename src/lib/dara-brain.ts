@@ -21,9 +21,24 @@ const DEFAULT_USER_SIGNALS: UserSignals = {
 };
 
 export function buildDaraBrain(data: DaraUserData) {
+  const healthAdjustedDefaults: UserSignals = {
+    ...DEFAULT_USER_SIGNALS,
+    sleepHours:
+      data.healthSummary?.sleepHoursLastNight ??
+      DEFAULT_USER_SIGNALS.sleepHours,
+    recovery:
+      data.healthSummary?.sleepHoursLastNight &&
+      data.healthSummary.sleepHoursLastNight >= 7
+        ? Math.min(DEFAULT_USER_SIGNALS.recovery + 1, 10)
+        : data.healthSummary?.sleepHoursLastNight &&
+            data.healthSummary.sleepHoursLastNight < 6
+          ? Math.max(DEFAULT_USER_SIGNALS.recovery - 1, 1)
+          : DEFAULT_USER_SIGNALS.recovery,
+  };
+
   const userSignals = data.dailyCheckIn
-    ? mapCheckInToSignals(DEFAULT_USER_SIGNALS, data.dailyCheckIn)
-    : DEFAULT_USER_SIGNALS;
+    ? mapCheckInToSignals(healthAdjustedDefaults, data.dailyCheckIn)
+    : healthAdjustedDefaults;
 
   const activeSignal =
     buildActiveSignalFromCheckIn(data.dailyCheckIn);
@@ -51,6 +66,7 @@ export function buildDaraBrain(data: DaraUserData) {
     contextEvents: data.dailyContextEvents,
     externalContext: data.externalContext,
     externalProviders: data.externalProviders,
+    healthSummary: data.healthSummary,
     patterns,
   });
 
@@ -84,12 +100,24 @@ export function buildDaraBrain(data: DaraUserData) {
     actions: forecast.changePoints,
   };
 
+  const healthContext = data.healthSummary
+    ? {
+        sleepHoursLastNight: data.healthSummary.sleepHoursLastNight,
+        stepsToday: data.healthSummary.stepsToday,
+        activeEnergyToday: data.healthSummary.activeEnergyToday,
+        heartRateSamples: data.healthSummary.heartRateSamples,
+        hrvSamples: data.healthSummary.hrvSamples,
+        updatedAt: data.healthSummary.updatedAt,
+      }
+    : null;
+
   const aiContext = {
     latestCheckIn: data.dailyCheckIn,
     contextCount: data.dailyContextEvents.length,
     forecast: forecastView.hero,
     patterns: patterns.slice(0, 5),
     externalSignals: externalSignalsView,
+    healthContext,
   };
 
   return {

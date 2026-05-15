@@ -2,6 +2,7 @@ import type {
   DailyCheckInData,
   DailyContextEvent,
   ExternalContextData,
+  StoredHealthSummary,
 } from "../storage";
 import type { DaraPatternInsight } from "./pattern-engine";
 import type { ExternalProviderBundle } from "./providers/external-providers";
@@ -32,6 +33,7 @@ type BuildForecastInput = {
   contextEvents: DailyContextEvent[];
   externalContext?: ExternalContextData | null;
   externalProviders?: ExternalProviderBundle | null;
+  healthSummary?: StoredHealthSummary | null;
   patterns?: DaraPatternInsight[];
 };
 
@@ -41,6 +43,7 @@ export function buildForecast({
   contextEvents,
   externalContext,
   externalProviders,
+  healthSummary,
   patterns = [],
 }: BuildForecastInput): DaraForecast {
   if (!latestCheckIn) {
@@ -110,10 +113,16 @@ export function buildForecast({
 
   const patternRiskBoost = highPatternCount > 0;
 
+  const realSleepHours = healthSummary?.sleepHoursLastNight ?? null;
+  const realStepsToday = healthSummary?.stepsToday ?? null;
+  const realActiveEnergyToday = healthSummary?.activeEnergyToday ?? null;
+
   const sleepRiskBoost =
-    externalProviders?.health.sleepHours !== null &&
-    externalProviders?.health.sleepHours !== undefined &&
-    externalProviders.health.sleepHours < 6.5;
+    realSleepHours !== null
+      ? realSleepHours < 6.5
+      : externalProviders?.health.sleepHours !== null &&
+        externalProviders?.health.sleepHours !== undefined &&
+        externalProviders.health.sleepHours < 6.5;
 
   const hrvRiskBoost =
     externalProviders?.health.hrv !== null &&
@@ -138,9 +147,11 @@ export function buildForecast({
     patternRiskBoost
       ? `${highPatternCount} high-priority pattern${highPatternCount === 1 ? "" : "s"} are increasing short-term forecast risk.`
       : "No high-priority pattern is currently increasing the forecast.",
-    externalProviders?.health
-      ? `Health provider: sleep ${externalProviders.health.sleepHours ?? "unknown"}h, HRV ${externalProviders.health.hrv ?? "unknown"}.`
-      : "Health provider is not connected yet.",
+    healthSummary
+      ? `Apple Health: sleep ${realSleepHours ? realSleepHours.toFixed(1) : "unknown"}h, steps ${realStepsToday ?? "unknown"}, active energy ${realActiveEnergyToday ? Math.round(realActiveEnergyToday) : "unknown"} kcal.`
+      : externalProviders?.health
+        ? `Health provider: sleep ${externalProviders.health.sleepHours ?? "unknown"}h, HRV ${externalProviders.health.hrv ?? "unknown"}.`
+        : "Health provider is not connected yet.",
     externalProviders?.weather
       ? `Weather context: ${externalProviders.weather.condition}, daylight ${externalProviders.weather.daylightHours ?? "unknown"}h.`
       : "Weather provider is not connected yet.",
@@ -182,7 +193,9 @@ export function buildForecast({
       ],
       changePoints: [
         "Reduce non-critical workload for the next 24 hours.",
-        "Protect sleep and avoid late high-intensity activity.",
+        realSleepHours !== null && realSleepHours < 6.5
+          ? "Prioritize an earlier sleep window tonight to protect recovery."
+          : "Protect sleep and avoid late high-intensity activity.",
         "Avoid major financial or schedule commitments today.",
       ],
       timeline: [
@@ -225,7 +238,9 @@ export function buildForecast({
         "The current pattern is manageable, but recovery should be monitored.",
       ],
       changePoints: [
-        "Add one recovery action today.",
+        realSleepHours !== null && realSleepHours < 7
+          ? "Add one recovery action today and protect your sleep window."
+          : "Add one recovery action today.",
         "Keep workload from increasing further.",
         "Add meal or context signals to improve tomorrow’s forecast.",
       ],
