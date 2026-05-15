@@ -17,6 +17,11 @@ import AnimatedPressable from "../components/AnimatedPressable";
 import AnimatedBottomSheet from "../components/AnimatedBottomSheet";
 import ScreenBackground from "../components/ScreenBackground";
 import {
+  loadAppleHealthSummary,
+  requestAppleHealthAccess,
+  type DaraHealthSummary,
+} from "../lib/health-client";
+import {
   getDaraAuthUser,
   logoutDaraUser,
   type DaraAuthUser,
@@ -79,6 +84,8 @@ export default function ProfileTab({
   const [showAppleHealth, setShowAppleHealth] = useState(false);
   const [showExternalContext, setShowExternalContext] = useState(false);
   const [showHistoryPreview, setShowHistoryPreview] = useState(false);
+  const [healthSummary, setHealthSummary] = useState<DaraHealthSummary | null>(null);
+  const [isConnectingHealth, setIsConnectingHealth] = useState(false);
   const { data, isLoading, reload } = useDaraData(dataVersion);
   const [showContextSheet, setShowContextSheet] = useState(false);
   const [authUser, setAuthUser] = useState<DaraAuthUser | null>(null);
@@ -93,6 +100,19 @@ export default function ProfileTab({
   const healthRecord = data.healthRecord;
   const latestCheckIn = data.dailyCheckIn;
   const recentCheckIns = data.dailyCheckInHistory.slice(0, 5);
+  async function connectAppleHealth() {
+    setIsConnectingHealth(true);
+
+    try {
+      await requestAppleHealthAccess();
+      const summary = await loadAppleHealthSummary();
+      setHealthSummary(summary);
+      await successTap();
+    } finally {
+      setIsConnectingHealth(false);
+    }
+  }
+
   const todayContextEvents = data.dailyContextEvents.filter((item) => {
   const eventDate = new Date(item.createdAt);
   const today = new Date();
@@ -309,7 +329,9 @@ return (
           </View>
 
           <View style={styles.connectionBadge}>
-            <Text style={styles.connectionBadgeText}>Not connected</Text>
+            <Text style={styles.connectionBadgeText}>
+              {healthSummary ? "Connected" : "Not connected"}
+            </Text>
           </View>
         </AnimatedPressable>
 
@@ -530,6 +552,40 @@ return (
           </View>
         )}
 
+        <AnimatedPressable
+          style={styles.attachRecordButton}
+          pressedScale={0.97}
+          onPress={connectAppleHealth}
+          disabled={isConnectingHealth}
+        >
+          <Ionicons name="heart-outline" size={21} color="#07101F" />
+          <Text style={styles.attachRecordButtonText}>
+            {isConnectingHealth
+              ? "Connecting..."
+              : healthSummary
+                ? "Refresh Apple Health"
+                : "Connect Apple Health"}
+          </Text>
+        </AnimatedPressable>
+
+        {healthSummary && (
+          <View style={styles.attachedRecordCard}>
+            <View style={styles.attachedRecordIcon}>
+              <Ionicons name="pulse-outline" size={22} color="#58E7FF" />
+            </View>
+
+            <View style={{ flex: 1 }}>
+              <Text style={styles.attachedRecordTitle}>Apple Health connected</Text>
+              <Text style={styles.attachedRecordText}>
+                Steps today: {healthSummary.stepsToday ?? "—"} · Sleep:
+                {healthSummary.sleepHoursLastNight
+                  ? ` ${healthSummary.sleepHoursLastNight.toFixed(1)}h`
+                  : " —"}
+              </Text>
+            </View>
+          </View>
+        )}
+
         <View style={styles.recordList}>
           <View style={styles.recordItem}>
             <Ionicons
@@ -599,6 +655,40 @@ return (
           weather, calendar pressure and probability markets to adjust forecasts.
         </Text>
 
+        <AnimatedPressable
+          style={styles.attachRecordButton}
+          pressedScale={0.97}
+          onPress={connectAppleHealth}
+          disabled={isConnectingHealth}
+        >
+          <Ionicons name="heart-outline" size={21} color="#07101F" />
+          <Text style={styles.attachRecordButtonText}>
+            {isConnectingHealth
+              ? "Connecting..."
+              : healthSummary
+                ? "Refresh Apple Health"
+                : "Connect Apple Health"}
+          </Text>
+        </AnimatedPressable>
+
+        {healthSummary && (
+          <View style={styles.attachedRecordCard}>
+            <View style={styles.attachedRecordIcon}>
+              <Ionicons name="pulse-outline" size={22} color="#58E7FF" />
+            </View>
+
+            <View style={{ flex: 1 }}>
+              <Text style={styles.attachedRecordTitle}>Apple Health connected</Text>
+              <Text style={styles.attachedRecordText}>
+                Steps today: {healthSummary.stepsToday ?? "—"} · Sleep:
+                {healthSummary.sleepHoursLastNight
+                  ? ` ${healthSummary.sleepHoursLastNight.toFixed(1)}h`
+                  : " —"}
+              </Text>
+            </View>
+          </View>
+        )}
+
         <View style={styles.recordList}>
           <View style={styles.recordItem}>
             <Ionicons name="trending-up-outline" size={20} color="#C96BFF" />
@@ -660,6 +750,40 @@ return (
           Dara will use Apple Health only with your permission. This can help
           turn sleep, activity and recovery data into more personal guidance.
         </Text>
+
+        <AnimatedPressable
+          style={styles.attachRecordButton}
+          pressedScale={0.97}
+          onPress={connectAppleHealth}
+          disabled={isConnectingHealth}
+        >
+          <Ionicons name="heart-outline" size={21} color="#07101F" />
+          <Text style={styles.attachRecordButtonText}>
+            {isConnectingHealth
+              ? "Connecting..."
+              : healthSummary
+                ? "Refresh Apple Health"
+                : "Connect Apple Health"}
+          </Text>
+        </AnimatedPressable>
+
+        {healthSummary && (
+          <View style={styles.attachedRecordCard}>
+            <View style={styles.attachedRecordIcon}>
+              <Ionicons name="pulse-outline" size={22} color="#58E7FF" />
+            </View>
+
+            <View style={{ flex: 1 }}>
+              <Text style={styles.attachedRecordTitle}>Apple Health connected</Text>
+              <Text style={styles.attachedRecordText}>
+                Steps today: {healthSummary.stepsToday ?? "—"} · Sleep:
+                {healthSummary.sleepHoursLastNight
+                  ? ` ${healthSummary.sleepHoursLastNight.toFixed(1)}h`
+                  : " —"}
+              </Text>
+            </View>
+          </View>
+        )}
 
         <View style={styles.recordList}>
           <View style={styles.recordItem}>
