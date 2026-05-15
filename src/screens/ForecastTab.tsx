@@ -25,9 +25,10 @@ export default function ForecastTab({ dataVersion = 0 }: ForecastTabProps) {
   const forecastView = daraBrain.forecastView;
   const forecastHero = forecastView.hero;
 
-  const whyPoints = forecastView.reasons;
+  const whyPoints = forecastView.reasons.slice(0, 5);
   const changePoints = forecastView.actions;
   const timeline = forecastView.timeline;
+  const healthSummary = data.healthSummary;
 
 return (
   <ScreenBackground>
@@ -100,6 +101,28 @@ return (
             Confidence {forecastHero.confidence}% · {forecastHero.likelihood}
           </Text>
         </View>
+
+        {!healthSummary && (
+          <View style={styles.healthContextCard}>
+            <View style={styles.healthContextHeader}>
+              <View style={styles.healthContextIcon}>
+                <Ionicons name="heart-outline" size={19} color="#58E7FF" />
+              </View>
+
+              <View style={{ flex: 1 }}>
+                <Text style={styles.healthContextLabel}>Improve accuracy</Text>
+                <Text style={styles.healthContextTitle}>
+                  Connect Apple Health for smarter forecasts
+                </Text>
+              </View>
+            </View>
+
+            <Text style={styles.healthContextText}>
+              Sleep, activity and recovery data can help Dara understand your
+              real baseline and make guidance more personal.
+            </Text>
+          </View>
+        )}
 
         <Text style={styles.sectionTitle}>Forecast timeline</Text>
 
@@ -278,6 +301,54 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     textTransform: "uppercase",
     marginTop: 16,
+  },
+
+  healthContextCard: {
+    borderRadius: 28,
+    padding: 18,
+    backgroundColor: "rgba(8, 16, 38, 0.52)",
+    borderWidth: 1,
+    borderColor: "rgba(88,231,255,0.16)",
+    marginBottom: 24,
+  },
+
+  healthContextHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+
+  healthContextIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(88,231,255,0.10)",
+    borderWidth: 1,
+    borderColor: "rgba(88,231,255,0.20)",
+    marginRight: 12,
+  },
+
+  healthContextLabel: {
+    color: "rgba(255,255,255,0.46)",
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 1.3,
+    textTransform: "uppercase",
+    marginBottom: 3,
+  },
+
+  healthContextTitle: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+
+  healthContextText: {
+    color: "rgba(255,255,255,0.62)",
+    fontSize: 15,
+    lineHeight: 22,
   },
 
   timelineCard: {

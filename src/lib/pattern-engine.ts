@@ -1,4 +1,8 @@
-import type { DailyCheckInData, DailyContextEvent } from "../storage";
+import type {
+  DailyCheckInData,
+  DailyContextEvent,
+  StoredHealthSummary,
+} from "../storage";
 
 export type DaraPatternSeverity = "low" | "medium" | "high";
 
@@ -15,6 +19,8 @@ export type DaraPatternInsight = {
     | "card-outline"
     | "bulb-outline"
     | "pulse-outline"
+    | "moon-outline"
+    | "walk-outline"
     | "battery-dead-outline"
     | "fitness-outline"
     | "restaurant-outline"
@@ -33,14 +39,16 @@ function average(values: number[]) {
 export function buildPatternAnalysis({
   checkInHistory,
   contextEvents,
+  healthSummary,
 }: {
   checkInHistory: DailyCheckInData[];
   contextEvents: DailyContextEvent[];
+  healthSummary?: StoredHealthSummary | null;
 }): DaraPatternInsight[] {
   const recentCheckIns = checkInHistory.slice(0, 7);
 
   if (recentCheckIns.length < 2) {
-    return [
+    const earlyInsights: DaraPatternInsight[] = [
       {
         id: "insufficient-history",
         title: "Pattern learning started",
@@ -57,6 +65,26 @@ export function buildPatternAnalysis({
         ],
       },
     ];
+
+    if (healthSummary?.sleepHoursLastNight !== null && healthSummary?.sleepHoursLastNight !== undefined) {
+      earlyInsights.push({
+        id: "apple-health-baseline-started",
+        title: "Apple Health baseline started",
+        summary:
+          "Dara can now use sleep, activity and recovery signals while it learns your personal pattern.",
+        severity: "low",
+        label: "HEALTH CONNECTED",
+        accent: "#58E7FF",
+        icon: "moon-outline",
+        points: [
+          `Last sleep signal: ${healthSummary.sleepHoursLastNight.toFixed(1)}h.`,
+          `Steps today: ${healthSummary.stepsToday ?? "not available yet"}.`,
+          "More days will help Dara separate normal variation from meaningful changes.",
+        ],
+      });
+    }
+
+    return earlyInsights;
   }
 
   const avgStress = average(recentCheckIns.map((item) => item.stress));
@@ -255,6 +283,50 @@ export function buildPatternAnalysis({
         "Workload is high while energy is not fully compensating.",
         "This gap can increase fatigue risk.",
         "Reducing non-critical load may improve tomorrow’s recovery.",
+      ],
+    });
+  }
+
+  if (
+    healthSummary?.sleepHoursLastNight !== null &&
+    healthSummary?.sleepHoursLastNight !== undefined &&
+    healthSummary.sleepHoursLastNight < 6.5
+  ) {
+    insights.push({
+      id: "apple-health-sleep-low",
+      title: "Sleep may be limiting recovery",
+      summary:
+        "Apple Health sleep data suggests recovery may need extra protection today.",
+      severity: "medium",
+      label: "SLEEP",
+      accent: "#C96BFF",
+      icon: "moon-outline",
+      points: [
+        `Last sleep signal is ${healthSummary.sleepHoursLastNight.toFixed(1)}h.`,
+        "Shorter sleep can make stress and workload feel heavier.",
+        "Protecting tonight’s sleep window may improve tomorrow’s forecast.",
+      ],
+    });
+  }
+
+  if (
+    healthSummary?.stepsToday !== null &&
+    healthSummary?.stepsToday !== undefined &&
+    healthSummary.stepsToday > 9000
+  ) {
+    insights.push({
+      id: "apple-health-activity-load",
+      title: "Activity load is elevated",
+      summary:
+        "Movement today is already high, so Dara will watch whether recovery keeps up.",
+      severity: "low",
+      label: "ACTIVITY",
+      accent: "#58E7FF",
+      icon: "walk-outline",
+      points: [
+        `Steps today: ${healthSummary.stepsToday}.`,
+        "Higher movement can be positive, but it still adds physical load.",
+        "If energy drops later, Dara may treat this as recovery pressure.",
       ],
     });
   }

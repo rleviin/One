@@ -58,6 +58,7 @@ export function buildDaraBrain(data: DaraUserData) {
   const patterns = buildPatternAnalysis({
     checkInHistory: data.dailyCheckInHistory,
     contextEvents: data.dailyContextEvents,
+    healthSummary: data.healthSummary,
   });
 
   const forecast = buildForecast({

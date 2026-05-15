@@ -553,40 +553,6 @@ return (
           </View>
         )}
 
-        <AnimatedPressable
-          style={styles.attachRecordButton}
-          pressedScale={0.97}
-          onPress={connectAppleHealth}
-          disabled={isConnectingHealth}
-        >
-          <Ionicons name="heart-outline" size={21} color="#07101F" />
-          <Text style={styles.attachRecordButtonText}>
-            {isConnectingHealth
-              ? "Connecting..."
-              : healthSummary
-                ? "Refresh Apple Health"
-                : "Connect Apple Health"}
-          </Text>
-        </AnimatedPressable>
-
-        {healthSummary && (
-          <View style={styles.attachedRecordCard}>
-            <View style={styles.attachedRecordIcon}>
-              <Ionicons name="pulse-outline" size={22} color="#58E7FF" />
-            </View>
-
-            <View style={{ flex: 1 }}>
-              <Text style={styles.attachedRecordTitle}>Apple Health connected</Text>
-              <Text style={styles.attachedRecordText}>
-                Steps today: {healthSummary.stepsToday ?? "—"} · Sleep:
-                {healthSummary.sleepHoursLastNight
-                  ? ` ${healthSummary.sleepHoursLastNight.toFixed(1)}h`
-                  : " —"}
-              </Text>
-            </View>
-          </View>
-        )}
-
         <View style={styles.recordList}>
           <View style={styles.recordItem}>
             <Ionicons
@@ -608,8 +574,8 @@ return (
             <View style={styles.recordTextBlock}>
               <Text style={styles.recordTitle}>Apple Health</Text>
               <Text style={styles.recordText}>
-                Later Dara can connect sleep, activity, HRV and recovery data
-                from HealthKit.
+                Connected from Apple Health with your permission: sleep,
+                activity, HRV and recovery-related signals.
               </Text>
             </View>
           </View>
@@ -655,40 +621,6 @@ return (
           Dara will later connect your country, economy, cost of living,
           weather, calendar pressure and probability markets to adjust forecasts.
         </Text>
-
-        <AnimatedPressable
-          style={styles.attachRecordButton}
-          pressedScale={0.97}
-          onPress={connectAppleHealth}
-          disabled={isConnectingHealth}
-        >
-          <Ionicons name="heart-outline" size={21} color="#07101F" />
-          <Text style={styles.attachRecordButtonText}>
-            {isConnectingHealth
-              ? "Connecting..."
-              : healthSummary
-                ? "Refresh Apple Health"
-                : "Connect Apple Health"}
-          </Text>
-        </AnimatedPressable>
-
-        {healthSummary && (
-          <View style={styles.attachedRecordCard}>
-            <View style={styles.attachedRecordIcon}>
-              <Ionicons name="pulse-outline" size={22} color="#58E7FF" />
-            </View>
-
-            <View style={{ flex: 1 }}>
-              <Text style={styles.attachedRecordTitle}>Apple Health connected</Text>
-              <Text style={styles.attachedRecordText}>
-                Steps today: {healthSummary.stepsToday ?? "—"} · Sleep:
-                {healthSummary.sleepHoursLastNight
-                  ? ` ${healthSummary.sleepHoursLastNight.toFixed(1)}h`
-                  : " —"}
-              </Text>
-            </View>
-          </View>
-        )}
 
         <View style={styles.recordList}>
           <View style={styles.recordItem}>
@@ -752,22 +684,6 @@ return (
           turn sleep, activity and recovery data into more personal guidance.
         </Text>
 
-        <AnimatedPressable
-          style={styles.attachRecordButton}
-          pressedScale={0.97}
-          onPress={connectAppleHealth}
-          disabled={isConnectingHealth}
-        >
-          <Ionicons name="heart-outline" size={21} color="#07101F" />
-          <Text style={styles.attachRecordButtonText}>
-            {isConnectingHealth
-              ? "Connecting..."
-              : healthSummary
-                ? "Refresh Apple Health"
-                : "Connect Apple Health"}
-          </Text>
-        </AnimatedPressable>
-
         {healthSummary && (
           <View style={styles.attachedRecordCard}>
             <View style={styles.attachedRecordIcon}>
@@ -823,12 +739,23 @@ return (
         <AnimatedPressable
           style={styles.sheetButton}
           pressedScale={0.97}
-          onPress={() => {
-            lightTap();
-            setShowAppleHealth(false);
-          }}
+          onPress={
+            healthSummary
+              ? () => {
+                  lightTap();
+                  setShowAppleHealth(false);
+                }
+              : connectAppleHealth
+          }
+          disabled={isConnectingHealth}
         >
-          <Text style={styles.sheetButtonText}>Connect later</Text>
+          <Text style={styles.sheetButtonText}>
+            {isConnectingHealth
+              ? "Connecting..."
+              : healthSummary
+                ? "Done"
+                : "Connect Apple Health"}
+          </Text>
         </AnimatedPressable>
       </AnimatedBottomSheet>
 

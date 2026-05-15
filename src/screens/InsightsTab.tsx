@@ -92,6 +92,19 @@ export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
 
         <Text style={styles.sectionTitle}>Current insights</Text>
 
+        {insights.length === 0 && (
+          <View style={styles.emptyInsightsCard}>
+            <View style={styles.emptyInsightsIcon}>
+              <Ionicons name="sparkles-outline" size={22} color="#B9C6FF" />
+            </View>
+            <Text style={styles.emptyInsightsTitle}>Dara is still learning your patterns</Text>
+            <Text style={styles.emptyInsightsText}>
+              Add a few daily check-ins and connect Apple Health to unlock sleep,
+              recovery and pressure insights.
+            </Text>
+          </View>
+        )}
+
         <View style={styles.insightList}>
           {insights.map((insight) => (
 <AnimatedPressable
@@ -324,6 +337,42 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     letterSpacing: -0.4,
     marginBottom: 12,
+  },
+
+  emptyInsightsCard: {
+    borderRadius: 28,
+    padding: 18,
+    backgroundColor: "rgba(8, 16, 38, 0.52)",
+    borderWidth: 1,
+    borderColor: "rgba(185,198,255,0.16)",
+    marginBottom: 16,
+  },
+
+  emptyInsightsIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(185,198,255,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(185,198,255,0.22)",
+    marginBottom: 12,
+  },
+
+  emptyInsightsTitle: {
+    color: "#FFFFFF",
+    fontSize: 17,
+    lineHeight: 23,
+    fontWeight: "900",
+    marginBottom: 7,
+  },
+
+  emptyInsightsText: {
+    color: "rgba(255,255,255,0.62)",
+    fontSize: 14,
+    lineHeight: 21,
+    fontWeight: "600",
   },
 
   insightList: {
