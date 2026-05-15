@@ -14,7 +14,8 @@ import AnimatedPressable from "../components/AnimatedPressable";
 import AnimatedBottomSheet from "../components/AnimatedBottomSheet";
 import { useDaraData } from "../useDaraData";
 import type { DailyCheckInData, DailyContextEvent } from "../storage";
-import { lightTap } from "../haptics";
+import { lightTap, successTap } from "../haptics";
+import { exportDaraPdfReport } from "../lib/pdf-report";
 
 type CheckInHistoryScreenProps = {
   dataVersion?: number;
@@ -569,8 +570,16 @@ export default function CheckInHistoryScreen({
                   key={label}
                   style={styles.periodOption}
                   pressedScale={0.97}
-                  onPress={() => {
+                  onPress={async () => {
                     lightTap();
+
+                    if (index === 3) {
+                      setShowPdfOptions(false);
+                      return;
+                    }
+
+                    await exportDaraPdfReport(data, label);
+                    await successTap();
                     setShowPdfOptions(false);
                   }}
                 >
