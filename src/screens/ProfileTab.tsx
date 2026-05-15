@@ -10,7 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 
 import type { HealthRecordFile } from "../storage";
-import { saveHealthRecord } from "../storage";
+import { saveHealthRecord, saveHealthSummary } from "../storage";
 import { useDaraData } from "../useDaraData";
 import { lightTap, mediumTap, successTap } from "../haptics";
 import AnimatedPressable from "../components/AnimatedPressable";
@@ -107,6 +107,7 @@ export default function ProfileTab({
       await requestAppleHealthAccess();
       const summary = await loadAppleHealthSummary();
       setHealthSummary(summary);
+      await saveHealthSummary(summary);
       await successTap();
     } finally {
       setIsConnectingHealth(false);

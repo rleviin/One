@@ -216,6 +216,30 @@ export async function loadDailyCheckInHistory(): Promise<DailyCheckInData[]> {
 
 
 
+
+export type StoredHealthSummary = {
+  stepsToday: number | null;
+  activeEnergyToday: number | null;
+  sleepHoursLastNight: number | null;
+  heartRateSamples: number;
+  hrvSamples: number;
+  updatedAt: string;
+};
+
+const HEALTH_SUMMARY_KEY = "dara.healthSummary.latest";
+
+export async function saveHealthSummary(data: StoredHealthSummary) {
+  await AsyncStorage.setItem(
+    await getUserScopedKey(HEALTH_SUMMARY_KEY),
+    JSON.stringify(data)
+  );
+}
+
+export async function loadHealthSummary(): Promise<StoredHealthSummary | null> {
+  const raw = await AsyncStorage.getItem(await getUserScopedKey(HEALTH_SUMMARY_KEY));
+  return raw ? JSON.parse(raw) : null;
+}
+
 export type HealthRecordFile = {
   name: string;
   uri: string;

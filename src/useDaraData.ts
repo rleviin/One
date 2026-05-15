@@ -5,6 +5,7 @@ import type {
   DailyContextEvent,
   ExternalContextData,
   HealthRecordFile,
+  StoredHealthSummary,
   PersonalSetupData,
 } from "./storage";
 import { buildMockExternalContext } from "./lib/external-context";
@@ -18,6 +19,7 @@ import {
   loadDailyCheckInHistory,
   loadDailyContextEvents,
   loadHealthRecord,
+  loadHealthSummary,
   loadPersonalSetup,
 } from "./storage";
 
@@ -29,6 +31,7 @@ export type DaraUserData = {
   externalContext: ExternalContextData | null;
   externalProviders: ExternalProviderBundle | null;
   healthRecord: HealthRecordFile | null;
+  healthSummary: StoredHealthSummary | null;
 };
 
 const EMPTY_DARA_DATA: DaraUserData = {
@@ -39,6 +42,7 @@ const EMPTY_DARA_DATA: DaraUserData = {
   externalContext: null,
   externalProviders: null,
   healthRecord: null,
+  healthSummary: null,
 };
 
 export function useDaraData(dataVersion = 0) {
@@ -55,12 +59,14 @@ export function useDaraData(dataVersion = 0) {
   dailyCheckInHistory,
   dailyContextEvents,
   healthRecord,
+  healthSummary,
 ] = await Promise.all([
   loadPersonalSetup(),
   loadDailyCheckIn(),
   loadDailyCheckInHistory(),
   loadDailyContextEvents(),
   loadHealthRecord(),
+  loadHealthSummary(),
 ]);
  
       const externalContext = buildMockExternalContext(personalSetup);
@@ -77,6 +83,7 @@ export function useDaraData(dataVersion = 0) {
         dailyCheckIn,
         dailyCheckInHistory,
         healthRecord,
+        healthSummary,
       });
     } finally {
       setIsLoading(false);
