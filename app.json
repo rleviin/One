@@ -16,7 +16,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "ai.getdara.app",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSHealthShareUsageDescription": "Dara uses health data such as sleep, steps and activity to provide better guidance.",
+        "NSHealthUpdateUsageDescription": "Dara may save selected wellness context only when you allow it."
       }
     },
     "android": {
@@ -32,7 +34,8 @@
     },
     "plugins": [
       "expo-asset",
-      "expo-secure-store"
+      "expo-secure-store",
+      "react-native-health"
     ],
     "extra": {
       "eas": {
