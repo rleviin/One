@@ -9,6 +9,8 @@ import {
   savePersonalSetup,
   saveDailyCheckIn,
   getDailyCheckIns,
+  saveHealthSummary,
+  getHealthSummary,
 } from "./data/user-data-store";
 
 dotenv.config();
@@ -21,7 +23,7 @@ const openai = new OpenAI({
 });
 
 app.use(cors());
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "8mb" }));
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
@@ -181,6 +183,127 @@ app.get("/api/user/check-ins", requireAuth, (req: AuthenticatedRequest, res) => 
   }
 
   return res.json({ checkIns: getDailyCheckIns(userId) });
+});
+
+
+app.get("/api/user/health-summary", requireAuth, (req: AuthenticatedRequest, res) => {
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    return res.status(401).json({ error: "Missing user" });
+  }
+
+  return res.json({ healthSummary: getHealthSummary(userId) });
+});
+
+app.post("/api/user/health-summary", requireAuth, (req: AuthenticatedRequest, res) => {
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    return res.status(401).json({ error: "Missing user" });
+  }
+
+  const {
+    stepsToday = null,
+    activeEnergyToday = null,
+    sleepHoursLastNight = null,
+    heartRateSamples = 0,
+    hrvSamples = 0,
+    updatedAt = new Date().toISOString(),
+  } = req.body ?? {};
+
+  const healthSummary = saveHealthSummary(userId, {
+    stepsToday: stepsToday === null ? null : Number(stepsToday),
+    activeEnergyToday: activeEnergyToday === null ? null : Number(activeEnergyToday),
+    sleepHoursLastNight: sleepHoursLastNight === null ? null : Number(sleepHoursLastNight),
+    heartRateSamples: Number(heartRateSamples),
+    hrvSamples: Number(hrvSamples),
+    updatedAt: String(updatedAt),
+  });
+
+  return res.json({ healthSummary });
+});
+
+
+app.post("/api/analyze-meal", requireAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { imageBase64, mimeType = "image/jpeg" } = req.body ?? {};
+
+    if (!imageBase64) {
+      return res.status(400).json({ error: "imageBase64 is required" });
+    }
+
+    const response = await openai.responses.create({
+      model: "gpt-5.5",
+      input: [
+        {
+          role: "system",
+          content:
+            "You are Dara, a careful nutrition and recovery assistant. Analyze meal photos for general wellness context only. Return only valid JSON with title, summary, likelyFoods, mealType, estimatedMacros, recoveryImpact, energyImpact, suggestions, confidence. Do not provide medical advice.",
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: "Analyze this meal photo for energy, recovery and likely nutrition context. Return concise JSON.",
+            },
+            {
+              type: "input_image",
+              image_url: `data:${mimeType};base64,${imageBase64}`,
+              detail: "low",
+            },
+          ],
+        },
+      ],
+    });
+
+    const text = response.output_text;
+
+    try {
+      const parsed = JSON.parse(text);
+
+      return res.json({
+        title: String(parsed.title ?? "Meal analysis"),
+        summary: String(parsed.summary ?? ""),
+        likelyFoods: Array.isArray(parsed.likelyFoods)
+          ? parsed.likelyFoods.map(String)
+          : [],
+        mealType: String(parsed.mealType ?? "unknown"),
+        estimatedMacros: {
+          protein: String(parsed.estimatedMacros?.protein ?? "unknown"),
+          carbs: String(parsed.estimatedMacros?.carbs ?? "unknown"),
+          fat: String(parsed.estimatedMacros?.fat ?? "unknown"),
+        },
+        recoveryImpact: String(parsed.recoveryImpact ?? "unknown"),
+        energyImpact: String(parsed.energyImpact ?? "unknown"),
+        suggestions: Array.isArray(parsed.suggestions)
+          ? parsed.suggestions.map(String)
+          : [],
+        confidence: Number(parsed.confidence ?? 40),
+      });
+    } catch {
+      return res.json({
+        title: "Meal analysis",
+        summary: text,
+        likelyFoods: [],
+        mealType: "unknown",
+        estimatedMacros: {
+          protein: "unknown",
+          carbs: "unknown",
+          fat: "unknown",
+        },
+        recoveryImpact: "unknown",
+        energyImpact: "unknown",
+        suggestions: ["Add a short note if the photo is unclear."],
+        confidence: 30,
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : "Meal analysis failed",
+    });
+  }
 });
 
 app.post("/api/dara/think", async (req, res) => {

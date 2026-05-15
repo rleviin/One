@@ -19,6 +19,7 @@ import AnimatedPressable from "../components/AnimatedPressable";
 import { lightTap, successTap } from "../haptics";
 import { saveDailyContextEvents } from "../storage";
 import { useDaraData } from "../useDaraData";
+import { analyzeMealPhoto } from "../lib/meal-analysis-client";
 
 const FREE_CONTEXT_LIMIT_PER_DAY = 5;
 
@@ -50,6 +51,8 @@ export default function AddContextScreen({
   const { data } = useDaraData(dataVersion);
   const [note, setNote] = useState("");
   const [mealPhotoUri, setMealPhotoUri] = useState<string | null>(null);
+  const [mealAnalysis, setMealAnalysis] = useState<string | null>(null);
+  const [isAnalyzingMeal, setIsAnalyzingMeal] = useState(false);
 
   const todayContextCount = useMemo(() => {
     const todayKey = getDayKey(new Date());
@@ -62,6 +65,21 @@ export default function AddContextScreen({
 const isLocked =
   !isPremium && todayContextCount >= FREE_CONTEXT_LIMIT_PER_DAY;
 
+
+
+  async function analyzeSelectedMealPhoto(uri: string) {
+    setIsAnalyzingMeal(true);
+    setMealAnalysis(null);
+
+    try {
+      const result = await analyzeMealPhoto(uri);
+      setMealAnalysis(`${result.title}: ${result.summary}`);
+    } catch {
+      setMealAnalysis("Meal photo added. Analysis will be retried later.");
+    } finally {
+      setIsAnalyzingMeal(false);
+    }
+  }
 
 async function chooseMealPhotoFromLibrary() {
   if (isLocked) {
@@ -83,7 +101,9 @@ async function chooseMealPhotoFromLibrary() {
   });
 
   if (!result.canceled && result.assets.length > 0) {
-    setMealPhotoUri(result.assets[0].uri);
+    const uri = result.assets[0].uri;
+    setMealPhotoUri(uri);
+    await analyzeSelectedMealPhoto(uri);
   }
 }
 
@@ -107,7 +127,9 @@ async function takeMealPhoto() {
   });
 
   if (!result.canceled && result.assets.length > 0) {
-    setMealPhotoUri(result.assets[0].uri);
+    const uri = result.assets[0].uri;
+    setMealPhotoUri(uri);
+    await analyzeSelectedMealPhoto(uri);
   }
 }
 
@@ -165,7 +187,7 @@ if (mealPhotoUri) {
     id: `meal-${createdAt}`,
     type: "meal" as const,
     title: "Meal photo",
-    text: "Meal photo added for future analysis. Dara will later estimate meal quality, protein, carbs, energy impact and recommendations.",
+    text: mealAnalysis ?? "Meal photo added. Dara will estimate meal quality, energy impact and recovery context.",
     createdAt,
   });
 }
@@ -469,6 +491,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.12)",
     marginBottom: 16,
+  },
+
+  mealAnalysisText: {
+    color: "rgba(255,255,255,0.62)",
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 10,
   },
 
   mealPreviewImage: {

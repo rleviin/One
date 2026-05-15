@@ -228,14 +228,69 @@ export type StoredHealthSummary = {
 
 const HEALTH_SUMMARY_KEY = "dara.healthSummary.latest";
 
+
+async function saveHealthSummaryToCloud(data: StoredHealthSummary) {
+  const headers = await getAuthHeaders();
+
+  if (!headers) {
+    return;
+  }
+
+  await fetch(`${DARA_API_URL}/api/user/health-summary`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(data),
+  });
+}
+
+async function loadHealthSummaryFromCloud(): Promise<StoredHealthSummary | null> {
+  const headers = await getAuthHeaders();
+
+  if (!headers) {
+    return null;
+  }
+
+  const response = await fetch(`${DARA_API_URL}/api/user/health-summary`, {
+    headers,
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const json = await response.json();
+  return json.healthSummary ?? null;
+}
+
 export async function saveHealthSummary(data: StoredHealthSummary) {
   await AsyncStorage.setItem(
     await getUserScopedKey(HEALTH_SUMMARY_KEY),
     JSON.stringify(data)
   );
+
+  try {
+    await saveHealthSummaryToCloud(data);
+  } catch {
+    // Keep local health summary even if cloud sync fails.
+  }
 }
 
 export async function loadHealthSummary(): Promise<StoredHealthSummary | null> {
+  try {
+    const cloudHealthSummary = await loadHealthSummaryFromCloud();
+
+    if (cloudHealthSummary) {
+      await AsyncStorage.setItem(
+        await getUserScopedKey(HEALTH_SUMMARY_KEY),
+        JSON.stringify(cloudHealthSummary)
+      );
+
+      return cloudHealthSummary;
+    }
+  } catch {
+    // Fall back to local health summary if cloud sync fails.
+  }
+
   const raw = await AsyncStorage.getItem(await getUserScopedKey(HEALTH_SUMMARY_KEY));
   return raw ? JSON.parse(raw) : null;
 }
@@ -246,6 +301,7 @@ export type HealthRecordFile = {
   size?: number;
   mimeType?: string;
   createdAt: string;
+  analysisStatus?: "not_started" | "ready" | "analyzing" | "completed" | "failed";
 };
 
 const HEALTH_RECORD_KEY = "dara.healthRecord.latest";

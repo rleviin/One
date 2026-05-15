@@ -25,9 +25,19 @@ export type CloudPersonalSetupData = {
   updatedAt: string;
 };
 
+export type CloudHealthSummaryData = {
+  stepsToday: number | null;
+  activeEnergyToday: number | null;
+  sleepHoursLastNight: number | null;
+  heartRateSamples: number;
+  hrvSamples: number;
+  updatedAt: string;
+};
+
 type UserCloudData = {
   personalSetup?: CloudPersonalSetupData;
   dailyCheckIns?: CloudDailyCheckInData[];
+  healthSummary?: CloudHealthSummaryData;
 };
 
 const dbPath = path.join(process.cwd(), "data", "user-cloud-data.json");
@@ -99,4 +109,26 @@ export function saveDailyCheckIn(
 export function getDailyCheckIns(userId: string) {
   const db = readDb();
   return db[userId]?.dailyCheckIns ?? [];
+}
+
+
+export function saveHealthSummary(
+  userId: string,
+  healthSummary: CloudHealthSummaryData
+) {
+  const db = readDb();
+
+  db[userId] = {
+    ...(db[userId] ?? {}),
+    healthSummary,
+  };
+
+  writeDb(db);
+
+  return db[userId].healthSummary;
+}
+
+export function getHealthSummary(userId: string) {
+  const db = readDb();
+  return db[userId]?.healthSummary ?? null;
 }

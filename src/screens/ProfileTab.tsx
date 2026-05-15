@@ -142,6 +142,7 @@ export default function ProfileTab({
         size: file.size,
         mimeType: file.mimeType,
         createdAt: new Date().toISOString(),
+        analysisStatus: "ready",
       };
 
       await saveHealthRecord(record);
@@ -537,19 +538,35 @@ return (
 
         {healthRecord && (
           <View style={styles.attachedRecordCard}>
-            <View style={styles.attachedRecordIcon}>
-              <Ionicons name="flask-outline" size={22} color="#FF647C" />
+            <View style={styles.attachedRecordHeader}>
+              <View style={styles.attachedRecordIcon}>
+                <Ionicons name="flask-outline" size={22} color="#FF647C" />
+              </View>
+
+              <View style={{ flex: 1 }}>
+                <Text style={styles.attachedRecordTitle}>
+                  {healthRecord.name}
+                </Text>
+
+                <Text style={styles.attachedRecordText}>
+                  Ready for analysis. Dara will extract biomarkers, fatigue,
+                  inflammation and nutrient signals in the next update.
+                </Text>
+              </View>
             </View>
 
-            <View style={{ flex: 1 }}>
-              <Text style={styles.attachedRecordTitle}>
-                {healthRecord.name}
+            <AnimatedPressable
+              style={styles.analyzeRecordButton}
+              pressedScale={0.97}
+              onPress={() => {
+                mediumTap();
+              }}
+            >
+              <Ionicons name="sparkles-outline" size={18} color="#FFFFFF" />
+              <Text style={styles.analyzeRecordButtonText}>
+                Analyze blood test soon
               </Text>
-              <Text style={styles.attachedRecordText}>
-                Attached locally. Dara will later analyze biomarkers, fatigue,
-                inflammation and nutrient signals.
-              </Text>
-            </View>
+            </AnimatedPressable>
           </View>
         )}
 
@@ -1508,6 +1525,11 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
 
+  attachedRecordHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+
   attachedRecordIcon: {
     width: 46,
     height: 46,
@@ -1525,6 +1547,26 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "900",
     marginBottom: 4,
+  },
+
+  analyzeRecordButton: {
+    marginTop: 14,
+    borderRadius: 18,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: "rgba(255,255,255,0.085)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.14)",
+  },
+
+  analyzeRecordButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "800",
   },
 
   attachedRecordText: {
