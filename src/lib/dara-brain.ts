@@ -59,6 +59,8 @@ export function buildDaraBrain(data: DaraUserData) {
     checkInHistory: data.dailyCheckInHistory,
     contextEvents: data.dailyContextEvents,
     healthSummary: data.healthSummary,
+    bloodTestSummary: data.healthRecord?.analysisSummary ?? null,
+    bloodTestFocusAreas: data.healthRecord?.analysisFocusAreas ?? [],
   });
 
   const forecast = buildForecast({
@@ -68,6 +70,8 @@ export function buildDaraBrain(data: DaraUserData) {
     externalContext: data.externalContext,
     externalProviders: data.externalProviders,
     healthSummary: data.healthSummary,
+    bloodTestSummary: data.healthRecord?.analysisSummary ?? null,
+    bloodTestFocusAreas: data.healthRecord?.analysisFocusAreas ?? [],
     patterns,
   });
 
@@ -101,6 +105,17 @@ export function buildDaraBrain(data: DaraUserData) {
     actions: forecast.changePoints,
   };
 
+  const bloodTestContext = data.healthRecord?.analysisSummary
+    ? {
+        title: data.healthRecord.analysisTitle ?? "Blood test analysis",
+        summary: data.healthRecord.analysisSummary,
+        focusAreas: data.healthRecord.analysisFocusAreas ?? [],
+        recommendations: data.healthRecord.analysisRecommendations ?? [],
+        confidence: data.healthRecord.analysisConfidence ?? null,
+        analyzedAt: data.healthRecord.analyzedAt ?? null,
+      }
+    : null;
+
   const healthContext = data.healthSummary
     ? {
         sleepHoursLastNight: data.healthSummary.sleepHoursLastNight,
@@ -119,6 +134,7 @@ export function buildDaraBrain(data: DaraUserData) {
     patterns: patterns.slice(0, 5),
     externalSignals: externalSignalsView,
     healthContext,
+    bloodTestContext,
   };
 
   return {

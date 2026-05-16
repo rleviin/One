@@ -15,6 +15,7 @@ export async function exportDaraPdfReport(data: DaraUserData, periodLabel: strin
   const forecast = brain.forecastView.hero;
   const latest = data.dailyCheckIn;
   const health = data.healthSummary;
+  const healthRecord = data.healthRecord;
   const patterns = brain.patterns.slice(0, 5);
   const mealEvents = data.dailyContextEvents
     .filter((event) => event.type === "meal")
@@ -41,6 +42,17 @@ export async function exportDaraPdfReport(data: DaraUserData, periodLabel: strin
           Workload: ${esc(latest?.workload ?? "—")} / 10<br/>
           Money pressure: ${esc(latest?.spendingPressure ?? "—")} / 10
         </p>
+
+        <h2>Blood test context</h2>
+        ${
+          healthRecord?.analysisSummary
+            ? `<p><strong>${esc(healthRecord.analysisTitle ?? "Blood test analysis")}</strong></p>
+               <p>${esc(healthRecord.analysisSummary)}</p>
+               <p><strong>Focus areas:</strong> ${esc((healthRecord.analysisFocusAreas ?? []).join(", ") || "—")}</p>
+               <p><strong>Recommendations:</strong></p>
+               <ul>${(healthRecord.analysisRecommendations ?? []).map((item) => `<li>${esc(item)}</li>`).join("")}</ul>`
+            : "<p>No analyzed blood test available yet.</p>"
+        }
 
         <h2>Apple Health</h2>
         <p>

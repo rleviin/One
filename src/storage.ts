@@ -297,6 +297,15 @@ export async function loadHealthSummary(): Promise<StoredHealthSummary | null> {
   return raw ? JSON.parse(raw) : null;
 }
 
+export type HealthRecordPage = {
+  id: string;
+  name: string;
+  uri: string;
+  size?: number;
+  mimeType?: string;
+  createdAt: string;
+};
+
 export type HealthRecordFile = {
   name: string;
   uri: string;
@@ -304,6 +313,13 @@ export type HealthRecordFile = {
   mimeType?: string;
   createdAt: string;
   analysisStatus?: "not_started" | "ready" | "analyzing" | "completed" | "failed";
+  analysisTitle?: string;
+  analysisSummary?: string;
+  analysisFocusAreas?: string[];
+  analysisRecommendations?: string[];
+  analysisConfidence?: number;
+  analyzedAt?: string;
+  files?: HealthRecordPage[];
 };
 
 const HEALTH_RECORD_KEY = "dara.healthRecord.latest";
@@ -314,7 +330,30 @@ export async function saveHealthRecord(data: HealthRecordFile) {
 
 export async function loadHealthRecord(): Promise<HealthRecordFile | null> {
   const raw = await AsyncStorage.getItem(await getUserScopedKey(HEALTH_RECORD_KEY));
-  return raw ? JSON.parse(raw) : null;
+
+  if (!raw) {
+    return null;
+  }
+
+  const record = JSON.parse(raw) as HealthRecordFile;
+
+  if (!record.files || record.files.length === 0) {
+    return {
+      ...record,
+      files: [
+        {
+          id: `page-${record.createdAt}`,
+          name: record.name,
+          uri: record.uri,
+          size: record.size,
+          mimeType: record.mimeType,
+          createdAt: record.createdAt,
+        },
+      ],
+    };
+  }
+
+  return record;
 }
 
 function getCheckInDayKey(createdAt: string) {

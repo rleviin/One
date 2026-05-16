@@ -35,8 +35,38 @@ export default function HealthRecordsScreen({
   const [isAnalyzingRecord, setIsAnalyzingRecord] = React.useState(false);
   const [analysisText, setAnalysisText] = React.useState<string | null>(null);
 
-  async function saveRecord(record: HealthRecordFile) {
-    await saveHealthRecord(record);
+  async function addHealthRecordPage(page: {
+    name: string;
+    uri: string;
+    size?: number;
+    mimeType?: string;
+  }) {
+    const createdAt = new Date().toISOString();
+    const currentFiles = healthRecord?.files ?? [];
+
+    const nextFiles = [
+      ...currentFiles,
+      {
+        id: `page-${createdAt}-${currentFiles.length + 1}`,
+        name: page.name,
+        uri: page.uri,
+        size: page.size,
+        mimeType: page.mimeType,
+        createdAt,
+      },
+    ];
+
+    const nextRecord: HealthRecordFile = {
+      name: "Blood test report",
+      uri: nextFiles[0].uri,
+      size: nextFiles[0].size,
+      mimeType: nextFiles[0].mimeType,
+      createdAt: healthRecord?.createdAt ?? createdAt,
+      analysisStatus: "ready",
+      files: nextFiles,
+    };
+
+    await saveHealthRecord(nextRecord);
     await reload();
     onChanged?.();
     await successTap();
@@ -53,13 +83,11 @@ export default function HealthRecordsScreen({
     if (!result.canceled && result.assets.length > 0) {
       const file = result.assets[0];
 
-      await saveRecord({
+      await addHealthRecordPage({
         name: file.name,
         uri: file.uri,
         size: file.size,
         mimeType: file.mimeType,
-        createdAt: new Date().toISOString(),
-        analysisStatus: "ready",
       });
     }
   }
@@ -75,21 +103,20 @@ export default function HealthRecordsScreen({
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
+      allowsMultipleSelection: true,
+      selectionLimit: 10,
       quality: 0.85,
     });
 
     if (!result.canceled && result.assets.length > 0) {
-      const image = result.assets[0];
-
-      await saveRecord({
-        name: image.fileName ?? "Blood test photo",
-        uri: image.uri,
-        size: image.fileSize,
-        mimeType: image.mimeType ?? "image/jpeg",
-        createdAt: new Date().toISOString(),
-        analysisStatus: "ready",
-      });
+      for (const image of result.assets) {
+        await addHealthRecordPage({
+          name: image.fileName ?? "Blood test photo",
+          uri: image.uri,
+          size: image.fileSize,
+          mimeType: image.mimeType ?? "image/jpeg",
+        });
+      }
     }
   }
 
@@ -111,13 +138,11 @@ export default function HealthRecordsScreen({
     if (!result.canceled && result.assets.length > 0) {
       const image = result.assets[0];
 
-      await saveRecord({
+      await addHealthRecordPage({
         name: image.fileName ?? "Blood test photo",
         uri: image.uri,
         size: image.fileSize,
         mimeType: image.mimeType ?? "image/jpeg",
-        createdAt: new Date().toISOString(),
-        analysisStatus: "ready",
       });
     }
   }
@@ -184,7 +209,7 @@ export default function HealthRecordsScreen({
             >
               <Ionicons name="document-attach-outline" size={22} color="#07101F" />
               <Text style={styles.attachButtonText}>
-                {healthRecord ? "Change blood test" : "Attach blood test"}
+                {healthRecord ? "Add page" : "Attach blood test"}
               </Text>
             </AnimatedPressable>
           </View>
@@ -197,10 +222,9 @@ export default function HealthRecordsScreen({
                 </View>
 
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.recordTitle}>{healthRecord.name}</Text>
+                  <Text style={styles.recordTitle}>Blood test report</Text>
                   <Text style={styles.recordText}>
-                    Ready for analysis. Dara will extract biomarkers, fatigue,
-                    inflammation and nutrient signals in the next update.
+                    {(healthRecord.files?.length ?? 1)} page{(healthRecord.files?.length ?? 1) === 1 ? "" : "s"} attached · Ready for analysis.
                   </Text>
                 </View>
               </View>
@@ -212,7 +236,13 @@ export default function HealthRecordsScreen({
                 onPress={async () => {
                   mediumTap();
 
-                  if (!healthRecord?.uri) {
+                  const imagePages =
+                    healthRecord?.files?.filter((file) =>
+                      file.mimeType?.startsWith("image/")
+                    ) ?? [];
+
+                  if (imagePages.length === 0) {
+                    setAnalysisText("Please add at least one photo page first. PDF analysis will come next.");
                     return;
                   }
 
@@ -220,12 +250,51 @@ export default function HealthRecordsScreen({
                   setAnalysisText(null);
 
                   try {
-                    const result = await analyzeHealthRecordPhoto(
-                      healthRecord.uri,
-                      healthRecord.mimeType ?? "image/jpeg"
+                    const results = [];
+
+                    for (const page of imagePages.slice(0, 5)) {
+                      const pageResult = await analyzeHealthRecordPhoto(
+                        page.uri,
+                        page.mimeType ?? "image/jpeg"
+                      );
+
+                      results.push(pageResult);
+                    }
+
+                    const focusAreas = Array.from(
+                      new Set(results.flatMap((item) => item.possibleFocusAreas))
                     );
 
-                    setAnalysisText(`${result.title}: ${result.summary}`);
+                    const recommendations = Array.from(
+                      new Set(results.flatMap((item) => item.recommendations))
+                    ).slice(0, 6);
+
+                    const summary = results
+                      .map((item, index) => `Page ${index + 1}: ${item.summary}`)
+                      .join("\n\n");
+
+                    const updatedRecord: HealthRecordFile = {
+                      ...healthRecord,
+                      analysisStatus: "completed",
+                      analysisTitle:
+                        imagePages.length > 1
+                          ? "Multi-page blood test analysis"
+                          : results[0]?.title ?? "Blood test analysis",
+                      analysisSummary: summary,
+                      analysisFocusAreas: focusAreas,
+                      analysisRecommendations: recommendations,
+                      analysisConfidence: Math.round(
+                        results.reduce((sum, item) => sum + item.confidence, 0) /
+                          Math.max(results.length, 1)
+                      ),
+                      analyzedAt: new Date().toISOString(),
+                    };
+
+                    await saveHealthRecord(updatedRecord);
+                    await reload();
+                    onChanged?.();
+
+                    setAnalysisText(`${updatedRecord.analysisTitle}: ${updatedRecord.analysisSummary}`);
                   } catch (error) {
                     setAnalysisText(
                       error instanceof Error
@@ -243,8 +312,55 @@ export default function HealthRecordsScreen({
                 </Text>
               </AnimatedPressable>
 
-              {analysisText && (
-                <Text style={styles.analysisResultText}>{analysisText}</Text>
+              {(analysisText || healthRecord.analysisSummary) && (
+                <View style={styles.analysisCard}>
+                  <Text style={styles.analysisLabel}>DARA ANALYSIS</Text>
+
+                  <Text style={styles.analysisTitle}>
+                    {healthRecord.analysisTitle ?? "Blood test analysis"}
+                  </Text>
+
+                  <Text style={styles.analysisSummaryText}>
+                    {
+                      (
+                        analysisText ??
+                        healthRecord.analysisSummary ??
+                        "No analysis available."
+                      )
+                        .split("\n")[0]
+                        .slice(0, 180)
+                    }
+                  </Text>
+
+                  {(healthRecord.analysisFocusAreas?.length ?? 0) > 0 && (
+                    <View style={styles.analysisSection}>
+                      <Text style={styles.analysisSectionTitle}>Focus areas</Text>
+                      <View style={styles.focusAreaWrap}>
+                        {healthRecord.analysisFocusAreas?.slice(0, 3).map((item) => (
+                          <View key={item} style={styles.focusChip}>
+                            <Text style={styles.focusChipText}>{item}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  )}
+
+                  {(healthRecord.analysisRecommendations?.length ?? 0) > 0 && (
+                    <View style={styles.analysisSection}>
+                      <Text style={styles.analysisSectionTitle}>Suggested focus</Text>
+                      {healthRecord.analysisRecommendations?.slice(0, 2).map((item, index) => (
+                        <View key={`${item}-${index}`} style={styles.recommendationRow}>
+                          <View style={styles.recommendationDot} />
+                          <Text style={styles.recommendationText}>{item}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  <Text style={styles.analysisDisclaimer}>
+                    General wellness context only. Review abnormal results with a clinician.
+                  </Text>
+                </View>
               )}
             </View>
           )}
@@ -453,10 +569,95 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.14)",
   },
 
-  analysisResultText: {
+  analysisCard: {
+    marginTop: 14,
+    borderRadius: 22,
+    padding: 16,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+  },
+
+  analysisLabel: {
+    color: "#B9C6FF",
+    fontSize: 11,
+    fontWeight: "900",
+    letterSpacing: 2.4,
+    marginBottom: 8,
+  },
+
+  analysisTitle: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    lineHeight: 23,
+    fontWeight: "900",
+    marginBottom: 8,
+  },
+
+  analysisSummaryText: {
     color: "rgba(255,255,255,0.68)",
     fontSize: 14,
     lineHeight: 21,
+  },
+
+  analysisSection: {
+    marginTop: 14,
+  },
+
+  analysisSectionTitle: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "900",
+    marginBottom: 8,
+  },
+
+  focusAreaWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+
+  focusChip: {
+    borderRadius: 999,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+    backgroundColor: "rgba(255,100,124,0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(255,100,124,0.24)",
+  },
+
+  focusChipText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+
+  recommendationRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 8,
+  },
+
+  recommendationDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: "#58E7FF",
+    marginTop: 7,
+    marginRight: 9,
+  },
+
+  recommendationText: {
+    flex: 1,
+    color: "rgba(255,255,255,0.68)",
+    fontSize: 14,
+    lineHeight: 20,
+  },
+
+  analysisDisclaimer: {
+    color: "rgba(255,255,255,0.42)",
+    fontSize: 12,
+    lineHeight: 17,
     marginTop: 12,
   },
 

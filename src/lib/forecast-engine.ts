@@ -34,6 +34,8 @@ type BuildForecastInput = {
   externalContext?: ExternalContextData | null;
   externalProviders?: ExternalProviderBundle | null;
   healthSummary?: StoredHealthSummary | null;
+  bloodTestSummary?: string | null;
+  bloodTestFocusAreas?: string[];
   patterns?: DaraPatternInsight[];
 };
 
@@ -44,6 +46,8 @@ export function buildForecast({
   externalContext,
   externalProviders,
   healthSummary,
+  bloodTestSummary,
+  bloodTestFocusAreas = [],
   patterns = [],
 }: BuildForecastInput): DaraForecast {
   if (!latestCheckIn) {
@@ -179,6 +183,9 @@ export function buildForecast({
       : balancedMealCount > 0
         ? `${balancedMealCount} meal signal${balancedMealCount === 1 ? "" : "s"} look recovery-supportive.`
         : "No strong meal impact is affecting this forecast yet.",
+    bloodTestSummary
+      ? `Blood test context: ${bloodTestFocusAreas.length > 0 ? bloodTestFocusAreas.join(", ") : "available for recovery interpretation"}.`
+      : "No analyzed blood test is affecting this forecast yet.",
   ];
 
   const externalReason =

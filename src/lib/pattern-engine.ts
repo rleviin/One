@@ -40,10 +40,14 @@ export function buildPatternAnalysis({
   checkInHistory,
   contextEvents,
   healthSummary,
+  bloodTestSummary,
+  bloodTestFocusAreas = [],
 }: {
   checkInHistory: DailyCheckInData[];
   contextEvents: DailyContextEvent[];
   healthSummary?: StoredHealthSummary | null;
+  bloodTestSummary?: string | null;
+  bloodTestFocusAreas?: string[];
 }): DaraPatternInsight[] {
   const recentCheckIns = checkInHistory.slice(0, 7);
 
@@ -381,6 +385,26 @@ export function buildPatternAnalysis({
         "Meals appear more balanced and protein-supportive.",
         "Stable nutrition can improve recovery consistency.",
         "Dara will compare this against future energy patterns.",
+      ],
+    });
+  }
+
+  if (bloodTestSummary) {
+    insights.push({
+      id: "blood-test-context",
+      title: "Blood test context added",
+      summary:
+        bloodTestFocusAreas.length > 0
+          ? `Dara is using blood test focus areas: ${bloodTestFocusAreas.join(", ")}.`
+          : "Dara is using your analyzed blood test as recovery and fatigue context.",
+      severity: "medium",
+      label: "BIOMARKERS",
+      accent: "#FF647C",
+      icon: "pulse-outline",
+      points: [
+        bloodTestSummary,
+        "Blood markers can add deeper context for fatigue, recovery and nutrition.",
+        "This is general wellness context only, not medical advice.",
       ],
     });
   }
