@@ -9,6 +9,7 @@ import PersonalSetupScreen from "./src/screens/PersonalSetupScreen";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import DailyCheckInScreen from "./src/screens/DailyCheckInScreen";
 import CheckInHistoryScreen from "./src/screens/CheckInHistoryScreen";
+import HealthRecordsScreen from "./src/screens/HealthRecordsScreen";
 import AddContextScreen from "./src/screens/AddContextScreen";
 import PremiumScreen from "./src/screens/PremiumScreen";
 import { lightTap } from "./src/haptics";
@@ -97,6 +98,7 @@ function MainApp({ onLogout }: { onLogout?: () => void }) {
   const [showContext, setShowContext] = useState(false);
   const [showPremium, setShowPremium] = useState(false);
   const [showContextMemory, setShowContextMemory] = useState(false);
+  const [showHealthRecordsScreen, setShowHealthRecordsScreen] = useState(false);
 
 if (showSetup) {
   return (
@@ -129,6 +131,16 @@ if (showHistory) {
     <CheckInHistoryScreen
       dataVersion={dataVersion}
       onDone={() => setShowHistory(false)}
+    />
+  );
+}
+
+if (showHealthRecordsScreen) {
+  return (
+    <HealthRecordsScreen
+      dataVersion={dataVersion}
+      onDone={() => setShowHealthRecordsScreen(false)}
+      onChanged={() => setDataVersion((current) => current + 1)}
     />
   );
 }
@@ -183,6 +195,7 @@ if (showPremium) {
   isPremium={IS_PREMIUM_USER}
   onOpenHistory={() => setShowHistory(true)}
   onOpenPremium={() => setShowPremium(true)}
+  onOpenHealthRecords={() => setShowHealthRecordsScreen(true)}
   onLogout={onLogout}
 />
 

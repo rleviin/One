@@ -16,6 +16,9 @@ export async function exportDaraPdfReport(data: DaraUserData, periodLabel: strin
   const latest = data.dailyCheckIn;
   const health = data.healthSummary;
   const patterns = brain.patterns.slice(0, 5);
+  const mealEvents = data.dailyContextEvents
+    .filter((event) => event.type === "meal")
+    .slice(0, 5);
 
   const html = `
     <html>
@@ -45,6 +48,20 @@ export async function exportDaraPdfReport(data: DaraUserData, periodLabel: strin
           Steps: ${esc(health?.stepsToday ?? "—")}<br/>
           Active energy: ${esc(health?.activeEnergyToday ? `${Math.round(health.activeEnergyToday)} kcal` : "—")}
         </p>
+
+        <h2>Meal context</h2>
+        ${
+          mealEvents.length > 0
+            ? `<ul>${mealEvents
+                .map(
+                  (event) =>
+                    `<li><strong>${esc(event.title)}</strong>: ${esc(
+                      event.aiSummary ?? event.text ?? "Meal logged"
+                    )}</li>`
+                )
+                .join("")}</ul>`
+            : "<p>No meal context available for this period.</p>"
+        }
 
         <h2>Key patterns</h2>
         <ul>

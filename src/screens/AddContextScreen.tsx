@@ -52,6 +52,7 @@ export default function AddContextScreen({
   const [note, setNote] = useState("");
   const [mealPhotoUri, setMealPhotoUri] = useState<string | null>(null);
   const [mealAnalysis, setMealAnalysis] = useState<string | null>(null);
+  const [mealEnergyImpact, setMealEnergyImpact] = useState<string | null>(null);
   const [isAnalyzingMeal, setIsAnalyzingMeal] = useState(false);
 
   const todayContextCount = useMemo(() => {
@@ -74,8 +75,12 @@ const isLocked =
     try {
       const result = await analyzeMealPhoto(uri);
       setMealAnalysis(`${result.title}: ${result.summary}`);
-    } catch {
-      setMealAnalysis("Meal photo added. Analysis will be retried later.");
+    } catch (error) {
+      setMealAnalysis(
+        error instanceof Error
+          ? `Meal analysis failed: ${error.message}`
+          : "Meal analysis failed: unknown error"
+      );
     } finally {
       setIsAnalyzingMeal(false);
     }
@@ -293,9 +298,18 @@ if (mealPhotoUri) {
                   <Image source={{ uri: mealPhotoUri }} style={styles.mealPreviewImage} />
                   <View style={styles.mealInsight}>
                     <Text style={styles.mealInsightLabel}>Meal context</Text>
-                    <Text style={styles.mealInsightTitle}>Saved for later analysis</Text>
+                    <Text style={styles.mealInsightTitle}>
+                      {isAnalyzingMeal
+                        ? "Analyzing meal..."
+                        : mealAnalysis
+                          ? "Meal analyzed"
+                          : "Saved for later analysis"}
+                    </Text>
                     <Text style={styles.mealInsightText}>
-                      Dara will later connect this meal with energy, stress and recovery.
+                      {isAnalyzingMeal
+                        ? "Dara is checking likely foods, energy impact and recovery context."
+                        : mealAnalysis ??
+                          "Dara will connect this meal with energy, stress and recovery."}
                     </Text>
                   </View>
                 </View>

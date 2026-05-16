@@ -2,23 +2,19 @@ import * as FileSystem from "expo-file-system/legacy";
 import { getDaraAuthToken } from "./auth-client";
 import { DARA_API_URL } from "./config";
 
-export type MealAnalysisResult = {
+export type HealthRecordAnalysisResult = {
   title: string;
   summary: string;
-  likelyFoods: string[];
-  mealType: string;
-  estimatedMacros: {
-    protein: string;
-    carbs: string;
-    fat: string;
-  };
-  recoveryImpact: string;
-  energyImpact: string;
-  suggestions: string[];
+  biomarkers: unknown[];
+  possibleFocusAreas: string[];
+  recommendations: string[];
   confidence: number;
 };
 
-export async function analyzeMealPhoto(uri: string): Promise<MealAnalysisResult> {
+export async function analyzeHealthRecordPhoto(
+  uri: string,
+  mimeType = "image/jpeg"
+): Promise<HealthRecordAnalysisResult> {
   const token = await getDaraAuthToken();
 
   if (!token) {
@@ -29,7 +25,7 @@ export async function analyzeMealPhoto(uri: string): Promise<MealAnalysisResult>
     encoding: "base64",
   });
 
-  const response = await fetch(`${DARA_API_URL}/api/analyze-meal`, {
+  const response = await fetch(`${DARA_API_URL}/api/analyze-health-record`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -37,13 +33,13 @@ export async function analyzeMealPhoto(uri: string): Promise<MealAnalysisResult>
     },
     body: JSON.stringify({
       imageBase64,
-      mimeType: "image/jpeg",
+      mimeType,
     }),
   });
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(text || `Meal analysis failed with ${response.status}`);
+    throw new Error(text || `Health record analysis failed with ${response.status}`);
   }
 
   return response.json();

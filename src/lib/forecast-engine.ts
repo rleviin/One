@@ -98,6 +98,22 @@ export function buildForecast({
 
   const contextDepth = contextEvents.length;
 
+  const mealEvents = contextEvents.filter((event) => event.type === "meal");
+
+  const heavyMealCount = mealEvents.filter(
+    (event) =>
+      event.mealEnergyImpact?.toLowerCase().includes("heavy") ||
+      event.aiSummary?.toLowerCase().includes("fried") ||
+      event.aiSummary?.toLowerCase().includes("high calorie")
+  ).length;
+
+  const balancedMealCount = mealEvents.filter(
+    (event) =>
+      event.mealEnergyImpact?.toLowerCase().includes("stable") ||
+      event.aiSummary?.toLowerCase().includes("protein") ||
+      event.aiSummary?.toLowerCase().includes("balanced")
+  ).length;
+
   const historyDepth = checkInHistory.length;
 
   const confidence = Math.min(
@@ -158,6 +174,11 @@ export function buildForecast({
     elevatedProbabilitySignals.length > 0
       ? `Probability context: ${elevatedProbabilitySignals.length} external market signal${elevatedProbabilitySignals.length === 1 ? "" : "s"} are elevated.`
       : "No elevated probability-market context is affecting this forecast.",
+    heavyMealCount > 0
+      ? `${heavyMealCount} meal signal${heavyMealCount === 1 ? "" : "s"} may add recovery load.`
+      : balancedMealCount > 0
+        ? `${balancedMealCount} meal signal${balancedMealCount === 1 ? "" : "s"} look recovery-supportive.`
+        : "No strong meal impact is affecting this forecast yet.",
   ];
 
   const externalReason =
@@ -172,7 +193,8 @@ export function buildForecast({
     recoveryScore <= 4 ||
     patternRiskBoost ||
     sleepRiskBoost ||
-    hrvRiskBoost
+    hrvRiskBoost ||
+    heavyMealCount >= 2
   ) {
     return {
       title: "Pressure accumulation detected",
@@ -193,9 +215,11 @@ export function buildForecast({
       ],
       changePoints: [
         "Reduce non-critical workload for the next 24 hours.",
-        realSleepHours !== null && realSleepHours < 6.5
-          ? "Prioritize an earlier sleep window tonight to protect recovery."
-          : "Protect sleep and avoid late high-intensity activity.",
+        heavyMealCount > 0
+          ? "Keep the next meal lighter and protect hydration to reduce recovery load."
+          : realSleepHours !== null && realSleepHours < 6.5
+            ? "Prioritize an earlier sleep window tonight to protect recovery."
+            : "Protect sleep and avoid late high-intensity activity.",
         "Avoid major financial or schedule commitments today.",
       ],
       timeline: [

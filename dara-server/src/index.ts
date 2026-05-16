@@ -225,6 +225,79 @@ app.post("/api/user/health-summary", requireAuth, (req: AuthenticatedRequest, re
 });
 
 
+
+app.post("/api/analyze-health-record", requireAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { imageBase64, mimeType = "image/jpeg" } = req.body ?? {};
+
+    if (!imageBase64) {
+      return res.status(400).json({ error: "imageBase64 is required" });
+    }
+
+    const response = await openai.responses.create({
+      model: "gpt-5.5",
+      input: [
+        {
+          role: "system",
+          content:
+            "You are Dara, a careful wellness assistant. Analyze a blood test image for general wellness context only. Return only valid JSON with title, summary, biomarkers, possibleFocusAreas, recommendations, confidence. Do not diagnose. Do not provide medical advice. Always advise consulting a clinician for abnormal values.",
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: "Extract visible blood test markers and summarize possible wellness context. Return concise JSON.",
+            },
+            {
+              type: "input_image",
+              image_url: `data:${mimeType};base64,${imageBase64}`,
+              detail: "high",
+            },
+          ],
+        },
+      ],
+    });
+
+    const text = response.output_text;
+
+    try {
+      const parsed = JSON.parse(text);
+
+      return res.json({
+        title: String(parsed.title ?? "Blood test analysis"),
+        summary: String(parsed.summary ?? ""),
+        biomarkers: Array.isArray(parsed.biomarkers)
+          ? parsed.biomarkers
+          : [],
+        possibleFocusAreas: Array.isArray(parsed.possibleFocusAreas)
+          ? parsed.possibleFocusAreas.map(String)
+          : [],
+        recommendations: Array.isArray(parsed.recommendations)
+          ? parsed.recommendations.map(String)
+          : [],
+        confidence: Number(parsed.confidence ?? 40),
+      });
+    } catch {
+      return res.json({
+        title: "Blood test analysis",
+        summary: text,
+        biomarkers: [],
+        possibleFocusAreas: [],
+        recommendations: [
+          "Use this as general context only.",
+          "Consult a clinician for interpretation of abnormal values.",
+        ],
+        confidence: 30,
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : "Health record analysis failed",
+    });
+  }
+});
+
 app.post("/api/analyze-meal", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { imageBase64, mimeType = "image/jpeg" } = req.body ?? {};

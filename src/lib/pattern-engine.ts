@@ -91,6 +91,24 @@ export function buildPatternAnalysis({
   const avgEnergy = average(recentCheckIns.map((item) => item.energy));
   const avgWorkload = average(recentCheckIns.map((item) => item.workload));
   const mealSignals = contextEvents.filter((event) => event.type === "meal").length;
+  const mealEvents = contextEvents.filter(
+    (event) => event.type === "meal"
+  );
+
+  const heavyMealCount = mealEvents.filter(
+    (event) =>
+      event.mealEnergyImpact?.toLowerCase().includes("heavy") ||
+      event.aiSummary?.toLowerCase().includes("fried") ||
+      event.aiSummary?.toLowerCase().includes("high calorie")
+  ).length;
+
+  const balancedMealCount = mealEvents.filter(
+    (event) =>
+      event.mealEnergyImpact?.toLowerCase().includes("stable") ||
+      event.aiSummary?.toLowerCase().includes("protein") ||
+      event.aiSummary?.toLowerCase().includes("balanced")
+  ).length;
+
 
   const avgMoneyPressure = average(
     recentCheckIns.map((item) => item.spendingPressure)
@@ -327,6 +345,42 @@ export function buildPatternAnalysis({
         `Steps today: ${healthSummary.stepsToday}.`,
         "Higher movement can be positive, but it still adds physical load.",
         "If energy drops later, Dara may treat this as recovery pressure.",
+      ],
+    });
+  }
+
+  if (heavyMealCount >= 2) {
+    insights.push({
+      id: "heavy-meal-pattern",
+      title: "Heavy meal recovery pattern",
+      summary:
+        "Recent meals may be increasing recovery load and affecting energy stability.",
+      severity: "medium",
+      label: "MEAL LOAD",
+      accent: "#FF8A4C",
+      icon: "restaurant-outline",
+      points: [
+        "Several recent meals look calorie-dense or recovery-heavy.",
+        "Large evening meals can affect sleep and next-day energy.",
+        "Balanced meals may improve recovery stability.",
+      ],
+    });
+  }
+
+  if (balancedMealCount >= 2) {
+    insights.push({
+      id: "balanced-meal-pattern",
+      title: "Recovery-supportive nutrition pattern",
+      summary:
+        "Recent meals appear more balanced and supportive for stable energy.",
+      severity: "low",
+      label: "NUTRITION",
+      accent: "#4ADE80",
+      icon: "leaf-outline",
+      points: [
+        "Meals appear more balanced and protein-supportive.",
+        "Stable nutrition can improve recovery consistency.",
+        "Dara will compare this against future energy patterns.",
       ],
     });
   }

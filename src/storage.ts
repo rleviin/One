@@ -31,6 +31,8 @@ export type DailyContextEvent = {
   title: string;
   text?: string;
   photoUri?: string | null;
+  aiSummary?: string;
+  mealEnergyImpact?: string;
   createdAt: string;
 };
 

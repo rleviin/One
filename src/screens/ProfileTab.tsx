@@ -4,10 +4,13 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  ActionSheetIOS,
+  Platform,
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
+import * as ImagePicker from "expo-image-picker";
 
 import type { HealthRecordFile } from "../storage";
 import { saveHealthRecord, saveHealthSummary } from "../storage";
@@ -33,6 +36,7 @@ type ProfileTabProps = {
   isPremium?: boolean;
   onOpenHistory?: () => void;
   onOpenPremium?: () => void;
+  onOpenHealthRecords?: () => void;
   onLogout?: () => void;
 };
 
@@ -76,6 +80,7 @@ export default function ProfileTab({
   isPremium = false,
   onOpenHistory,
   onOpenPremium,
+  onOpenHealthRecords,
   onLogout,
 }: ProfileTabProps) {
 
@@ -124,6 +129,102 @@ export default function ProfileTab({
     eventDate.getDate() === today.getDate()
   );
 });
+
+  async function pickBloodTestPhoto() {
+    await lightTap();
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.85,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      const image = result.assets[0];
+
+      const record: HealthRecordFile = {
+        name: image.fileName ?? "Blood test photo",
+        uri: image.uri,
+        size: image.fileSize,
+        mimeType: image.mimeType ?? "image/jpeg",
+        createdAt: new Date().toISOString(),
+        analysisStatus: "ready",
+      };
+
+      await saveHealthRecord(record);
+      await reload();
+      await successTap();
+    }
+  }
+
+  async function takeBloodTestPhoto() {
+    await lightTap();
+
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (!permission.granted) {
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.85,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      const image = result.assets[0];
+
+      const record: HealthRecordFile = {
+        name: image.fileName ?? "Blood test photo",
+        uri: image.uri,
+        size: image.fileSize,
+        mimeType: image.mimeType ?? "image/jpeg",
+        createdAt: new Date().toISOString(),
+        analysisStatus: "ready",
+      };
+
+      await saveHealthRecord(record);
+      await reload();
+      await successTap();
+    }
+  }
+
+  function openBloodTestPicker() {
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          title: "Attach blood test",
+          message: "Add a photo or upload a PDF report.",
+          options: ["Take photo", "Choose photo", "Upload PDF", "Cancel"],
+          cancelButtonIndex: 3,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 0) {
+            takeBloodTestPhoto();
+          }
+
+          if (buttonIndex === 1) {
+            pickBloodTestPhoto();
+          }
+
+          if (buttonIndex === 2) {
+            pickBloodTestFile();
+          }
+        }
+      );
+
+      return;
+    }
+
+    pickBloodTestFile();
+  }
 
   async function pickBloodTestFile() {
     await lightTap();
@@ -286,7 +387,7 @@ return (
           pressedScale={0.975}
           onPress={() => {
             mediumTap();
-            setShowHealthRecords(true);
+            onOpenHealthRecords?.();
           }}
         >
           <View style={styles.healthRecordsIcon}>
@@ -528,7 +629,7 @@ return (
         <AnimatedPressable
           style={styles.attachRecordButton}
           pressedScale={0.97}
-          onPress={pickBloodTestFile}
+          onPress={openBloodTestPicker}
         >
           <Ionicons name="document-attach-outline" size={21} color="#07101F" />
           <Text style={styles.attachRecordButtonText}>
@@ -1514,15 +1615,23 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 
-  attachedRecordCard: {
+  healthRecordActionsRow: {
     flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 22,
-    padding: 14,
-    backgroundColor: "rgba(255,100,124,0.08)",
+    gap: 10,
+    marginBottom: 14,
+  },
+
+  healthRecordActionButton: {
+    flex: 1,
+  },
+
+  attachedRecordCard: {
+    borderRadius: 24,
+    padding: 16,
+    backgroundColor: "rgba(255,255,255,0.055)",
     borderWidth: 1,
-    borderColor: "rgba(255,100,124,0.22)",
-    marginBottom: 18,
+    borderColor: "rgba(255,100,124,0.24)",
+    marginBottom: 16,
   },
 
   attachedRecordHeader: {
@@ -1552,7 +1661,7 @@ const styles = StyleSheet.create({
   analyzeRecordButton: {
     marginTop: 14,
     borderRadius: 18,
-    paddingVertical: 12,
+    paddingVertical: 13,
     paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
@@ -1561,6 +1670,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.085)",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.14)",
+    alignSelf: "stretch",
   },
 
   analyzeRecordButtonText: {
