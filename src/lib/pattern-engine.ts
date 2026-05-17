@@ -42,12 +42,19 @@ export function buildPatternAnalysis({
   healthSummary,
   bloodTestSummary,
   bloodTestFocusAreas = [],
+  bloodTestBiomarkers = [],
 }: {
   checkInHistory: DailyCheckInData[];
   contextEvents: DailyContextEvent[];
   healthSummary?: StoredHealthSummary | null;
   bloodTestSummary?: string | null;
   bloodTestFocusAreas?: string[];
+  bloodTestBiomarkers?: {
+    name: string;
+    status?: string;
+    value?: string;
+    unit?: string;
+  }[];
 }): DaraPatternInsight[] {
   const recentCheckIns = checkInHistory.slice(0, 7);
 
@@ -394,17 +401,26 @@ export function buildPatternAnalysis({
       id: "blood-test-context",
       title: "Blood test context added",
       summary:
-        bloodTestFocusAreas.length > 0
-          ? `Dara is using blood test focus areas: ${bloodTestFocusAreas.join(", ")}.`
-          : "Dara is using your analyzed blood test as recovery and fatigue context.",
+        bloodTestBiomarkers.length > 0
+          ? `Dara found ${bloodTestBiomarkers.slice(0, 3).map((item) => item.name).join(", ")} in your report.`
+          : bloodTestFocusAreas.length > 0
+            ? `Dara is using ${bloodTestFocusAreas.slice(0, 2).join(", ")} as biomarker context.`
+            : "Dara is using your analyzed blood test as recovery context.",
       severity: "medium",
       label: "BIOMARKERS",
       accent: "#FF647C",
       icon: "pulse-outline",
       points: [
-        bloodTestSummary,
-        "Blood markers can add deeper context for fatigue, recovery and nutrition.",
-        "This is general wellness context only, not medical advice.",
+        bloodTestBiomarkers.length > 0
+          ? `Markers: ${bloodTestBiomarkers
+              .slice(0, 3)
+              .map((item) => `${item.name}${item.status ? ` (${item.status})` : ""}`)
+              .join(", ")}.`
+          : bloodTestFocusAreas.length > 0
+            ? `Focus areas: ${bloodTestFocusAreas.slice(0, 3).join(", ")}.`
+            : (bloodTestSummary ?? "Blood test context is available.").slice(0, 160),
+        "Blood markers can add deeper context for recovery and fatigue.",
+        "General wellness context only. Review abnormal results with a clinician.",
       ],
     });
   }

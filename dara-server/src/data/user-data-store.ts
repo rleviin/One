@@ -34,10 +34,28 @@ export type CloudHealthSummaryData = {
   updatedAt: string;
 };
 
+export type CloudHealthRecordData = {
+  name: string;
+  uri?: string;
+  size?: number;
+  mimeType?: string;
+  createdAt: string;
+  analysisStatus?: "not_started" | "ready" | "analyzing" | "completed" | "failed";
+  analysisTitle?: string;
+  analysisSummary?: string;
+  analysisBiomarkers?: unknown[];
+  analysisFocusAreas?: string[];
+  analysisRecommendations?: string[];
+  analysisConfidence?: number;
+  analyzedAt?: string;
+  files?: unknown[];
+};
+
 type UserCloudData = {
   personalSetup?: CloudPersonalSetupData;
   dailyCheckIns?: CloudDailyCheckInData[];
   healthSummary?: CloudHealthSummaryData;
+  healthRecord?: CloudHealthRecordData;
 };
 
 const dbPath = path.join(process.cwd(), "data", "user-cloud-data.json");
@@ -131,4 +149,26 @@ export function saveHealthSummary(
 export function getHealthSummary(userId: string) {
   const db = readDb();
   return db[userId]?.healthSummary ?? null;
+}
+
+
+export function saveHealthRecord(
+  userId: string,
+  healthRecord: CloudHealthRecordData
+) {
+  const db = readDb();
+
+  db[userId] = {
+    ...(db[userId] ?? {}),
+    healthRecord,
+  };
+
+  writeDb(db);
+
+  return db[userId].healthRecord;
+}
+
+export function getHealthRecord(userId: string) {
+  const db = readDb();
+  return db[userId]?.healthRecord ?? null;
 }

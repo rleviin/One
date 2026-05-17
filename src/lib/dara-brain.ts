@@ -61,6 +61,7 @@ export function buildDaraBrain(data: DaraUserData) {
     healthSummary: data.healthSummary,
     bloodTestSummary: data.healthRecord?.analysisSummary ?? null,
     bloodTestFocusAreas: data.healthRecord?.analysisFocusAreas ?? [],
+    bloodTestBiomarkers: data.healthRecord?.analysisBiomarkers ?? [],
   });
 
   const forecast = buildForecast({
@@ -72,6 +73,7 @@ export function buildDaraBrain(data: DaraUserData) {
     healthSummary: data.healthSummary,
     bloodTestSummary: data.healthRecord?.analysisSummary ?? null,
     bloodTestFocusAreas: data.healthRecord?.analysisFocusAreas ?? [],
+    bloodTestBiomarkers: data.healthRecord?.analysisBiomarkers ?? [],
     patterns,
   });
 
@@ -110,6 +112,7 @@ export function buildDaraBrain(data: DaraUserData) {
         title: data.healthRecord.analysisTitle ?? "Blood test analysis",
         summary: data.healthRecord.analysisSummary,
         focusAreas: data.healthRecord.analysisFocusAreas ?? [],
+        biomarkers: data.healthRecord.analysisBiomarkers ?? [],
         recommendations: data.healthRecord.analysisRecommendations ?? [],
         confidence: data.healthRecord.analysisConfidence ?? null,
         analyzedAt: data.healthRecord.analyzedAt ?? null,

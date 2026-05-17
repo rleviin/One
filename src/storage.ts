@@ -306,6 +306,14 @@ export type HealthRecordPage = {
   createdAt: string;
 };
 
+export type HealthRecordBiomarker = {
+  name: string;
+  value?: string;
+  unit?: string;
+  status?: "low" | "normal" | "high" | "borderline" | "unknown";
+  note?: string;
+};
+
 export type HealthRecordFile = {
   name: string;
   uri: string;
@@ -315,6 +323,7 @@ export type HealthRecordFile = {
   analysisStatus?: "not_started" | "ready" | "analyzing" | "completed" | "failed";
   analysisTitle?: string;
   analysisSummary?: string;
+  analysisBiomarkers?: HealthRecordBiomarker[];
   analysisFocusAreas?: string[];
   analysisRecommendations?: string[];
   analysisConfidence?: number;
@@ -324,11 +333,71 @@ export type HealthRecordFile = {
 
 const HEALTH_RECORD_KEY = "dara.healthRecord.latest";
 
+
+async function saveHealthRecordToCloud(data: HealthRecordFile) {
+  const headers = await getAuthHeaders();
+
+  if (!headers) {
+    return;
+  }
+
+  await fetch(`${DARA_API_URL}/api/user/health-record`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(data),
+  });
+}
+
+async function loadHealthRecordFromCloud(): Promise<HealthRecordFile | null> {
+  const headers = await getAuthHeaders();
+
+  if (!headers) {
+    return null;
+  }
+
+  const response = await fetch(`${DARA_API_URL}/api/user/health-record`, {
+    headers,
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const json = await response.json();
+  return json.healthRecord ?? null;
+}
+
+
+
 export async function saveHealthRecord(data: HealthRecordFile) {
-  await AsyncStorage.setItem(await getUserScopedKey(HEALTH_RECORD_KEY), JSON.stringify(data));
+  await AsyncStorage.setItem(
+    await getUserScopedKey(HEALTH_RECORD_KEY),
+    JSON.stringify(data)
+  );
+
+  try {
+    await saveHealthRecordToCloud(data);
+  } catch {
+    // Keep local health record even if cloud sync fails.
+  }
 }
 
 export async function loadHealthRecord(): Promise<HealthRecordFile | null> {
+  try {
+    const cloudHealthRecord = await loadHealthRecordFromCloud();
+
+    if (cloudHealthRecord) {
+      await AsyncStorage.setItem(
+        await getUserScopedKey(HEALTH_RECORD_KEY),
+        JSON.stringify(cloudHealthRecord)
+      );
+
+      return cloudHealthRecord;
+    }
+  } catch {
+    // Fall back to local health record if cloud sync fails.
+  }
+
   const raw = await AsyncStorage.getItem(await getUserScopedKey(HEALTH_RECORD_KEY));
 
   if (!raw) {

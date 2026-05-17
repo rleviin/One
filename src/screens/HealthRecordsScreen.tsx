@@ -261,6 +261,10 @@ export default function HealthRecordsScreen({
                       results.push(pageResult);
                     }
 
+                    const biomarkers = results.flatMap((item) =>
+                      Array.isArray(item.biomarkers) ? item.biomarkers : []
+                    );
+
                     const focusAreas = Array.from(
                       new Set(results.flatMap((item) => item.possibleFocusAreas))
                     );
@@ -281,6 +285,7 @@ export default function HealthRecordsScreen({
                           ? "Multi-page blood test analysis"
                           : results[0]?.title ?? "Blood test analysis",
                       analysisSummary: summary,
+                      analysisBiomarkers: biomarkers as HealthRecordFile["analysisBiomarkers"],
                       analysisFocusAreas: focusAreas,
                       analysisRecommendations: recommendations,
                       analysisConfidence: Math.round(
@@ -331,6 +336,25 @@ export default function HealthRecordsScreen({
                         .slice(0, 180)
                     }
                   </Text>
+
+                  {(healthRecord.analysisBiomarkers?.length ?? 0) > 0 && (
+                    <View style={styles.analysisSection}>
+                      <Text style={styles.analysisSectionTitle}>Biomarkers</Text>
+                      <View style={styles.biomarkerList}>
+                        {healthRecord.analysisBiomarkers?.slice(0, 6).map((item, index) => (
+                          <View key={`${item.name}-${index}`} style={styles.biomarkerRow}>
+                            <Text style={styles.biomarkerName}>{item.name}</Text>
+                            <Text style={styles.biomarkerValue}>
+                              {[item.value, item.unit].filter(Boolean).join(" ") || "—"}
+                            </Text>
+                            <Text style={styles.biomarkerStatus}>
+                              {item.status ?? "unknown"}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  )}
 
                   {(healthRecord.analysisFocusAreas?.length ?? 0) > 0 && (
                     <View style={styles.analysisSection}>
@@ -609,6 +633,40 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "900",
     marginBottom: 8,
+  },
+
+  biomarkerList: {
+    gap: 8,
+  },
+
+  biomarkerRow: {
+    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: "rgba(255,255,255,0.055)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.09)",
+  },
+
+  biomarkerName: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "900",
+    marginBottom: 3,
+  },
+
+  biomarkerValue: {
+    color: "rgba(255,255,255,0.64)",
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: 3,
+  },
+
+  biomarkerStatus: {
+    color: "#B9C6FF",
+    fontSize: 12,
+    fontWeight: "900",
+    textTransform: "uppercase",
   },
 
   focusAreaWrap: {

@@ -11,6 +11,8 @@ import {
   getDailyCheckIns,
   saveHealthSummary,
   getHealthSummary,
+  saveHealthRecord,
+  getHealthRecord,
 } from "./data/user-data-store";
 
 dotenv.config();
@@ -225,6 +227,29 @@ app.post("/api/user/health-summary", requireAuth, (req: AuthenticatedRequest, re
 });
 
 
+
+
+app.get("/api/user/health-record", requireAuth, (req: AuthenticatedRequest, res) => {
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    return res.status(401).json({ error: "Missing user" });
+  }
+
+  return res.json({ healthRecord: getHealthRecord(userId) });
+});
+
+app.post("/api/user/health-record", requireAuth, (req: AuthenticatedRequest, res) => {
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    return res.status(401).json({ error: "Missing user" });
+  }
+
+  const healthRecord = saveHealthRecord(userId, req.body);
+
+  return res.json({ healthRecord });
+});
 
 app.post("/api/analyze-health-record", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
