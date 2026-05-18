@@ -19,6 +19,9 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSHealthShareUsageDescription": "Dara uses health data such as sleep, steps and activity to provide better guidance.",
         "NSHealthUpdateUsageDescription": "Dara may save selected wellness context only when you allow it."
+      },
+      "entitlements": {
+        "com.apple.developer.healthkit": true
       }
     },
     "android": {

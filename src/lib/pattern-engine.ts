@@ -401,25 +401,14 @@ export function buildPatternAnalysis({
       id: "blood-test-context",
       title: "Blood test context added",
       summary:
-        bloodTestBiomarkers.length > 0
-          ? `Dara found ${bloodTestBiomarkers.slice(0, 3).map((item) => item.name).join(", ")} in your report.`
-          : bloodTestFocusAreas.length > 0
-            ? `Dara is using ${bloodTestFocusAreas.slice(0, 2).join(", ")} as biomarker context.`
-            : "Dara is using your analyzed blood test as recovery context.",
+        "Biomarkers are now included in Dara’s recovery and fatigue context.",
       severity: "medium",
       label: "BIOMARKERS",
       accent: "#FF647C",
       icon: "pulse-outline",
       points: [
-        bloodTestBiomarkers.length > 0
-          ? `Markers: ${bloodTestBiomarkers
-              .slice(0, 3)
-              .map((item) => `${item.name}${item.status ? ` (${item.status})` : ""}`)
-              .join(", ")}.`
-          : bloodTestFocusAreas.length > 0
-            ? `Focus areas: ${bloodTestFocusAreas.slice(0, 3).join(", ")}.`
-            : (bloodTestSummary ?? "Blood test context is available.").slice(0, 160),
         "Blood markers can add deeper context for recovery and fatigue.",
+        "Detailed biomarker interpretation is available in Health Records and PDF reports.",
         "General wellness context only. Review abnormal results with a clinician.",
       ],
     });

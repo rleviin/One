@@ -91,6 +91,7 @@ export default function ProfileTab({
   const [showHistoryPreview, setShowHistoryPreview] = useState(false);
   const [healthSummary, setHealthSummary] = useState<DaraHealthSummary | null>(null);
   const [isConnectingHealth, setIsConnectingHealth] = useState(false);
+  const [appleHealthStatusText, setAppleHealthStatusText] = useState<string | null>(null);
   const { data, isLoading, reload } = useDaraData(dataVersion);
   const [showContextSheet, setShowContextSheet] = useState(false);
   const [authUser, setAuthUser] = useState<DaraAuthUser | null>(null);
@@ -107,13 +108,29 @@ export default function ProfileTab({
   const recentCheckIns = data.dailyCheckInHistory.slice(0, 5);
   async function connectAppleHealth() {
     setIsConnectingHealth(true);
+    setAppleHealthStatusText(null);
 
     try {
-      await requestAppleHealthAccess();
+      const granted = await requestAppleHealthAccess();
+
+      if (!granted) {
+        setAppleHealthStatusText(
+          "Apple Health did not grant access. This may mean HealthKit is not enabled for this build or permission was denied."
+        );
+        return;
+      }
+
       const summary = await loadAppleHealthSummary();
       setHealthSummary(summary);
       await saveHealthSummary(summary);
+      setAppleHealthStatusText("Apple Health connected successfully.");
       await successTap();
+    } catch (error) {
+      setAppleHealthStatusText(
+        error instanceof Error
+          ? `Apple Health error: ${error.message}`
+          : "Apple Health connection failed."
+      );
     } finally {
       setIsConnectingHealth(false);
     }
@@ -853,6 +870,12 @@ return (
             </View>
           </View>
         </View>
+
+        {appleHealthStatusText && (
+          <Text style={styles.appleHealthStatusText}>
+            {appleHealthStatusText}
+          </Text>
+        )}
 
         <AnimatedPressable
           style={styles.sheetButton}
@@ -1683,6 +1706,14 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.66)",
     fontSize: 13,
     lineHeight: 18,
+  },
+
+  appleHealthStatusText: {
+    color: "rgba(255,255,255,0.62)",
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: "center",
+    marginBottom: 14,
   },
 
   sheetButton: {

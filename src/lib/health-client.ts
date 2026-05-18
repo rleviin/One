@@ -1,7 +1,14 @@
-import AppleHealthKit, {
+import type {
   HealthInputOptions,
   HealthKitPermissions,
 } from "react-native-health";
+
+const AppleHealthKitModule = require("react-native-health");
+
+const AppleHealthKit =
+  AppleHealthKitModule?.default ??
+  AppleHealthKitModule?.AppleHealthKit ??
+  AppleHealthKitModule;
 
 const permissions: HealthKitPermissions = {
   permissions: {
@@ -27,7 +34,7 @@ export type DaraHealthSummary = {
 
 export function requestAppleHealthAccess(): Promise<boolean> {
   return new Promise((resolve) => {
-    AppleHealthKit.initHealthKit(permissions, (error) => {
+    AppleHealthKit.initHealthKit(permissions, (error: any) => {
       resolve(!error);
     });
   });
@@ -54,13 +61,13 @@ export async function loadAppleHealthSummary(): Promise<DaraHealthSummary> {
   };
 
   const stepsToday = await new Promise<number | null>((resolve) => {
-    AppleHealthKit.getStepCount(todayOptions, (error, result) => {
+    AppleHealthKit.getStepCount(todayOptions, (error: any, result: any) => {
       resolve(error ? null : result?.value ?? null);
     });
   });
 
   const activeEnergyToday = await new Promise<number | null>((resolve) => {
-    AppleHealthKit.getActiveEnergyBurned(todayOptions, (error, results) => {
+    AppleHealthKit.getActiveEnergyBurned(todayOptions, (error: any, results: any) => {
       if (error || !Array.isArray(results)) {
         resolve(null);
         return;
@@ -73,7 +80,7 @@ export async function loadAppleHealthSummary(): Promise<DaraHealthSummary> {
   });
 
   const sleepHoursLastNight = await new Promise<number | null>((resolve) => {
-    AppleHealthKit.getSleepSamples(sleepOptions, (error, results) => {
+    AppleHealthKit.getSleepSamples(sleepOptions, (error: any, results: any) => {
       if (error || !Array.isArray(results)) {
         resolve(null);
         return;
@@ -96,7 +103,7 @@ export async function loadAppleHealthSummary(): Promise<DaraHealthSummary> {
   });
 
   const heartRateSamples = await new Promise<number>((resolve) => {
-    AppleHealthKit.getHeartRateSamples(todayOptions, (error, results) => {
+    AppleHealthKit.getHeartRateSamples(todayOptions, (error: any, results: any) => {
       resolve(error || !Array.isArray(results) ? 0 : results.length);
     });
   });
@@ -104,7 +111,7 @@ export async function loadAppleHealthSummary(): Promise<DaraHealthSummary> {
   const hrvSamples = await new Promise<number>((resolve) => {
     AppleHealthKit.getHeartRateVariabilitySamples(
       todayOptions,
-      (error, results) => {
+      (error: any, results: any) => {
         resolve(error || !Array.isArray(results) ? 0 : results.length);
       }
     );

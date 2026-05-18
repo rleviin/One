@@ -1,36 +1,14 @@
+import { getDaraAuthToken } from "../auth-client";
+import { DARA_API_URL } from "../config";
+
 export type WeatherProviderData = {
   temperatureC: number | null;
   condition: "clear" | "cloudy" | "rain" | "storm" | "snow" | "unknown";
   daylightHours: number | null;
   humidity: number | null;
-  source: "mock" | "weather-api";
+  source: "mock" | "weather-api" | "server-cache" | "fallback";
   updatedAt: string;
 };
-
-type OpenMeteoResponse = {
-  current?: {
-    temperature_2m?: number;
-    relative_humidity_2m?: number;
-    weather_code?: number;
-  };
-  daily?: {
-    daylight_duration?: number[];
-  };
-};
-
-function mapWeatherCodeToCondition(
-  code: number | undefined
-): WeatherProviderData["condition"] {
-  if (code === undefined) return "unknown";
-
-  if (code === 0 || code === 1) return "clear";
-  if (code === 2 || code === 3 || code === 45 || code === 48) return "cloudy";
-  if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return "rain";
-  if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) return "snow";
-  if (code >= 95) return "storm";
-
-  return "unknown";
-}
 
 export type WeatherProviderInput = {
   latitude?: number | null;
@@ -42,41 +20,35 @@ export async function loadWeatherProviderData({
   longitude = -2.2426,
 }: WeatherProviderInput = {}): Promise<WeatherProviderData> {
   try {
+    const token = await getDaraAuthToken();
 
-    const url =
-      "https://api.open-meteo.com/v1/forecast" +
-      `?latitude=${latitude}` +
-      `&longitude=${longitude}` +
-      "&current=temperature_2m,relative_humidity_2m,weather_code" +
-      "&daily=daylight_duration" +
-      "&timezone=auto";
-
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`Weather API failed with status ${response.status}`);
+    if (!token) {
+      throw new Error("Missing auth");
     }
 
-    const json = (await response.json()) as OpenMeteoResponse;
-
-    const daylightSeconds = json.daily?.daylight_duration?.[0] ?? null;
-
-    return {
-      temperatureC: json.current?.temperature_2m ?? null,
-      condition: mapWeatherCodeToCondition(json.current?.weather_code),
-      daylightHours:
-        daylightSeconds === null ? null : Math.round((daylightSeconds / 3600) * 10) / 10,
-      humidity: json.current?.relative_humidity_2m ?? null,
-      source: "weather-api",
-      updatedAt: new Date().toISOString(),
+    const headers = {
+      Authorization: `Bearer ${token}`,
     };
+
+    const response = await fetch(
+      `${DARA_API_URL}/api/context/weather?latitude=${latitude}&longitude=${longitude}`,
+      { headers }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Weather endpoint failed with ${response.status}`);
+    }
+
+    const json = await response.json();
+
+    return json.weather as WeatherProviderData;
   } catch {
     return {
       temperatureC: null,
       condition: "unknown",
       daylightHours: null,
       humidity: null,
-      source: "mock",
+      source: "fallback",
       updatedAt: new Date().toISOString(),
     };
   }

@@ -61,7 +61,7 @@ import {
 
 function MetricCard({ label, value, hint, tone }: MetricCardProps) {
   return (
-    <View style={[styles.metricCard, styles[`metricCard_${tone}`]]}>
+    <View style={[styles.metricCard, (styles as any)[`metricCard_${tone}`]]}>
       <View style={styles.metricGlow} />
 
       <Text style={styles.metricLabel}>{label}</Text>
@@ -203,7 +203,7 @@ if (showPremium) {
       </View>
 <View style={styles.tabBar}>
   <Pressable
-    style={[styles.tabBarItem, tab === "home" && styles.tabBarItemActive]}
+    style={[styles.tabBarItem, tab === "home" ? styles.tabBarItemActive : null]}
     onPress={() => {
   lightTap();
   setTab("home");
@@ -220,7 +220,7 @@ if (showPremium) {
   </Pressable>
 
   <Pressable
-    style={[styles.tabBarItem, tab === "forecast" && styles.tabBarItemActive]}
+    style={[styles.tabBarItem, tab === "forecast" ? styles.tabBarItemActive : null]}
     onPress={() => {
   lightTap();
   setTab("forecast");
@@ -237,7 +237,7 @@ if (showPremium) {
   </Pressable>
 
   <Pressable
-    style={[styles.tabBarItem, tab === "insights" && styles.tabBarItemActive]}
+    style={[styles.tabBarItem, tab === "insights" ? styles.tabBarItemActive : null]}
     onPress={() => {
   lightTap();
   setTab("insights");
@@ -254,7 +254,7 @@ if (showPremium) {
   </Pressable>
 
   <Pressable
-    style={[styles.tabBarItem, tab === "profile" && styles.tabBarItemActive]}
+    style={[styles.tabBarItem, tab === "profile" ? styles.tabBarItemActive : null]}
     onPress={() => {
   lightTap();
   setTab("profile");

@@ -2,6 +2,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import OpenAI from "openai";
+import { getCachedWeatherContext } from "./external-weather";
+import { getCachedProbabilityContext } from "./external-probability";
 import { loginUser, signupUser, verifyToken } from "./auth/auth-store";
 import { requireAuth, type AuthenticatedRequest } from "./auth/auth-middleware";
 import {
@@ -237,6 +239,25 @@ app.get("/api/user/health-record", requireAuth, (req: AuthenticatedRequest, res)
   }
 
   return res.json({ healthRecord: getHealthRecord(userId) });
+});
+
+
+
+app.get("/api/context/probability", requireAuth, async (req: AuthenticatedRequest, res) => {
+  const country = typeof req.query.country === "string" ? req.query.country : null;
+
+  const probability = await getCachedProbabilityContext({ country });
+
+  return res.json({ probability });
+});
+
+app.get("/api/context/weather", requireAuth, async (req: AuthenticatedRequest, res) => {
+  const latitude = req.query.latitude ? Number(req.query.latitude) : undefined;
+  const longitude = req.query.longitude ? Number(req.query.longitude) : undefined;
+
+  const weather = await getCachedWeatherContext({ latitude, longitude });
+
+  return res.json({ weather });
 });
 
 app.post("/api/user/health-record", requireAuth, (req: AuthenticatedRequest, res) => {
