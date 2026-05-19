@@ -70,6 +70,27 @@ function readDb(): Record<string, UserCloudData> {
 
 function writeDb(data: Record<string, UserCloudData>) {
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+
+  if (fs.existsSync(dbPath)) {
+    const backupDir = path.join(path.dirname(dbPath), "backups");
+    fs.mkdirSync(backupDir, { recursive: true });
+
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const backupPath = path.join(backupDir, `user-cloud-data-${stamp}.json`);
+
+    fs.copyFileSync(dbPath, backupPath);
+
+    const backups = fs
+      .readdirSync(backupDir)
+      .filter((file) => file.startsWith("user-cloud-data-"))
+      .sort()
+      .reverse();
+
+    backups.slice(20).forEach((file) => {
+      fs.unlinkSync(path.join(backupDir, file));
+    });
+  }
+
   fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
 }
 

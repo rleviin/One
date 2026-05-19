@@ -2,6 +2,7 @@ import HomeTab from "./src/screens/HomeTab";
 import ForecastTab from "./src/screens/ForecastTab";
 import InsightsTab from "./src/screens/InsightsTab";
 import ProfileTab from "./src/screens/ProfileTab";
+import ScreenTransition from "./src/components/ScreenTransition";
 import AuthScreen from "./src/screens/AuthScreen";
 import OnboardingScreen from "./src/screens/OnboardingScreen";
 import ExplanationScreen from "./src/screens/ExplanationScreen";
@@ -175,29 +176,40 @@ if (showPremium) {
     <SafeAreaView style={styles.mainAppContainer}>
       <View style={styles.mainContent}>
 {tab === "home" && (
-<HomeTab
-  dataVersion={dataVersion}
-  onOpenCheckIn={() => setShowCheckIn(true)}
-/>
-  
+  <ScreenTransition transitionKey="home">
+    <HomeTab
+      dataVersion={dataVersion}
+      onOpenCheckIn={() => setShowCheckIn(true)}
+    />
+  </ScreenTransition>
 )}
 
-{tab === "forecast" && <ForecastTab dataVersion={dataVersion} />}
+{tab === "forecast" && (
+  <ScreenTransition transitionKey="forecast">
+    <ForecastTab dataVersion={dataVersion} />
+  </ScreenTransition>
+)}
 
-{tab === "insights" && <InsightsTab dataVersion={dataVersion} />}
+{tab === "insights" && (
+  <ScreenTransition transitionKey="insights">
+    <InsightsTab dataVersion={dataVersion} />
+  </ScreenTransition>
+)}
 
 {tab === "profile" && (
 
 
-<ProfileTab
-  dataVersion={dataVersion}
-  onOpenSetup={() => setShowSetup(true)}
-  isPremium={IS_PREMIUM_USER}
-  onOpenHistory={() => setShowHistory(true)}
-  onOpenPremium={() => setShowPremium(true)}
-  onOpenHealthRecords={() => setShowHealthRecordsScreen(true)}
-  onLogout={onLogout}
-/>
+<ScreenTransition transitionKey="profile">
+  <ProfileTab
+    dataVersion={dataVersion}
+    onOpenSetup={() => setShowSetup(true)}
+    isPremium={IS_PREMIUM_USER}
+    onOpenHistory={() => setShowHistory(true)}
+    onOpenPremium={() => setShowPremium(true)}
+    onOpenHealthRecords={() => setShowHealthRecordsScreen(true)}
+    onLogout={onLogout}
+  />
+</ScreenTransition>
 
 )}
       </View>
@@ -1136,6 +1148,7 @@ quickText: {
     left: 16,
     right: 16,
     bottom: 16,
+    width: "auto",
     flexDirection: "row",
     backgroundColor: "rgba(14,20,39,0.96)",
     borderRadius: 22,
@@ -1159,7 +1172,7 @@ tabBarItem: {
     fontWeight: "600",
   },
   
-  color: "#FFFFFF",tabBarTextActive: {
+  tabBarTextActive: {
     color: "#FFFFFF",
   },
 

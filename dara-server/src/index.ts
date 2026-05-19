@@ -1,6 +1,8 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import OpenAI from "openai";
 import { getCachedWeatherContext } from "./external-weather";
 import { getCachedProbabilityContext } from "./external-probability";
@@ -26,8 +28,50 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-app.use(cors());
+app.use(helmet());
+
+const allowedOrigins = [
+  "https://getdara.ai",
+  "https://www.getdara.ai",
+];
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Not allowed by CORS"));
+    },
+  })
+);
+
+const generalRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 250,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const aiRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 25,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(generalRateLimit);
 app.use(express.json({ limit: "8mb" }));
+
+app.use("/api/analyze-meal", aiRateLimit);
+app.use("/api/analyze-health-record", aiRateLimit);
+
+app.use((req, _res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next();
+});
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
@@ -486,6 +530,14 @@ app.post("/api/dara/think", async (req, res) => {
       mode: "fallback",
     });
   }
+});
+
+app.use((error: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error(`[${new Date().toISOString()}] Server error:`, error.message);
+
+  res.status(500).json({
+    error: "Internal server error",
+  });
 });
 
 app.listen(port, () => {
