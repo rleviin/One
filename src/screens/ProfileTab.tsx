@@ -99,6 +99,10 @@ export default function ProfileTab({
     getDaraAuthUser().then(setAuthUser);
   }, [dataVersion]);
 
+  useEffect(() => {
+    setHealthSummary(data.healthSummary);
+  }, [data.healthSummary]);
+
   const profileName = authUser?.name || "Dara user";
   const profileInitial = profileName.trim().charAt(0).toUpperCase() || "D";
 
