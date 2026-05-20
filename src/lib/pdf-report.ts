@@ -58,6 +58,9 @@ export async function exportDaraPdfReport(data: DaraUserData, periodLabel: strin
         <p>
           Sleep: ${esc(health?.sleepHoursLastNight ? `${health.sleepHoursLastNight.toFixed(1)}h` : "—")}<br/>
           Steps: ${esc(health?.stepsToday ?? "—")}<br/>
+          Active energy: ${esc(health?.activeEnergyToday ? Math.round(health.activeEnergyToday) : "—")}<br/>
+          Heart rate samples: ${esc(health?.heartRateSamples ?? "—")}<br/>
+          HRV samples: ${esc(health?.hrvSamples ?? "—")}<br/>
           Active energy: ${esc(health?.activeEnergyToday ? `${Math.round(health.activeEnergyToday)} kcal` : "—")}
         </p>
 

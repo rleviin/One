@@ -448,7 +448,17 @@ return (
           <View style={styles.setupTextBlock}>
             <Text style={styles.setupTitle}>Apple Health</Text>
             <Text style={styles.setupText}>
-              Connect sleep, activity, HRV, workouts and recovery data later.
+              {healthSummary
+                ? `Steps ${healthSummary.stepsToday ?? "—"} · Sleep ${
+                    healthSummary.sleepHoursLastNight
+                      ? `${healthSummary.sleepHoursLastNight.toFixed(1)}h`
+                      : "—"
+                  } · Energy ${
+                    healthSummary.activeEnergyToday
+                      ? Math.round(healthSummary.activeEnergyToday)
+                      : "—"
+                  }`
+                : "Connect sleep, activity, HRV, workouts and recovery data."}
             </Text>
           </View>
 
@@ -835,7 +845,7 @@ return (
                 Steps today: {healthSummary.stepsToday ?? "—"} · Sleep:
                 {healthSummary.sleepHoursLastNight
                   ? ` ${healthSummary.sleepHoursLastNight.toFixed(1)}h`
-                  : " —"}
+                  : " —"} · Energy: {healthSummary.activeEnergyToday ? Math.round(healthSummary.activeEnergyToday) : "—"} · HR: {healthSummary.heartRateSamples} samples · HRV: {healthSummary.hrvSamples} samples
               </Text>
             </View>
           </View>

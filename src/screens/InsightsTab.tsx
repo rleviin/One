@@ -27,6 +27,7 @@ export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
   const checkIn = data.dailyCheckIn;
   const daraBrain = useMemo(() => buildDaraBrain(data), [data]);
   const insights = daraBrain.insightsView.patterns;
+  const healthSummary = data.healthSummary;
   const [selectedInsight, setSelectedInsight] =
     useState<DaraPatternInsight | null>(null);
 
@@ -87,6 +88,52 @@ export default function InsightsTab({ dataVersion = 0 }: InsightsTabProps) {
               Latest check-in · Energy {checkIn.energy}/10 · Stress{" "}
               {checkIn.stress}/10 · Workload {checkIn.workload}/10
             </Text>
+          </View>
+        )}
+
+        {healthSummary && (
+          <View style={styles.healthSignalCard}>
+            <View style={styles.healthSignalTop}>
+              <View style={styles.healthSignalIcon}>
+                <Ionicons name="heart-outline" size={20} color="#58E7FF" />
+              </View>
+
+              <View style={{ flex: 1 }}>
+                <Text style={styles.healthSignalLabel}>APPLE HEALTH</Text>
+                <Text style={styles.healthSignalTitle}>
+                  Recovery signals are connected
+                </Text>
+              </View>
+            </View>
+
+            <Text style={styles.healthSignalText}>
+              Sleep, activity and recovery data are now part of Dara’s pattern analysis.
+            </Text>
+
+            <View style={styles.healthSignalMetrics}>
+              <View style={styles.healthSignalMetric}>
+                <Text style={styles.healthSignalMetricValue}>
+                  {healthSummary.sleepHoursLastNight
+                    ? `${healthSummary.sleepHoursLastNight.toFixed(1)}h`
+                    : "—"}
+                </Text>
+                <Text style={styles.healthSignalMetricLabel}>Sleep</Text>
+              </View>
+
+              <View style={styles.healthSignalMetric}>
+                <Text style={styles.healthSignalMetricValue}>
+                  {healthSummary.stepsToday ?? "—"}
+                </Text>
+                <Text style={styles.healthSignalMetricLabel}>Steps</Text>
+              </View>
+
+              <View style={styles.healthSignalMetric}>
+                <Text style={styles.healthSignalMetricValue}>
+                  {healthSummary.hrvSamples ?? 0}
+                </Text>
+                <Text style={styles.healthSignalMetricLabel}>HRV</Text>
+              </View>
+            </View>
           </View>
         )}
 
@@ -329,6 +376,83 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontWeight: "700",
     marginLeft: 10,
+  },
+
+  healthSignalCard: {
+    borderRadius: 26,
+    padding: 16,
+    backgroundColor: "rgba(88,231,255,0.075)",
+    borderWidth: 1,
+    borderColor: "rgba(88,231,255,0.18)",
+    marginBottom: 20,
+  },
+
+  healthSignalTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+
+  healthSignalIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(88,231,255,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(88,231,255,0.24)",
+    marginRight: 12,
+  },
+
+  healthSignalLabel: {
+    color: "#58E7FF",
+    fontSize: 11,
+    fontWeight: "900",
+    letterSpacing: 2.1,
+    marginBottom: 4,
+  },
+
+  healthSignalTitle: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    lineHeight: 22,
+    fontWeight: "900",
+  },
+
+  healthSignalText: {
+    color: "rgba(255,255,255,0.64)",
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 13,
+  },
+
+  healthSignalMetrics: {
+    flexDirection: "row",
+    gap: 10,
+  },
+
+  healthSignalMetric: {
+    flex: 1,
+    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    backgroundColor: "rgba(255,255,255,0.07)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.10)",
+  },
+
+  healthSignalMetricValue: {
+    color: "#FFFFFF",
+    fontSize: 17,
+    fontWeight: "900",
+    marginBottom: 3,
+  },
+
+  healthSignalMetricLabel: {
+    color: "rgba(255,255,255,0.54)",
+    fontSize: 12,
+    fontWeight: "800",
   },
 
   sectionTitle: {

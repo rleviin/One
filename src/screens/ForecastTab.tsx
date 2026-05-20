@@ -102,7 +102,47 @@ return (
           </Text>
         </View>
 
-        {!healthSummary && (
+        {healthSummary ? (
+          <View style={styles.healthSignalCard}>
+            <View style={styles.healthContextHeader}>
+              <View style={styles.healthContextIcon}>
+                <Ionicons name="heart-outline" size={19} color="#58E7FF" />
+              </View>
+
+              <View style={{ flex: 1 }}>
+                <Text style={styles.healthContextLabel}>Health signal</Text>
+                <Text style={styles.healthContextTitle}>
+                  Apple Health is shaping this forecast
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.healthMetricRow}>
+              <View style={styles.healthMetricPill}>
+                <Text style={styles.healthMetricValue}>
+                  {healthSummary.sleepHoursLastNight
+                    ? `${healthSummary.sleepHoursLastNight.toFixed(1)}h`
+                    : "—"}
+                </Text>
+                <Text style={styles.healthMetricLabel}>Sleep</Text>
+              </View>
+
+              <View style={styles.healthMetricPill}>
+                <Text style={styles.healthMetricValue}>
+                  {healthSummary.stepsToday ?? "—"}
+                </Text>
+                <Text style={styles.healthMetricLabel}>Steps</Text>
+              </View>
+
+              <View style={styles.healthMetricPill}>
+                <Text style={styles.healthMetricValue}>
+                  {healthSummary.hrvSamples ?? 0}
+                </Text>
+                <Text style={styles.healthMetricLabel}>HRV</Text>
+              </View>
+            </View>
+          </View>
+        ) : (
           <View style={styles.healthContextCard}>
             <View style={styles.healthContextHeader}>
               <View style={styles.healthContextIcon}>
@@ -301,6 +341,44 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     textTransform: "uppercase",
     marginTop: 16,
+  },
+
+  healthSignalCard: {
+    borderRadius: 26,
+    padding: 16,
+    backgroundColor: "rgba(88,231,255,0.075)",
+    borderWidth: 1,
+    borderColor: "rgba(88,231,255,0.18)",
+    marginBottom: 22,
+  },
+
+  healthMetricRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 14,
+  },
+
+  healthMetricPill: {
+    flex: 1,
+    borderRadius: 18,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    backgroundColor: "rgba(255,255,255,0.07)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.10)",
+  },
+
+  healthMetricValue: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "900",
+    marginBottom: 4,
+  },
+
+  healthMetricLabel: {
+    color: "rgba(255,255,255,0.54)",
+    fontSize: 12,
+    fontWeight: "800",
   },
 
   healthContextCard: {
