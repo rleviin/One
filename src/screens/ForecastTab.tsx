@@ -13,6 +13,7 @@ import ScreenBackground from "../components/ScreenBackground";
 
 import { useDaraData } from "../useDaraData";
 import { buildDaraBrain } from "../lib/dara-brain";
+import { buildRecoverySignal } from "../lib/recovery-engine";
 
 type ForecastTabProps = {
   dataVersion?: number;
@@ -29,6 +30,7 @@ export default function ForecastTab({ dataVersion = 0 }: ForecastTabProps) {
   const changePoints = forecastView.actions;
   const timeline = forecastView.timeline;
   const healthSummary = data.healthSummary;
+  const recoverySignal = buildRecoverySignal(healthSummary);
 
 return (
   <ScreenBackground>
@@ -161,6 +163,22 @@ return (
               Sleep, activity and recovery data can help Dara understand your
               real baseline and make guidance more personal.
             </Text>
+          </View>
+        )}
+
+        {recoverySignal && (
+          <View style={styles.recoveryScoreCard}>
+            <View style={styles.recoveryScoreTop}>
+              <View style={styles.recoveryScoreCircle}>
+                <Text style={styles.recoveryScoreValue}>{recoverySignal.score}</Text>
+              </View>
+
+              <View style={{ flex: 1 }}>
+                <Text style={styles.healthContextLabel}>RECOVERY SCORE</Text>
+                <Text style={styles.healthContextTitle}>{recoverySignal.title}</Text>
+                <Text style={styles.recoveryScoreText}>{recoverySignal.summary}</Text>
+              </View>
+            </View>
           </View>
         )}
 
@@ -341,6 +359,45 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     textTransform: "uppercase",
     marginTop: 16,
+  },
+
+  recoveryScoreCard: {
+    borderRadius: 26,
+    padding: 16,
+    backgroundColor: "rgba(185,198,255,0.075)",
+    borderWidth: 1,
+    borderColor: "rgba(185,198,255,0.18)",
+    marginBottom: 22,
+  },
+
+  recoveryScoreTop: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  recoveryScoreCircle: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(185,198,255,0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(185,198,255,0.28)",
+    marginRight: 14,
+  },
+
+  recoveryScoreValue: {
+    color: "#FFFFFF",
+    fontSize: 24,
+    fontWeight: "900",
+  },
+
+  recoveryScoreText: {
+    color: "rgba(255,255,255,0.62)",
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 6,
   },
 
   healthSignalCard: {
